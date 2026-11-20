@@ -379,6 +379,7 @@ graph LR
 - **Gobernanza y Cumplimiento de Lineamientos AGENTS.md**:
   - **Saneamiento UTF-8 Integral (Anti-Mojibake)**: Implementación de rutinas canónicas recursivas `fix_utf8()`, `fix_hash_utf8()` y `fix_array_utf8()` en `views/consulta_detalles.pl` e `api/imprimir_receta_api.pl`, reparando secuencias de doble codificación residuales en cadenas históricas (ej. `CÃ¡psula` -> `Cápsula`, `dÃ­as` -> `días`) y estandarizando los descriptores de `binmode(STDOUT, ":encoding(UTF-8)")`.
   - **Separación Estricta de CSS**: Desacoplamiento de las reglas de estilo de receta hacia el archivo modular `css/receta_medica_digital.css`.
+  - **Proporción y Dimensiones del Logotipo Institucional**: Adecuación en `css/nota_clinica_soap_multipage.css` y `views/consulta_detalles.pl` de las clases `.sheet-logo-zone` y `.sheet-logo-img` con dimensiones calibradas (`max-height: 38px`, `max-width: 85px`, `object-fit: contain` en pantalla; `max-height: 36px`, `max-width: 80px` en `@media print`), garantizando una presencia discreta, nítida y perfectamente integrada en la cabecera del documento.
   - **Aislamiento de Javascript y Prevención de Colisiones de Sigilos**: Erradicación de interpolaciones directas de variables de Perl en bloques `<script>` mediante contenedores DOM (`data-*`) y bloques aislados con comillas simples (`print <<'JS';`).
   - **Prohibición de `sub_footer.pl`**: Eliminación de dependencias obsoletas al pie heredado de página en todos los nuevos scripts de visualización.
 

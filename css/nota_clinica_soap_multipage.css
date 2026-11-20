@@ -229,13 +229,36 @@
 /* --------------------------------------------------------------------------
    4. ELEMENTOS INTERNOS DE LAS HOJAS CLÍNICAS
    -------------------------------------------------------------------------- */
-.sheet-header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 2px solid var(--clinical-navy-dark);
+.sheet-header-top,
+.sheet-header {
+    border-bottom: 2px solid var(--clinical-navy-dark, #0D2238);
     padding-bottom: 0.45rem;
     margin-bottom: 0.55rem;
+}
+
+.sheet-header-grid {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+}
+
+.sheet-logo-zone {
+    flex-shrink: 0;
+    max-width: 95px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.sheet-logo-img {
+    max-height: 38px !important;
+    max-width: 85px !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 4px;
+    display: block;
 }
 
 .sheet-logo-box {
@@ -608,6 +631,14 @@
         padding: 0 !important;
         margin: 0 !important;
         transform: none !important;
+    }
+
+    .sheet-logo-img {
+        max-height: 36px !important;
+        max-width: 80px !important;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain !important;
     }
 }
 

@@ -592,6 +592,25 @@ print <<HTML;
             display: none;
         }
 
+        /* Dimensiones controladas y proporcionales para el logotipo en cabecera */
+        .sheet-logo-zone {
+            flex-shrink: 0;
+            max-width: 95px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .sheet-logo-img {
+            max-height: 38px !important;
+            max-width: 85px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            border-radius: 4px;
+            display: block;
+        }
+
         /* Ocultar elementos de UI interactiva durante la impresión */
         \@media print {
             .topbar-control, .pdf-multipage-toolbar, .no-print, .bento-wrapper {
@@ -621,6 +640,13 @@ print <<HTML;
             }
             .page-break-indicator-web {
                 display: none !important;
+            }
+            .sheet-logo-img {
+                max-height: 36px !important;
+                max-width: 80px !important;
+                width: auto !important;
+                height: auto !important;
+                object-fit: contain !important;
             }
         }
     </style>
@@ -1041,7 +1067,7 @@ print <<HTML;
                     <div class="sheet-header">
                         <div class="sheet-header-grid">
                             <div class="sheet-logo-zone">
-                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img">
+                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img" style="max-height: 38px; max-width: 85px; width: auto; height: auto; object-fit: contain;">
                             </div>
                             <div class="sheet-org-info">
                                 <h1 class="sheet-org-title">$org->{nombre_negocio}</h1>
@@ -1235,7 +1261,7 @@ print <<HTML;
                     <div class="sheet-header">
                         <div class="sheet-header-grid">
                             <div class="sheet-logo-zone">
-                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img">
+                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img" style="max-height: 38px; max-width: 85px; width: auto; height: auto; object-fit: contain;">
                             </div>
                             <div class="sheet-org-info">
                                 <h1 class="sheet-org-title">$org->{nombre_negocio}</h1>
