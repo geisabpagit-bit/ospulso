@@ -1223,68 +1223,109 @@ JS
             <div class="d-flex justify-content-between align-items-start align-items-md-center mb-4 flex-column flex-md-row gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(25, 183, 165, 0.12); border: 1.5px solid rgba(25, 183, 165, 0.3);">
-                        <i class="bi bi-heart-pulse-fill fs-5" style="color: var(--md-teal-clinical);"></i>
+                        <i class="bi bi-heart-pulse-fill fs-5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
                     </div>
                     <div>
-                        <h3 class="fw-black m-0" style="color: var(--md-blue-deep); letter-spacing: -0.5px;">Hub de Consultas</h3>
-                        <p class="text-muted small fw-bold m-0" style="letter-spacing: 0.5px;">ATENCI&Oacute;N CL&Iacute;NICA Y TRAZABILIDAD</p>
+                        <h4 class="fw-bold plus-jakarta m-0" style="color: var(--md-blue-deep, #0A2A66); letter-spacing: -0.4px;">Hub de Consultas</h4>
+                        <p class="text-muted small m-0" style="font-size: 0.72rem; letter-spacing: 0.3px;">ATENCI&Oacute;N CL&Iacute;NICA Y TRAZABILIDAD</p>
                     </div>
                 </div>
                 <div class="d-flex gap-2 flex-wrap w-100 w-md-auto">
-                    <a href="agenda_main.pl?id=$paciente->{id_paciente}" class="btn btn-outline-medentia flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center rounded-pill px-3 py-2 small fw-bold">
-                        <i class="bi bi-calendar-event me-2" style="color: var(--md-teal-clinical);"></i>Gestionar Agenda
+                    <a href="agenda_main.pl?id=$paciente->{id_paciente}" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold d-flex align-items-center justify-content-center border" style="background:#FFFFFF; border-color: rgba(25, 183, 165, 0.4) !important; color: var(--md-blue-deep, #0A2A66); font-size: 0.82rem;">
+                        <i class="bi bi-calendar-event me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Gestionar Agenda
                     </a>
-                    <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}" class="btn btn-medentia flex-grow-1 flex-md-grow-0 d-flex align-items-center justify-content-center rounded-pill px-3 py-2 small fw-bold shadow-sm">
-                        <i class="bi bi-lightning-charge-fill me-2" style="color: var(--md-cyan-ia);"></i>Consulta Express (Sin Cita)
+                    <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}" onclick="notificarInicioConsultaAgenda('', '$paciente->{id_paciente}')" class="btn btn-sm rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center justify-content-center text-white shadow-xs" style="background: var(--md-blue-deep, #0A2A66); font-size: 0.82rem;">
+                        <i class="bi bi-lightning-charge-fill me-2" style="color: #00C0B5;"></i>Consulta Express (Sin Cita)
                     </a>
                 </div>
             </div>
 
-            <!-- Panel Superior: Citas Pendientes de Atención -->
-            <h5 class="fw-black mb-3" style="color: var(--md-blue-deep);"><i class="bi bi-calendar-check-fill me-2" style="color: var(--md-teal-clinical);"></i>Citas Programadas Listas para Atenderse</h5>
-            <div class="row g-3 mb-5">
+            <!-- Panel Superior: Citas Pendientes de Atención (Estilo Finanzas Hub) -->
+            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold plus-jakarta mb-1 d-flex align-items-center gap-2" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.05rem; letter-spacing: -0.3px;">
+                        <i class="bi bi-calendar-check" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                        Citas Programadas Listas para Atenderse
+                    </h5>
+                    <p class="text-muted small mb-0" style="font-size: 0.72rem; line-height: 1.25;">Pacientes en turno, citas confirmadas en espera o con consulta activa en curso</p>
+                </div>
+            </div>
+            <div class="row g-3 mb-5" id="contenedorCitasPendientes">
 HTML
     my $hay_citas_pendientes = 0;
     foreach my $c (@$citas_ref) {
         if ($c->{estado} !~ /Realizada|Atendida|Cancelada/i) {
             $hay_citas_pendientes = 1;
             my $is_en_consulta = ($c->{estado} =~ /En consulta|proceso/i);
-            my $badge_color = $is_en_consulta ? 'info' : ($c->{estado} =~ /Confirmada/i) ? 'success' : ($c->{estado} =~ /No Asistió|No Asistio/i) ? 'warning' : 'primary';
-            my $btn_label = $is_en_consulta ? "Continuar con la consulta" : "Iniciar";
-            my $btn_class = $is_en_consulta ? "btn btn-info text-white btn-sm d-flex align-items-center px-4 rounded-pill shadow-sm fw-bold" : "btn btn-medentia btn-sm d-flex align-items-center px-4 rounded-pill fw-bold";
             my $medico_nombre_pend = obtener_nombre_medico($c->{id_medico});
+            my $id_cita_card = $c->{id_cita};
+
+            my ($badge_estado, $card_style, $btn_label);
+            if ($is_en_consulta) {
+                $card_style = "background: #FFFFFF; border: 1.5px solid rgba(25, 183, 165, 0.45) !important; border-left: 5px solid #00C0B5 !important;";
+                $badge_estado = qq{<span class="badge rounded-pill px-2.5 py-1 text-white fw-semibold d-inline-flex align-items-center gap-1.5" style="background: linear-gradient(135deg, #00C0B5 0%, #00847D 100%); font-size: 0.72rem;"><span class="spinner-grow spinner-grow-sm text-white" style="width: 0.45rem; height: 0.45rem;" role="status"></span>Consulta en proceso</span>};
+                $btn_label = "Continuar con la consulta";
+            } else {
+                my $color_st = ($c->{estado} =~ /Confirmada/i) ? 'success' : ($c->{estado} =~ /No Asist/i) ? 'warning' : 'primary';
+                $card_style = "background: #FFFFFF; border: 1px solid #E2E8F0 !important; border-left: 4px solid var(--md-blue-deep, #0A2A66) !important;";
+                $badge_estado = qq{<span class="badge bg-${color_st}-subtle text-${color_st} border-0 rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.72rem;">$c->{estado}</span>};
+                $btn_label = "Iniciar Consulta";
+            }
+
+            my $btn_cancel_html = '';
+            if ($is_en_consulta) {
+                $btn_cancel_html = qq{
+                    <button type="button" 
+                            class="btn btn-sm btn-outline-danger rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
+                            style="width: 36px; height: 36px; border-color: #FCA5A5;" 
+                            title="Cancelar consulta activa y descartar borrador" 
+                            onclick="confirmarCancelarConsultaActiva('$id_cita_card', '$paciente->{id_paciente}', this)">
+                        <i class="bi bi-trash3-fill fs-6 text-danger"></i>
+                    </button>
+                };
+            }
+
             print <<HTML;
-                <div class="col-12 col-xl-6">
-                    <div class="card-medentia-aura p-3 p-md-4 h-100 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 border-0 shadow-sm overflow-hidden" style="border-left: 5px solid var(--bs-$badge_color) !important; border-radius: 1.25rem;">
+                <div class="col-12 col-xl-6" id="card-cita-$id_cita_card">
+                    <div class="card card-mobile-flush p-3 p-md-3.5 h-100 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 shadow-sm rounded-4 position-relative overflow-hidden" style="$card_style">
                         <div class="flex-grow-1 min-w-0">
                             <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-                                <span class="badge bg-${badge_color} text-white px-2 py-1 small rounded-pill fw-bold">$c->{estado}</span>
-                                <span class="badge bg-light text-secondary border px-2 py-1 small rounded-pill"><i class="bi bi-clock me-1"></i>$c->{fecha} &bull; $c->{hora}</span>
+                                $badge_estado
+                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 fw-normal" style="font-size: 0.72rem; border-color: #E2E8F0 !important;">
+                                    <i class="bi bi-clock me-1 text-muted"></i>$c->{fecha} &bull; $c->{hora}
+                                </span>
                             </div>
-                            <h5 class="fw-bold m-0 text-truncate text-wrap" style="color: var(--md-blue-deep); font-size: 1.05rem;">$c->{motivo}</h5>
-                            <p class="small text-muted m-0 mt-1 d-flex align-items-center"><i class="bi bi-person-badge me-1 text-primary"></i><strong>M&eacute;dico:</strong>&nbsp;$medico_nombre_pend</p>
+                            <h5 class="fw-semibold plus-jakarta m-0 text-truncate text-wrap" style="color: var(--md-blue-deep, #0A2A66); font-size: 1.02rem; line-height: 1.35;">$c->{motivo}</h5>
+                            <p class="small text-muted m-0 mt-1.5 d-flex align-items-center" style="font-size: 0.8rem;">
+                                <i class="bi bi-person-badge me-1.5" style="color: var(--md-teal-clinical, #19B7A5);"></i>
+                                <span><strong>M&eacute;dico:</strong>&nbsp;$medico_nombre_pend</span>
+                            </p>
                         </div>
-                        <div class="w-100 w-sm-auto flex-shrink-0 mt-2 mt-sm-0 text-sm-end">
-                            <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$c->{id_cita}" class="$btn_class w-100 w-sm-auto justify-content-center text-nowrap">
+                        <div class="w-100 w-sm-auto flex-shrink-0 mt-2 mt-sm-0 d-flex align-items-center gap-2 justify-content-sm-end">
+                            <a href="render_consultas_privado.pl?id=$paciente->{id_paciente}&id_cita=$id_cita_card" 
+                               onclick="notificarInicioConsultaAgenda('$id_cita_card', '$paciente->{id_paciente}')"
+                               class="btn btn-sm rounded-pill text-white px-3.5 py-1.5 fw-semibold d-inline-flex align-items-center justify-content-center text-nowrap shadow-xs" 
+                               style="background: var(--md-blue-deep, #0A2A66); font-size: 0.82rem; min-height: 36px;">
                                 $btn_label <i class="bi bi-arrow-right-short ms-1 fs-5"></i>
                             </a>
+                            $btn_cancel_html
                         </div>
                     </div>
                 </div>
 HTML
         }
     }
-    if (!$hay_citas_pendientes) {
-        print <<HTML;
-                <div class="col-12">
-                    <div class="card-medentia-aura text-center p-5 border-0 shadow-sm" style="border-radius: 1.25rem;">
-                        <i class="bi bi-calendar-x display-6 d-block mb-3 opacity-25" style="color: var(--md-blue-deep);"></i>
-                        <span class="fw-bold text-muted">No hay citas programadas pendientes de atenci&oacute;n para este paciente.</span>
+    my $d_none_empty = $hay_citas_pendientes ? "d-none" : "";
+    print <<HTML;
+                <div class="col-12 $d_none_empty" id="citasVaciasMsg">
+                    <div class="card card-mobile-flush text-center p-4 p-md-5 border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px dashed #CBD5E1 !important;">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-2" style="width: 48px; height: 48px; background: rgba(10, 42, 102, 0.06);">
+                            <i class="bi bi-calendar-check fs-4" style="color: var(--md-blue-deep, #0A2A66);"></i>
+                        </div>
+                        <h6 class="fw-bold plus-jakarta mb-1" style="color: var(--md-blue-deep, #0A2A66); font-size: 0.95rem;">Sin Citas Pendientes de Atención</h6>
+                        <p class="text-muted small mb-0" style="font-size: 0.78rem;">No hay citas programadas ni consultas en proceso para este paciente en el sistema.</p>
                     </div>
                 </div>
-HTML
-    }
-    print <<HTML;
             </div>
 
             <!-- Panel Inferior: Historial Cronológico de Consultas -->
@@ -2208,6 +2249,94 @@ print <<HTML;
     document.addEventListener('DOMContentLoaded', () => { 
         initModuloFinanciero('$d->{id_paciente}', 'bento', '$id_medico_actual');
     });
+HTML
+
+print <<'JS';
+    function notificarInicioConsultaAgenda(idCita, idPaciente) {
+        try {
+            if (typeof BroadcastChannel !== 'undefined') {
+                const ch = new BroadcastChannel('ospulso_agenda_sync');
+                ch.postMessage({ action: 'iniciar_consulta', id_cita: idCita, id_paciente: idPaciente, timestamp: Date.now() });
+            }
+            localStorage.setItem('ospulso_agenda_sync_ping', Date.now().toString());
+        } catch(e) {
+            console.warn("[Agenda Live Sync] No se pudo emitir broadcast:", e);
+        }
+    }
+
+    async function confirmarCancelarConsultaActiva(idCita, idPaciente, btnEl) {
+        if (typeof Swal === 'undefined') return;
+
+        const res = await Swal.fire({
+            title: '¿Cancelar Consulta Activa?',
+            html: `Esta acción marcará la cita como <strong>Cancelada</strong>, eliminará el borrador temporal y purgará los documentos que se hayan vinculado o creado durante la atención.<br><br><span class="text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>Esta acción es irreversible y actualizará la agenda en tiempo real.</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="bi bi-trash3-fill me-1"></i> Sí, Cancelar Consulta',
+            cancelButtonText: 'Regresar',
+            reverseButtons: true
+        });
+
+        if (!res.isConfirmed) return;
+
+        Swal.fire({
+            title: 'Cancelando consulta...',
+            text: 'Purgando borrador y sincronizando agenda en tiempo real',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        try {
+            const formData = new FormData();
+            formData.append('id_cita', idCita);
+            formData.append('id_paciente', idPaciente);
+
+            const resp = await fetch('../api/cancelar_consulta_activa.pl', {
+                method: 'POST',
+                body: formData
+            });
+            const json = await resp.json();
+
+            if (json.ok) {
+                // 1. Emitir sincronización en tiempo real a todas las ventanas abiertas de agenda_main.pl
+                notificarInicioConsultaAgenda(idCita, idPaciente);
+
+                // 2. Remover la tarjeta visualmente con animación
+                const cardCol = btnEl ? (btnEl.closest('.col-12.col-xl-6') || document.getElementById('card-cita-' + idCita)) : document.getElementById('card-cita-' + idCita);
+                if (cardCol) {
+                    cardCol.style.transition = 'all 0.35s ease';
+                    cardCol.style.opacity = '0';
+                    cardCol.style.transform = 'scale(0.92)';
+                    setTimeout(() => {
+                        cardCol.remove();
+                        const container = document.getElementById('contenedorCitasPendientes');
+                        if (container && container.querySelectorAll('.col-12.col-xl-6').length === 0) {
+                            const emptyEl = document.getElementById('citasVaciasMsg');
+                            if (emptyEl) emptyEl.classList.remove('d-none');
+                        }
+                    }, 350);
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Consulta Cancelada',
+                    text: json.msg || 'La consulta activa fue cancelada y el borrador ha sido purgado.',
+                    timer: 2200,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', json.msg || 'No se pudo cancelar la consulta activa.', 'error');
+            }
+        } catch(err) {
+            console.error("Error al cancelar consulta activa:", err);
+            Swal.fire('Error de Conexión', 'No se pudo conectar con el servidor para cancelar la consulta.', 'error');
+        }
+    }
+JS
+
+print <<HTML;
     
     function abrirModalCarrito() { 
         windowActiveOS = null; // Reiniciar contexto de OS

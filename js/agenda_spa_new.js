@@ -4909,3 +4909,34 @@ window.legacyFilterResource = window.legacyFilterResource || function(resId) {
     if (typeof window.onRecursoCheckChange === 'function') window.onRecursoCheckChange();
 };
 
+// ==========================================================================
+// SINCRONIZACIÓN EN TIEMPO REAL CON CONSULTAS Y EXPEDIENTE CLÍNICO
+// ==========================================================================
+window.refrescarAgendaEnTiempoReal = function() {
+    console.log("[Agenda Live Sync] Sincronizando eventos de agenda en tiempo real...");
+    if (typeof loadContext === 'function') {
+        loadContext();
+    } else if (typeof cargarEventosYConfig === 'function') {
+        cargarEventosYConfig();
+    }
+};
+
+if (typeof BroadcastChannel !== 'undefined') {
+    try {
+        const agendaSyncChannel = new BroadcastChannel('ospulso_agenda_sync');
+        agendaSyncChannel.onmessage = function(ev) {
+            console.log("[Agenda Live Sync] Evento recibido por BroadcastChannel:", ev.data);
+            window.refrescarAgendaEnTiempoReal();
+        };
+    } catch(e) {
+        console.warn("[Agenda Live Sync] Error al inicializar BroadcastChannel:", e);
+    }
+}
+
+window.addEventListener('storage', function(e) {
+    if (e.key === 'ospulso_agenda_sync_ping') {
+        console.log("[Agenda Live Sync] Evento recibido por StorageEvent");
+        window.refrescarAgendaEnTiempoReal();
+    }
+});
+

@@ -1256,6 +1256,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Inicializar Wizard
     WizardController.init(draftStep);
+
+    // Notificar a la agenda en tiempo real el inicio/continuación de la consulta
+    try {
+        if (typeof BroadcastChannel !== 'undefined') {
+            const ch = new BroadcastChannel('ospulso_agenda_sync');
+            ch.postMessage({ action: 'iniciar_consulta', id_cita: idCita, id_paciente: idPaciente, timestamp: Date.now() });
+        }
+        localStorage.setItem('ospulso_agenda_sync_ping', Date.now().toString());
+    } catch(e) {}
     
     // 2. Cargar Draft Data
     let draftData = {};
