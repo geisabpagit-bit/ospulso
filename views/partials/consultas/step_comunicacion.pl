@@ -143,7 +143,7 @@ sub render_step_comunicacion {
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between mt-3 pt-2 border-top">
+            <div class="wizard-footer-nav justify-content-between">
                 <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()">
                     <i class="bi bi-arrow-left me-1"></i> Paso 3: Análisis y Receta
                 </button>

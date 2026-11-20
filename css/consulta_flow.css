@@ -445,6 +445,19 @@
 }
 
 
+.wizard-footer-nav {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+    margin-top: 1.5rem !important;
+    padding-top: 1rem !important;
+    border-top: 1px solid #E2E8F0 !important;
+    position: relative !important;
+    z-index: 10 !important;
+    width: 100% !important;
+}
+
 .wizard-btn-next {
     background: linear-gradient(135deg, #0A2A66 0%, #124A9E 100%);
     color: #ffffff;

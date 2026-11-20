@@ -136,7 +136,7 @@ sub render_step_cierre_privado {
                 </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <div class="wizard-footer-nav justify-content-between">
                 <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()">
                     <i class="bi bi-arrow-left me-1"></i> Paso 4: Acuerdos y Legal
                 </button>
@@ -144,7 +144,7 @@ sub render_step_cierre_privado {
                     <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-bold" onclick="SOAPReactiveEngine.abrirModalPDFNotaQR()">
                         <i class="bi bi-printer me-1"></i>Vista Imprimible PDF + QR
                     </button>
-                    <button type="button" class="wizard-btn-next" onclick="WizardController.jumpToStep(5)">
+                    <button type="button" class="wizard-btn-next" onclick="WizardController.nextStep()">
                         Continuar a Paso 6: Caja y Seguimiento <i class="bi bi-arrow-right ms-1"></i>
                     </button>
                 </div>

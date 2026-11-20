@@ -371,7 +371,7 @@ sub render_step_caja_privado {
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top flex-wrap gap-2">
+            <div class="wizard-footer-nav justify-content-between">
                 <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()">
                     <i class="bi bi-arrow-left me-1"></i> Paso 5: Firma NOM-151
                 </button>

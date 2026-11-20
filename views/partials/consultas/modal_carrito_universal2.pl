@@ -1,4 +1,4 @@
-﻿<!-- MODALES (BOOTSTRAP 5) -->
+<!-- MODALES (BOOTSTRAP 5) -->
 <div class="modal fade modal-diamond" id="modalCargo" tabindex="-1" aria-labelledby="modalCargoTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
