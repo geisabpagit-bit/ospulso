@@ -737,12 +737,12 @@ print <<HTML;
 
             <!-- BLOQUE INFERIOR: CONTEXTO CLÍNICO EN VIVO + S.O.A.P. (DEBAJO DE LOS 6 PASOS) -->
             <div class="soap-right-context-col">
-                <div class="qx-monitor-header d-flex justify-content-between align-items-center">
+                <div class="qx-monitor-header d-flex justify-content-between align-items-center py-1.5 px-2.5">
                     <div>
-                        <span class="small fw-bold text-uppercase d-block" style="font-size:0.72rem;letter-spacing:0.4px;">Contexto Clínico en Vivo</span>
-                        <span class="text-white-50" style="font-size:0.68rem;">Médico: $med_nombre</span>
+                        <span class="small fw-bold text-uppercase d-block" style="font-size:0.71rem;letter-spacing:0.3px;">Contexto Clínico en Vivo</span>
+                        <span class="text-white-50" style="font-size:0.66rem;">Médico: $med_nombre</span>
                     </div>
-                    <span id="ctx-firma-status" class="badge bg-warning text-dark" style="font-size:0.65rem;">BORRADOR</span>
+                    <span id="ctx-firma-status" class="badge bg-warning text-dark" style="font-size:0.64rem;">BORRADOR</span>
                 </div>
 
                 <!-- 1. Banner Rojo de Alergias o Badge Verde NKDA -->
@@ -755,10 +755,10 @@ print <<HTML;
                 <div id="ctx-physio-banner" class="context-physio-banner-amber d-none"></div>
 
                 <!-- 3. Tabla Comparativa: Triage Actual vs. Signos Basales Previos -->
-                <div class="p-2.5 border-bottom">
+                <div class="p-1.5 px-2 border-bottom">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="qx-label mb-0 text-navy"><i class="bi bi-activity text-teal me-1"></i>Triage Actual vs. Basal</span>
-                        <span class="text-muted" style="font-size:0.65rem;">Prev: <strong id="ctx-basal-fecha">--</strong></span>
+                        <span class="qx-label mb-0 text-navy" style="font-size:0.69rem;"><i class="bi bi-activity text-teal me-1"></i>Triage Actual vs. Basal</span>
+                        <span class="text-muted" style="font-size:0.64rem;">Prev: <strong id="ctx-basal-fecha">--</strong></span>
                     </div>
                     <table class="table table-sm table-bordered mb-0 triage-compare-table">
                         <thead class="table-light">
@@ -804,34 +804,34 @@ print <<HTML;
                 </div>
 
                 <!-- 4. Consolidado S.O.A.P. en Vivo -->
-                <div class="p-2.5 border-bottom soap-live-summary-box">
-                    <div class="qx-label mb-1.5 text-navy"><i class="bi bi-file-earmark-medical text-teal me-1"></i>Consolidado S.O.A.P. en Vivo</div>
-                    <div class="d-flex gap-2 mb-1.5 align-items-start">
+                <div class="p-1.5 px-2 border-bottom soap-live-summary-box">
+                    <div class="qx-label mb-1 text-navy" style="font-size:0.69rem;"><i class="bi bi-file-earmark-medical text-teal me-1"></i>Consolidado S.O.A.P. en Vivo</div>
+                    <div class="d-flex gap-1.5 mb-1 align-items-start">
                         <span class="soap-live-letter">S</span>
                         <div class="text-muted text-break" id="ctx-soap-s">Sin motivo capturado...</div>
                     </div>
-                    <div class="d-flex gap-2 mb-1.5 align-items-start">
+                    <div class="d-flex gap-1.5 mb-1 align-items-start">
                         <span class="soap-live-letter" style="background:#19B7A5;">O</span>
                         <div class="text-muted text-break" id="ctx-soap-o">Sin exploración capturada...</div>
                     </div>
-                    <div class="d-flex gap-2 mb-1.5 align-items-start">
+                    <div class="d-flex gap-1.5 mb-1 align-items-start">
                         <span class="soap-live-letter" style="background:#0284c7;">A</span>
                         <div class="text-muted text-break" id="ctx-soap-a">Sin diagnóstico/impresión...</div>
                     </div>
-                    <div class="d-flex gap-2 align-items-start">
+                    <div class="d-flex gap-1.5 align-items-start">
                         <span class="soap-live-letter" style="background:#059669;">P</span>
                         <div class="text-muted text-break" id="ctx-soap-p">Sin plan terapéutico...</div>
                     </div>
                 </div>
 
                 <!-- 5. Estado Financiero y Accesos Rápidos -->
-                <div class="p-2.5 bg-light">
-                    <div class="d-flex justify-content-between align-items-center mb-1.5">
-                        <span class="small fw-bold text-secondary">Total Caja / Orden:</span>
-                        <span id="ctx-caja-total" class="fw-black text-success fs-6">\$0.00</span>
+                <div class="p-1.5 px-2 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small fw-bold text-secondary" style="font-size:0.69rem;">Total Caja / Orden:</span>
+                        <span id="ctx-caja-total" class="fw-black text-success" style="font-size:0.85rem;">\$0.00</span>
                     </div>
                     <div class="d-grid gap-1">
-                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill fw-bold py-1" onclick="BovedaService.openDrawer('ALL')">
+                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill fw-bold py-0.5" style="font-size:0.68rem;" onclick="BovedaService.openDrawer('ALL')">
                             <i class="bi bi-safe2 me-1"></i>Abrir Bóveda del Paciente (Alt+B)
                         </button>
                     </div>
