@@ -574,6 +574,7 @@ print <<HTML;
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
 <link rel="stylesheet" href="../css/quirofano_wizard.css">
 <link rel="stylesheet" href="../css/consulta_flow.css?v=$^T">
+<link rel="stylesheet" href="../css/nota_clinica_soap_multipage.css?v=$^T">
 <!-- DataTables CSS/JS para Estudios PACS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -622,6 +623,11 @@ print <<HTML;
                 <button type="button" class="btn-qx-tier1-action" onclick="BovedaService.openDrawer('ALL')" title="Abrir Bóveda Contextual del Paciente (Alt+B)">
                     <i class="bi bi-safe2-fill"></i>
                     <span>Bóveda (<span id="hdr-boveda-count">0</span>)</span>
+                </button>
+                <button type="button" class="btn-qx-tier1-action" data-bs-toggle="offcanvas" data-bs-target="#offcanvasContextoClinico" aria-controls="offcanvasContextoClinico" id="btnToggleContextoClinico" title="Ver / Ocultar Contexto Clínico en Vivo (Alt+C)" style="background: linear-gradient(135deg, #00C0B5 0%, #00847D 100%); border-color: #00C0B5;">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                    <span>Contexto Clínico (Alt+C)</span>
+                    <span id="badge-top-alergia" class="badge bg-danger ms-1 d-none" style="font-size:0.62rem;">¡Alergia!</span>
                 </button>
             </div>
         </div>
@@ -705,186 +711,123 @@ print <<HTML;
         </div>
     </header>
 
-    <!-- LAYOUT PERSISTENTE DE 2 COLUMNAS (COL LATERAL IZQUIERDA: 6 PASOS + CONTEXTO CLÍNICO EN VIVO | COL PRINCIPAL: FORMULARIO ACTIVO) -->
-    <div class="soap-wizard-2col-layout">
-
-        <!-- =========================================================
-             COLUMNA LATERAL IZQUIERDA: NAVEGACIÓN 6 PASOS + CONTEXTO EN VIVO
-             ========================================================= -->
-        <aside class="soap-sidebar-col">
-
-            <!-- BLOQUE SUPERIOR: NAVEGACIÓN SEMAFORIZADA DE 6 PASOS SOAP -->
-            <div class="soap-left-nav-col">
-                <div class="soap-nav-header">
-                    <span class="small fw-bold text-uppercase"><i class="bi bi-list-check me-1 text-teal"></i>6 Pasos S.O.A.P.</span>
-                    <span class="badge bg-teal text-white" style="background:#19B7A5;font-size:0.65rem;">Alt+1..6</span>
+    <!-- OFFCANVAS LATERAL: CONTEXTO CLÍNICO EN VIVO (Alt+C) -->
+    <div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="offcanvasContextoClinico" aria-labelledby="offcanvasContextoClinicoLabel" style="width: 370px; max-width: 92vw; z-index: 105500;">
+        <div class="offcanvas-header py-2.5 px-3 text-white" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, #0D2238 100%);">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-heart-pulse-fill text-teal fs-5" style="color: #00C0B5 !important;"></i>
+                <div>
+                    <h6 class="offcanvas-title fw-semibold text-white mb-0" id="offcanvasContextoClinicoLabel" style="font-size:0.88rem;">Contexto Clínico en Vivo</h6>
+                    <span class="text-white-50" style="font-size:0.7rem;">Médico: $med_nombre</span>
                 </div>
-                <div class="soap-nav-steps-list">
-                    <button type="button" class="soap-nav-step-item active" data-step="0" onclick="WizardController.jumpToStep(0)">
-                        <span class="soap-step-badge-num">1</span>
-                        <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Subjetivo (S) y Registro</span>
-                            <span class="soap-step-sub">Motivo &middot; EVA &middot; Alergias</span>
-                        </div>
-                        <span id="nav-dot-step-0" class="qx-traffic-dot dot-ambar"></span>
-                    </button>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span id="ctx-firma-status" class="badge bg-warning text-dark" style="font-size:0.65rem;">BORRADOR</span>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="offcanvas-body p-0 d-flex flex-column" style="background: #ffffff; overflow-y: auto;">
+            <!-- 1. Banner Rojo de Alergias o Badge Verde NKDA -->
+            <div id="ctx-allergy-banner" class="context-allergy-banner-green">
+                <i class="bi bi-shield-check-fill text-success fs-6"></i>
+                <span>✓ SIN ALERGIAS CONOCIDAS (NKDA)</span>
+            </div>
 
-                    <button type="button" class="soap-nav-step-item" data-step="1" onclick="WizardController.jumpToStep(1)">
-                        <span class="soap-step-badge-num">2</span>
-                        <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Objetivo (O) y Previos</span>
-                            <span class="soap-step-sub">Triage &middot; Exploración &middot; PACS</span>
-                        </div>
-                        <span id="nav-dot-step-1" class="qx-traffic-dot dot-gris"></span>
-                    </button>
+            <!-- 2. Banner Ámbar de Alertas Fisiológicas -->
+            <div id="ctx-physio-banner" class="context-physio-banner-amber d-none"></div>
 
-                    <button type="button" class="soap-nav-step-item" data-step="2" onclick="WizardController.jumpToStep(2)">
-                        <span class="soap-step-badge-num">3</span>
-                        <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Análisis (A), Plan y Receta</span>
-                            <span class="soap-step-sub">CIE-10 &middot; Pronóstico &middot; Receta</span>
-                        </div>
-                        <span id="nav-dot-step-2" class="qx-traffic-dot dot-gris"></span>
-                    </button>
+            <!-- 3. Tabla Comparativa: Triage Actual vs. Signos Basales Previos -->
+            <div class="p-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="qx-label mb-0 text-navy" style="font-size:0.72rem;"><i class="bi bi-activity text-teal me-1"></i>Triage Actual vs. Basal</span>
+                    <span class="text-muted" style="font-size:0.67rem;">Prev: <strong id="ctx-basal-fecha">--</strong></span>
+                </div>
+                <table class="table table-sm table-bordered mb-0 triage-compare-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Signo</th>
+                            <th class="text-center">Hoy</th>
+                            <th class="text-center text-muted">Basal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-semibold">T.A.</td>
+                            <td class="text-center fw-semibold text-navy" id="ctx-now-ta">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-ta">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">F.C.</td>
+                            <td class="text-center fw-semibold text-navy" id="ctx-now-fc">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-fc">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">Temp</td>
+                            <td class="text-center fw-semibold text-navy" id="ctx-now-temp">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-temp">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">SpO₂</td>
+                            <td class="text-center fw-semibold text-navy" id="ctx-now-spo2">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-spo2">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">Peso</td>
+                            <td class="text-center fw-semibold text-navy" id="ctx-now-peso">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-peso">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-semibold">IMC</td>
+                            <td class="text-center fw-semibold text-navy" id="ctx-now-imc">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-imc">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                    <button type="button" class="soap-nav-step-item" data-step="3" onclick="WizardController.jumpToStep(3)">
-                        <span class="soap-step-badge-num">4</span>
-                        <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Acuerdos y Legal</span>
-                            <span class="soap-step-sub">Comprensión &middot; Consentim.</span>
-                        </div>
-                        <span id="nav-dot-step-3" class="qx-traffic-dot dot-gris"></span>
-                    </button>
-
-                    <button type="button" class="soap-nav-step-item" data-step="4" onclick="WizardController.jumpToStep(4)">
-                        <span class="soap-step-badge-num">5</span>
-                        <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Firma Clínica (NOM-151)</span>
-                            <span class="soap-step-sub">e.firma &middot; QR &middot; Enviar Caja</span>
-                        </div>
-                        <span id="nav-dot-step-4" class="qx-traffic-dot dot-gris"></span>
-                    </button>
-
-                    <button type="button" class="soap-nav-step-item" data-step="5" onclick="WizardController.jumpToStep(5)">
-                        <span class="soap-step-badge-num">6</span>
-                        <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Caja y Seguimiento</span>
-                            <span class="soap-step-sub">Cobro 3NF &middot; Próxima Cita</span>
-                        </div>
-                        <span id="nav-dot-step-5" class="qx-traffic-dot dot-gris"></span>
-                    </button>
+            <!-- 4. Consolidado S.O.A.P. en Vivo -->
+            <div class="p-2 border-bottom soap-live-summary-box">
+                <div class="qx-label mb-1.5 text-navy" style="font-size:0.72rem;"><i class="bi bi-file-earmark-medical text-teal me-1"></i>Consolidado S.O.A.P. en Vivo</div>
+                <div class="d-flex gap-1.5 mb-1 align-items-start">
+                    <span class="soap-live-letter">S</span>
+                    <div class="text-muted text-break" id="ctx-soap-s">Sin motivo capturado...</div>
+                </div>
+                <div class="d-flex gap-1.5 mb-1 align-items-start">
+                    <span class="soap-live-letter" style="background:#19B7A5;">O</span>
+                    <div class="text-muted text-break" id="ctx-soap-o">Sin exploración capturada...</div>
+                </div>
+                <div class="d-flex gap-1.5 mb-1 align-items-start">
+                    <span class="soap-live-letter" style="background:#0284c7;">A</span>
+                    <div class="text-muted text-break" id="ctx-soap-a">Sin diagnóstico/impresión...</div>
+                </div>
+                <div class="d-flex gap-1.5 align-items-start">
+                    <span class="soap-live-letter" style="background:#059669;">P</span>
+                    <div class="text-muted text-break" id="ctx-soap-p">Sin plan terapéutico...</div>
                 </div>
             </div>
 
-            <!-- BLOQUE INFERIOR: CONTEXTO CLÍNICO EN VIVO + S.O.A.P. (DEBAJO DE LOS 6 PASOS) -->
-            <div class="soap-right-context-col">
-                <div class="qx-monitor-header d-flex justify-content-between align-items-center py-1.5 px-2.5">
-                    <div>
-                        <span class="small fw-bold text-uppercase d-block" style="font-size:0.71rem;letter-spacing:0.3px;">Contexto Clínico en Vivo</span>
-                        <span class="text-white-50" style="font-size:0.66rem;">Médico: $med_nombre</span>
-                    </div>
-                    <span id="ctx-firma-status" class="badge bg-warning text-dark" style="font-size:0.64rem;">BORRADOR</span>
+            <!-- 5. Estado Financiero y Accesos Rápidos -->
+            <div class="p-2.5 bg-light mt-auto">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small fw-semibold text-secondary" style="font-size:0.72rem;">Total Caja / Orden:</span>
+                    <span id="ctx-caja-total" class="fw-bold text-success" style="font-size:0.92rem;">\$0.00</span>
                 </div>
-
-                <!-- 1. Banner Rojo de Alergias o Badge Verde NKDA -->
-                <div id="ctx-allergy-banner" class="context-allergy-banner-green">
-                    <i class="bi bi-shield-check-fill text-success fs-6"></i>
-                    <span>✓ SIN ALERGIAS CONOCIDAS (NKDA)</span>
-                </div>
-
-                <!-- 2. Banner Ámbar de Alertas Fisiológicas -->
-                <div id="ctx-physio-banner" class="context-physio-banner-amber d-none"></div>
-
-                <!-- 3. Tabla Comparativa: Triage Actual vs. Signos Basales Previos -->
-                <div class="p-1.5 px-2 border-bottom">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="qx-label mb-0 text-navy" style="font-size:0.69rem;"><i class="bi bi-activity text-teal me-1"></i>Triage Actual vs. Basal</span>
-                        <span class="text-muted" style="font-size:0.64rem;">Prev: <strong id="ctx-basal-fecha">--</strong></span>
-                    </div>
-                    <table class="table table-sm table-bordered mb-0 triage-compare-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Signo</th>
-                                <th class="text-center">Hoy</th>
-                                <th class="text-center text-muted">Basal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="fw-bold">T.A.</td>
-                                <td class="text-center fw-bold text-navy" id="ctx-now-ta">--</td>
-                                <td class="text-center text-muted" id="ctx-basal-ta">--</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold">F.C.</td>
-                                <td class="text-center fw-bold text-navy" id="ctx-now-fc">--</td>
-                                <td class="text-center text-muted" id="ctx-basal-fc">--</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold">Temp</td>
-                                <td class="text-center fw-bold text-navy" id="ctx-now-temp">--</td>
-                                <td class="text-center text-muted" id="ctx-basal-temp">--</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold">SpO₂</td>
-                                <td class="text-center fw-bold text-navy" id="ctx-now-spo2">--</td>
-                                <td class="text-center text-muted" id="ctx-basal-spo2">--</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold">Peso</td>
-                                <td class="text-center fw-bold text-navy" id="ctx-now-peso">--</td>
-                                <td class="text-center text-muted" id="ctx-basal-peso">--</td>
-                            </tr>
-                            <tr>
-                                <td class="fw-bold">IMC</td>
-                                <td class="text-center fw-bold text-navy" id="ctx-now-imc">--</td>
-                                <td class="text-center text-muted" id="ctx-basal-imc">--</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- 4. Consolidado S.O.A.P. en Vivo -->
-                <div class="p-1.5 px-2 border-bottom soap-live-summary-box">
-                    <div class="qx-label mb-1 text-navy" style="font-size:0.69rem;"><i class="bi bi-file-earmark-medical text-teal me-1"></i>Consolidado S.O.A.P. en Vivo</div>
-                    <div class="d-flex gap-1.5 mb-1 align-items-start">
-                        <span class="soap-live-letter">S</span>
-                        <div class="text-muted text-break" id="ctx-soap-s">Sin motivo capturado...</div>
-                    </div>
-                    <div class="d-flex gap-1.5 mb-1 align-items-start">
-                        <span class="soap-live-letter" style="background:#19B7A5;">O</span>
-                        <div class="text-muted text-break" id="ctx-soap-o">Sin exploración capturada...</div>
-                    </div>
-                    <div class="d-flex gap-1.5 mb-1 align-items-start">
-                        <span class="soap-live-letter" style="background:#0284c7;">A</span>
-                        <div class="text-muted text-break" id="ctx-soap-a">Sin diagnóstico/impresión...</div>
-                    </div>
-                    <div class="d-flex gap-1.5 align-items-start">
-                        <span class="soap-live-letter" style="background:#059669;">P</span>
-                        <div class="text-muted text-break" id="ctx-soap-p">Sin plan terapéutico...</div>
-                    </div>
-                </div>
-
-                <!-- 5. Estado Financiero y Accesos Rápidos -->
-                <div class="p-1.5 px-2 bg-light">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small fw-bold text-secondary" style="font-size:0.69rem;">Total Caja / Orden:</span>
-                        <span id="ctx-caja-total" class="fw-black text-success" style="font-size:0.85rem;">\$0.00</span>
-                    </div>
-                    <div class="d-grid gap-1">
-                        <button type="button" class="btn btn-xs btn-navy-outline rounded-pill fw-semibold py-0.5" style="font-size:0.68rem;" onclick="BovedaService.openDrawer('ALL')">
-                            <i class="bi bi-safe2 me-1"></i>Abrir Bóveda del Paciente (Alt+B)
-                        </button>
-                    </div>
+                <div class="d-grid gap-1.5">
+                    <button type="button" class="btn btn-xs btn-navy-outline rounded-pill fw-semibold py-1" style="font-size:0.72rem;" onclick="BovedaService.openDrawer('ALL')">
+                        <i class="bi bi-safe2 me-1"></i>Abrir Bóveda del Paciente (Alt+B)
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
 
-        </aside>
+    <!-- LAYOUT DE 1 SOLA COLUMNA (MÁXIMA AMPLITUD Y ENFOQUE CLÍNICO) -->
+    <div class="soap-wizard-single-layout w-100">
 
         <!-- =========================================================
-             COLUMNA PRINCIPAL: FORMULARIO ACTIVO DE LOS 6 PASOS SOAP
+             COLUMNA PRINCIPAL: FORMULARIO ACTIVO DE LOS 6 PASOS SOAP (100% ANCHO)
              ========================================================= -->
-        <section class="soap-center-form-col min-w-0">
+        <section class="soap-center-form-col w-100 min-w-0">
             <!-- Banner Verde de Bloqueo Inmutable cuando se sella bajo NOM-151 en el Paso 5 -->
             <div id="banner-nota-sellada-nom151" class="alert alert-success border-success py-2 px-3 mb-2.5 d-none d-flex justify-content-between align-items-center">
                 <div>
@@ -965,28 +908,81 @@ print <<HTML;
     </div>
 </div>
 
-<!-- MODAL VISTA IMPRIMIBLE PDF + QR NOM-024 -->
-<div class="modal fade modal-qx-compact" id="modalPDFNotaClinicaQR" tabindex="-1" aria-hidden="true" style="z-index: 105600 !important;">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content">
-            <div class="modal-header modal-qx-header">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-qr-code-scan text-warning fs-5"></i>
-                    <h6 class="modal-title fw-bold text-white mb-0">Nota Clínica SOAP &amp; Receta COFEPRIS — Validación QR NOM-024</h6>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body modal-qx-body" id="modal-pdf-nota-qr-body"></div>
-            <div class="modal-footer bg-white border-top px-3 py-2 d-flex justify-content-between">
-                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="SOAPReactiveEngine.enviarNotaCifradaTLS()">
-                    <i class="bi bi-shield-lock-fill me-1"></i>Envío Cifrado TLS 1.3 al Paciente
-                </button>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-sm btn-navy rounded-pill px-4 fw-semibold" onclick="window.print()">
-                        <i class="bi bi-printer-fill me-1"></i>Imprimir / Guardar PDF
+<!-- MODAL VISOR MULTI-PÁGINA PDF + QR NOM-024 (2 PÁGINAS CARTA) -->
+<div class="modal fade" id="modalPDFNotaClinicaQR" tabindex="-1" aria-hidden="true" style="z-index: 105600 !important;">
+    <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0">
+            <!-- 1. TOOLBAR SUPERIOR FIJO MULTI-PÁGINA -->
+            <div class="clinical-multipage-toolbar no-print">
+                <!-- Lado Izquierdo: Retorno, Título, Folio y Paciente -->
+                <div class="clinical-toolbar-section">
+                    <button type="button" class="clinical-toolbar-btn btn-navy-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-arrow-left"></i><span>Volver al Expediente</span>
                     </button>
+                    <div class="vr bg-secondary opacity-50 d-none d-md-block" style="height: 22px;"></div>
+                    <div>
+                        <div class="d-flex align-items-center gap-1.5">
+                            <i class="bi bi-file-earmark-medical-fill" style="color: var(--clinical-teal);"></i>
+                            <span class="fw-bold" style="font-size:0.86rem;">Nota Médica SOAP (2 Páginas)</span>
+                            <span class="badge" style="background:#0F766E; font-size:0.68rem;" id="toolbar-folio-badge">Folio: --</span>
+                        </div>
+                        <div class="text-white-50" style="font-size:0.68rem;" id="toolbar-patient-meta">
+                            Expediente: EXP-$id_paciente &bull; Paciente: $paciente->{nombre}
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Centro: Controles Multi-Página y Zoom -->
+                <div class="clinical-toolbar-section">
+                    <!-- Segmented Control Vista Continua vs Paginada -->
+                    <div class="clinical-segmented-control" role="group">
+                        <button type="button" class="clinical-segmented-btn active" id="btn-view-continuous" onclick="SOAPReactiveEngine.setViewerMode('continuous')">
+                            <i class="bi bi-distribute-vertical me-1"></i>Vista Continua
+                        </button>
+                        <button type="button" class="clinical-segmented-btn" id="btn-view-paginated" onclick="SOAPReactiveEngine.setViewerMode('paginated')">
+                            <i class="bi bi-file-earmark-break me-1"></i>Página por Página
+                        </button>
+                    </div>
+
+                    <!-- Navegación de Páginas -->
+                    <div class="d-flex align-items-center gap-1" id="toolbar-page-nav-group" style="display: none !important;">
+                        <button type="button" class="btn btn-xs btn-outline-light rounded-circle p-1 px-2" onclick="SOAPReactiveEngine.navPage(-1)" title="Página Anterior">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span class="clinical-page-nav-badge" id="toolbar-page-indicator">Página 1 de 2</span>
+                        <button type="button" class="btn btn-xs btn-outline-light rounded-circle p-1 px-2" onclick="SOAPReactiveEngine.navPage(1)" title="Página Siguiente">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary text-white rounded-pill px-2 py-0.5 ms-1" onclick="SOAPReactiveEngine.gotoPage(1)">Pág 1</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary text-white rounded-pill px-2 py-0.5" onclick="SOAPReactiveEngine.gotoPage(2)">Pág 2</button>
+                    </div>
+
+                    <!-- Selector de Zoom -->
+                    <div class="d-none d-lg-flex align-items-center gap-1">
+                        <button type="button" class="btn btn-xs btn-outline-secondary text-white rounded-pill px-2 py-0.5" id="btn-zoom-75" onclick="SOAPReactiveEngine.setViewerZoom('75')">75%</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary text-white rounded-pill px-2 py-0.5 active" id="btn-zoom-100" onclick="SOAPReactiveEngine.setViewerZoom('100')">100%</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary text-white rounded-pill px-2 py-0.5" id="btn-zoom-125" onclick="SOAPReactiveEngine.setViewerZoom('125')">125%</button>
+                    </div>
+                </div>
+
+                <!-- Lado Derecho: Acciones Clínicas -->
+                <div class="clinical-toolbar-section">
+                    <button type="button" class="clinical-toolbar-btn btn-navy-secondary" onclick="SOAPReactiveEngine.compartirNotaWhatsAppEmail()" title="Compartir vía WhatsApp o Correo">
+                        <i class="bi bi-whatsapp"></i><span class="d-none d-xl-inline">WhatsApp / Correo</span>
+                    </button>
+                    <button type="button" class="clinical-toolbar-btn btn-navy-secondary" onclick="window.print()" title="Descargar como PDF oficial">
+                        <i class="bi bi-download"></i><span class="d-none d-sm-inline">Descargar PDF</span>
+                    </button>
+                    <button type="button" class="clinical-toolbar-btn btn-teal-primary" onclick="window.print()" title="Imprimir 2 Páginas">
+                        <i class="bi bi-printer-fill"></i><span>Imprimir (2 Págs)</span>
+                    </button>
+                    <button type="button" class="btn-close btn-close-white shadow-none ms-1" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- 2. LIENZO Y WORKSPACE DE HOJAS CLÍNICAS (8.5" x 11") -->
+            <div class="modal-body p-0 clinical-viewer-workspace zoom-100" id="clinical-workspace-area">
+                <div id="modal-pdf-nota-qr-body" class="w-100 d-flex flex-column align-items-center"></div>
             </div>
         </div>
     </div>

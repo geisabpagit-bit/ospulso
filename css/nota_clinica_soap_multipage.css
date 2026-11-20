@@ -1,0 +1,612 @@
+/* ==========================================================================
+   NOTA CLÍNICA SOAP & RECETA COFEPRIS — VISOR MULTI-PÁGINA (NOM-004 / NOM-024)
+   Design System Clinical Pulse · 2 Páginas Carta (8.5" x 11") · @media print
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+    --clinical-teal: #00C0B5;
+    --clinical-teal-hover: #00A39A;
+    --clinical-teal-active: #00847D;
+    --clinical-teal-light: #F0FDFA;
+    --clinical-teal-border: #99F6E4;
+
+    --clinical-navy: #0D2238;
+    --clinical-navy-dark: #0A2A66;
+    --clinical-navy-deep: #0F172A;
+
+    --clinical-slate-bg: #525659;
+    --clinical-slate-light: #E2E8F0;
+    --clinical-box-neutral: #F8FAFC;
+    --clinical-box-alt: #F1F5F9;
+
+    --clinical-alert-bg: #FEF2F2;
+    --clinical-alert-border: #FCA5A5;
+    --clinical-alert-text: #991B1B;
+
+    --clinical-success-bg: #ECFDF5;
+    --clinical-success-text: #065F46;
+    --clinical-success-border: #A7F3D0;
+}
+
+/* --------------------------------------------------------------------------
+   1. CONTENEDOR WORKSPACE / MODAL COMPLETO
+   -------------------------------------------------------------------------- */
+#modalPDFNotaClinicaQR .modal-dialog {
+    max-width: 1100px;
+    margin: 1.25rem auto;
+}
+
+#modalPDFNotaClinicaQR .modal-content {
+    background-color: var(--clinical-slate-bg);
+    border: none;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+.clinical-viewer-workspace {
+    background-color: var(--clinical-slate-bg);
+    padding: 1.5rem 1rem 3rem 1rem;
+    overflow-y: auto;
+    max-height: calc(90vh - 120px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   2. TOOLBAR SUPERIOR DEL VISOR MULTI-PÁGINA
+   -------------------------------------------------------------------------- */
+.clinical-multipage-toolbar {
+    background: #0D2238;
+    color: #FFFFFF;
+    padding: 0.65rem 1.15rem;
+    border-bottom: 2px solid var(--clinical-teal);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.clinical-toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.clinical-toolbar-btn {
+    border-radius: 9999px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 0.35rem 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-teal-primary {
+    background: var(--clinical-teal);
+    color: #FFFFFF !important;
+}
+.btn-teal-primary:hover {
+    background: var(--clinical-teal-hover);
+    color: #FFFFFF !important;
+}
+
+.btn-navy-secondary {
+    background: #1E293B;
+    color: #E2E8F0 !important;
+    border: 1px solid #334155;
+}
+.btn-navy-secondary:hover {
+    background: #334155;
+    color: #FFFFFF !important;
+}
+
+/* Segmented Control para Vista Continua vs Página por Página */
+.clinical-segmented-control {
+    background: #1E293B;
+    border-radius: 9999px;
+    padding: 3px;
+    display: inline-flex;
+    gap: 3px;
+    border: 1px solid #334155;
+}
+
+.clinical-segmented-btn {
+    border: none;
+    background: transparent;
+    color: #94A3B8;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.clinical-segmented-btn.active {
+    background: var(--clinical-teal);
+    color: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+.clinical-page-nav-badge {
+    background: #1E293B;
+    border: 1px solid #334155;
+    color: #E2E8F0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+}
+
+/* --------------------------------------------------------------------------
+   3. ESTRUCTURA DE HOJAS CLÍNICAS (8.5" x 11" / Carta)
+   -------------------------------------------------------------------------- */
+.clinical-sheet {
+    background: #FFFFFF;
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0 auto;
+    padding: 0.55in 0.65in;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    color: #0F172A;
+    font-size: 11px;
+    line-height: 1.45;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+/* Zoom Levels */
+.clinical-viewer-workspace.zoom-75 .clinical-sheet {
+    transform: scale(0.75);
+    transform-origin: top center;
+    margin-bottom: -2.75in;
+}
+.clinical-viewer-workspace.zoom-100 .clinical-sheet {
+    transform: scale(1);
+    transform-origin: top center;
+    margin-bottom: 0;
+}
+.clinical-viewer-workspace.zoom-125 .clinical-sheet {
+    transform: scale(1.25);
+    transform-origin: top center;
+    margin-bottom: 2.75in;
+}
+
+/* Modo Página por Página */
+.clinical-viewer-workspace.mode-paginated .clinical-sheet {
+    display: none;
+}
+.clinical-viewer-workspace.mode-paginated.show-page-1 .clinical-sheet.page-1 {
+    display: flex;
+}
+.clinical-viewer-workspace.mode-paginated.show-page-2 .clinical-sheet.page-2 {
+    display: flex;
+}
+
+/* Separador Visual de Salto de Página */
+.clinical-page-separator {
+    width: 8.5in;
+    margin: 1.75rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    color: #CBD5E1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.clinical-page-separator::before,
+.clinical-page-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: dashed 2px #94A3B8;
+}
+
+/* --------------------------------------------------------------------------
+   4. ELEMENTOS INTERNOS DE LAS HOJAS CLÍNICAS
+   -------------------------------------------------------------------------- */
+.sheet-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid var(--clinical-navy-dark);
+    padding-bottom: 0.45rem;
+    margin-bottom: 0.55rem;
+}
+
+.sheet-logo-box {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.sheet-logo-icon {
+    width: 42px;
+    height: 42px;
+    background: var(--clinical-navy-dark);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--clinical-teal);
+    font-size: 1.45rem;
+}
+
+.sheet-org-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--clinical-navy-dark);
+    line-height: 1.15;
+    margin: 0;
+}
+
+.sheet-org-sub {
+    font-size: 9px;
+    color: #64748B;
+    margin-top: 1px;
+}
+
+.sheet-badge-compliance {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--clinical-success-bg);
+    color: var(--clinical-success-text);
+    border: 1px solid var(--clinical-success-border);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.sheet-title-banner {
+    background: var(--clinical-navy-dark);
+    color: #FFFFFF;
+    text-align: center;
+    padding: 0.28rem 0.5rem;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border-radius: 4px;
+    margin-bottom: 0.65rem;
+}
+
+/* Cédula del Paciente Grid */
+.sheet-patient-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    background: var(--clinical-box-neutral);
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 0.55rem 0.75rem;
+    margin-bottom: 0.65rem;
+}
+
+.sheet-data-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.sheet-data-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.sheet-data-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: #0F172A;
+}
+
+/* Alerta Roja de Alergias Críticas */
+.sheet-alert-allergies {
+    background: var(--clinical-alert-bg);
+    border: 1.5px solid var(--clinical-alert-border);
+    color: var(--clinical-alert-text);
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    margin-bottom: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.sheet-alert-allergies-icon {
+    font-size: 1.15rem;
+    color: #DC2626;
+}
+
+/* Somatometría Triage (7 Parámetros) */
+.sheet-vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.sheet-vital-card {
+    background: var(--clinical-teal-light);
+    border: 1px solid var(--clinical-teal-border);
+    border-radius: 6px;
+    padding: 0.4rem 0.35rem;
+    text-align: center;
+}
+
+.sheet-vital-lbl {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #0F766E;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.sheet-vital-val {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #115E59;
+    margin-top: 1px;
+}
+
+.sheet-vital-unit {
+    font-size: 8px;
+    color: #64748B;
+}
+
+/* Secciones Clínicas SOAP */
+.sheet-clinical-section {
+    margin-bottom: 0.65rem;
+}
+
+.sheet-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--clinical-box-alt);
+    border-left: 3.5px solid var(--clinical-teal);
+    padding: 0.22rem 0.55rem;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--clinical-navy-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.35rem;
+    border-radius: 0 4px 4px 0;
+}
+
+.sheet-section-body {
+    padding: 0.15rem 0.35rem;
+    font-size: 10.5px;
+    color: #1E293B;
+    line-height: 1.4;
+}
+
+/* Exploración Física Cefalocaudal */
+.sheet-exploration-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.45rem;
+}
+
+.sheet-exploration-box {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    padding: 0.35rem 0.55rem;
+}
+
+.sheet-exploration-title {
+    font-size: 9px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 2px;
+}
+
+/* Running Header para Hoja 2 */
+.sheet-running-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid var(--clinical-navy-dark);
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.65rem;
+    font-size: 9.5px;
+    color: #475569;
+}
+
+.sheet-running-header strong {
+    color: var(--clinical-navy-dark);
+}
+
+/* Tabla de Farmacoterapia Prescrita */
+.sheet-rx-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.65rem;
+    font-size: 10px;
+}
+
+.sheet-rx-table th {
+    background: var(--clinical-navy-dark);
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--clinical-navy-dark);
+}
+
+.sheet-rx-table td {
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #CBD5E1;
+    color: #1E293B;
+}
+
+.sheet-rx-table tbody tr:nth-child(even) {
+    background: #F8FAFC;
+}
+
+/* Ficha Legal y Criptográfica */
+.sheet-legal-closing {
+    border-top: 1.5px solid #CBD5E1;
+    padding-top: 0.55rem;
+    margin-top: auto;
+}
+
+.sheet-signature-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 0.55rem;
+}
+
+.sheet-doc-seal {
+    text-align: center;
+    min-width: 200px;
+}
+
+.sheet-sig-line {
+    border-top: 1.5px solid #0F172A;
+    padding-top: 0.25rem;
+    margin-top: 0.75rem;
+}
+
+.sheet-crypto-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--clinical-box-neutral);
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    gap: 0.85rem;
+}
+
+.sheet-crypto-hash {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: #475569;
+    word-break: break-all;
+    line-height: 1.25;
+}
+
+.sheet-qr-img {
+    width: 82px;
+    height: 82px;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    padding: 3px;
+    background: #FFFFFF;
+}
+
+.sheet-footer-page {
+    font-size: 8.5px;
+    color: #64748B;
+    text-align: center;
+    margin-top: 0.35rem;
+}
+
+/* --------------------------------------------------------------------------
+   5. REGLAS ESTRICTAS DE IMPRESIÓN (@media print)
+   -------------------------------------------------------------------------- */
+@media print {
+    @page {
+        size: letter portrait;
+        margin: 10mm 12mm;
+    }
+
+    html, body {
+        background: #FFFFFF !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Ocultar Chrome del navegador, modal, toolbar y separadores */
+    .clinical-multipage-toolbar,
+    .clinical-page-separator,
+    .modal-header,
+    .modal-footer,
+    .no-print,
+    .btn-close,
+    nav,
+    header,
+    aside,
+    #sidebar-wrapper,
+    #header-wrapper {
+        display: none !important;
+    }
+
+    #modalPDFNotaClinicaQR,
+    #modalPDFNotaClinicaQR .modal-dialog,
+    #modalPDFNotaClinicaQR .modal-content,
+    #modalPDFNotaClinicaQR .modal-body,
+    .clinical-viewer-workspace {
+        position: static !important;
+        display: block !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        overflow: visible !important;
+        max-height: none !important;
+    }
+
+    /* Forzar ruptura limpia de página en Hoja 1 */
+    .clinical-sheet.page-1 {
+        break-after: page !important;
+        page-break-after: always !important;
+    }
+
+    .clinical-sheet {
+        display: flex !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 9.8in !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transform: none !important;
+    }
+}

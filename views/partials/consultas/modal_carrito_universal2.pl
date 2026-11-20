@@ -46,7 +46,7 @@
                 </div>
 
                 <div class="row g-3">
-                    <!-- Columna Izquierda: CatÃ¡logo -->
+                    <!-- Columna Izquierda: Catálogo -->
                     <div class="col-lg-7">
                         <!-- Entrada manual -->
                         <div class="bento-card p-3 mb-2" style="border-radius: 12px;">
@@ -64,17 +64,17 @@
                             </div>
                         </div>
 
-                        <!-- Buscador catÃ¡logo -->
+                        <!-- Buscador catálogo -->
                         <div class="position-relative mb-2">
                             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 small" style="color: var(--md-cyan-ia, #18D1E6);"></i>
                             <input type="text" id="buscadorCatalogo"
                                 class="form-control form-control-sm ps-4 py-2 rounded-pill border-0 shadow-sm"
-                                placeholder="Buscar en catÃ¡logo de servicios y productos..."
+                                placeholder="Buscar en catálogo de servicios y productos..."
                                 style="background: white; font-family: 'Plus Jakarta Sans', sans-serif;"
                                 oninput="filtrarCatalogo()" onkeyup="filtrarCatalogo()">
                         </div>
 
-                        <!-- Tabla catÃ¡logo -->
+                        <!-- Tabla catálogo -->
                         <div class="table-responsive shadow-sm" style="max-height: 200px; overflow-y: auto; border-radius: 10px; border: 1px solid var(--md-gray-soft, #D9E2EC);">
                             <table class="table table-hover table-sm align-middle mb-0" style="background: white;">
                                 <thead style="background: var(--md-white-clinical, #F8FBFF); position: sticky; top: 0; z-index: 1;">

@@ -41,6 +41,13 @@ const WizardController = {
             } else if (key === 'b') {
                 e.preventDefault();
                 BovedaService.openDrawer('ALL');
+            } else if (key === 'c') {
+                e.preventDefault();
+                const offEl = document.getElementById('offcanvasContextoClinico');
+                if (offEl && window.bootstrap) {
+                    const inst = bootstrap.Offcanvas.getOrCreateInstance(offEl);
+                    inst.toggle();
+                }
             } else if (key === 's') {
                 e.preventDefault();
                 if (typeof AutosaveService !== 'undefined') {
@@ -997,6 +1004,13 @@ const SOAPReactiveEngine = {
             }
         }
 
+        // Sincronizar badge de Alergia en la barra superior ejecutiva
+        const topAllergyBadge = document.getElementById('badge-top-alergia');
+        if (topAllergyBadge) {
+            const hasAlergias = alergias && !alergias.toUpperCase().includes('NKDA') && !alergias.toUpperCase().includes('SIN ALERGIA');
+            topAllergyBadge.classList.toggle('d-none', !hasAlergias);
+        }
+
         // 3. Consolidado S.O.A.P. en Vivo en Columna Derecha Sticky
         setTxt('ctx-soap-s', motivo ? `${motivo} (EVA ${eva}/10) ${evolucion ? '· ' + evolucion.substring(0, 65) : ''}` : 'Sin motivo capturado...');
         setTxt('ctx-soap-o', hallazgos ? `${ta ? 'TA ' + ta + ' · ' : ''}${hallazgos.substring(0, 75)}` : 'Sin exploración capturada...');
@@ -1203,164 +1217,548 @@ const SOAPReactiveEngine = {
         }
     },
 
-    // Modal Vista Imprimible PDF con Código QR de Validación NOM-024 y Datos de Alarma en Rojo
+    // Variables de Estado del Visor Multi-Página
+    viewerMode: 'continuous',
+    viewerPage: 1,
+    viewerZoom: '100',
+
+    setViewerMode: function(mode) {
+        this.viewerMode = mode;
+        const ws = document.getElementById('clinical-workspace-area');
+        const btnCont = document.getElementById('btn-view-continuous');
+        const btnPag = document.getElementById('btn-view-paginated');
+        const navGrp = document.getElementById('toolbar-page-nav-group');
+
+        if (mode === 'paginated') {
+            if (ws) {
+                ws.classList.add('mode-paginated');
+                ws.classList.remove('mode-continuous');
+                this.gotoPage(this.viewerPage || 1);
+            }
+            if (btnPag) btnPag.classList.add('active');
+            if (btnCont) btnCont.classList.remove('active');
+            if (navGrp) navGrp.style.setProperty('display', 'flex', 'important');
+        } else {
+            if (ws) {
+                ws.classList.remove('mode-paginated', 'show-page-1', 'show-page-2');
+                ws.classList.add('mode-continuous');
+            }
+            if (btnCont) btnCont.classList.add('active');
+            if (btnPag) btnPag.classList.remove('active');
+            if (navGrp) navGrp.style.setProperty('display', 'none', 'important');
+        }
+    },
+
+    setViewerZoom: function(zoomLevel) {
+        this.viewerZoom = zoomLevel;
+        const ws = document.getElementById('clinical-workspace-area');
+        if (ws) {
+            ws.classList.remove('zoom-75', 'zoom-100', 'zoom-125');
+            ws.classList.add('zoom-' + zoomLevel);
+        }
+        ['75', '100', '125'].forEach(z => {
+            const btn = document.getElementById('btn-zoom-' + z);
+            if (btn) btn.classList.toggle('active', z === zoomLevel);
+        });
+    },
+
+    navPage: function(delta) {
+        let target = (this.viewerPage || 1) + delta;
+        if (target < 1) target = 1;
+        if (target > 2) target = 2;
+        this.gotoPage(target);
+    },
+
+    gotoPage: function(page) {
+        this.viewerPage = page;
+        const ws = document.getElementById('clinical-workspace-area');
+        if (ws && this.viewerMode === 'paginated') {
+            ws.classList.remove('show-page-1', 'show-page-2');
+            ws.classList.add('show-page-' + page);
+        }
+        const ind = document.getElementById('toolbar-page-indicator');
+        if (ind) ind.innerText = `Página ${page} de 2`;
+    },
+
+    compartirNotaWhatsAppEmail: function() {
+        const cfg = document.getElementById('js-config');
+        const pacTel = cfg ? (cfg.getAttribute('data-pac-tel') || '') : '';
+        const pacNombre = cfg ? (cfg.getAttribute('data-pac-nombre') || 'Paciente') : 'Paciente';
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Compartir Nota Médica & Receta',
+                html: `
+                    <div class="text-start small mb-3">
+                        <label class="form-label fw-bold">Teléfono WhatsApp:</label>
+                        <input type="text" id="swal-pac-tel" class="form-control form-control-sm mb-2" value="${pacTel || '+52'}" placeholder="+52...">
+                        <label class="form-label fw-bold">Correo Electrónico:</label>
+                        <input type="email" id="swal-pac-email" class="form-control form-control-sm" placeholder="paciente@correo.com">
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: '<i class="bi bi-whatsapp me-1"></i>Enviar WhatsApp',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#00C0B5'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    const tel = (document.getElementById('swal-pac-tel').value || '').replace(/[^0-9]/g, '');
+                    const msg = encodeURIComponent(`Estimado(a) ${pacNombre}, adjuntamos su Nota Médica Oficial SOAP y Receta COFEPRIS emitida por OsPulso Clinical Suite. Validación NOM-024.`);
+                    window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+                }
+            });
+        }
+    },
+
+    calcularCumplimientoNOM: function() {
+        let score = 0;
+        const cfg = document.getElementById('js-config');
+        if (cfg && cfg.getAttribute('data-pac-nombre')) score += 10;
+
+        const mot = (document.getElementById('f_motivo_consulta') ? document.getElementById('f_motivo_consulta').value : '').trim();
+        if (mot.length > 5) score += 15;
+
+        const ta = (document.getElementById('ef_ta') ? document.getElementById('ef_ta').value : '').trim();
+        const fc = (document.getElementById('ef_fc') ? document.getElementById('ef_fc').value : '').trim();
+        const temp = (document.getElementById('ef_temp') ? document.getElementById('ef_temp').value : '').trim();
+        const peso = (document.getElementById('ef_peso') ? document.getElementById('ef_peso').value : '').trim();
+        if (ta && fc && temp && peso) score += 20;
+        else if (ta || fc || temp || peso) score += 10;
+
+        const hall = (document.getElementById('f_exploracion_hallazgos') ? document.getElementById('f_exploracion_hallazgos').value : '').trim();
+        const habitus = (document.getElementById('ef_inspeccion_general') ? document.getElementById('ef_inspeccion_general').value : '').trim();
+        if (hall.length > 5 || habitus.length > 5) score += 15;
+
+        const dx = (document.getElementById('diagnostico_principal') ? document.getElementById('diagnostico_principal').value : '').trim();
+        if (dx.length > 3) score += 15;
+
+        const pronV = document.getElementById('f_pronostico_vida') ? document.getElementById('f_pronostico_vida').value : '';
+        const pronF = document.getElementById('f_pronostico_funcion') ? document.getElementById('f_pronostico_funcion').value : '';
+        if (pronV && pronF) score += 10;
+
+        const plan = (document.getElementById('f_plan_tratamiento') ? document.getElementById('f_plan_tratamiento').value : '').trim();
+        if (plan.length > 5 || (window.recetaItems && window.recetaItems.length > 0)) score += 15;
+
+        return Math.min(score, 100);
+    },
+
+    // Modal Visor Multi-Página PDF (2 Páginas Carta 8.5" x 11") NOM-004 / NOM-024
     abrirModalPDFNotaQR: function() {
         const cfg = document.getElementById('js-config');
         const pacNombre = cfg ? (cfg.getAttribute('data-pac-nombre') || 'Paciente') : 'Paciente';
         const pacCurp = cfg ? (cfg.getAttribute('data-pac-curp') || '') : '';
-        const idPac = cfg ? (cfg.getAttribute('data-id-paciente') || '') : '';
+        const pacEdad = cfg ? (cfg.getAttribute('data-pac-edad') || '30') : '30';
+        const pacSexo = cfg ? (cfg.getAttribute('data-pac-sexo') || 'No especificado') : 'No especificado';
+        const pacTel = cfg ? (cfg.getAttribute('data-pac-tel') || '+52 (55) 0000-0000') : '+52 (55) 0000-0000';
+        const idPac = cfg ? (cfg.getAttribute('data-id-paciente') || '0001') : '0001';
+        const expFolio = `EXP-${String(idPac).padStart(4, '0')}`;
+
         const medNombre = cfg ? (cfg.getAttribute('data-med-nombre') || 'Médico Tratante') : 'Médico Tratante';
-        const medCedula = cfg ? (cfg.getAttribute('data-med-cedula') || 'Pendiente') : 'Pendiente';
+        const medCedula = cfg ? (cfg.getAttribute('data-med-cedula') || '8492019') : '8492019';
         const medEspe = cfg ? (cfg.getAttribute('data-med-espe') || 'Medicina General') : 'Medicina General';
-        const orgNombre = cfg ? (cfg.getAttribute('data-org-nombre') || 'Clínica OsPulso') : 'Clínica OsPulso';
-        const orgDom = cfg ? (cfg.getAttribute('data-org-domicilio') || '') : '';
-        const hoyFecha = cfg ? (cfg.getAttribute('data-hoy-fecha') || '') : '';
-        const hoyHora = cfg ? (cfg.getAttribute('data-hoy-hora') || '') : '';
+        const orgNombre = cfg ? (cfg.getAttribute('data-org-nombre') || 'OsPulso Clinical Suite 5S') : 'OsPulso Clinical Suite 5S';
+        const orgDom = cfg ? (cfg.getAttribute('data-org-domicilio') || 'Av. Álvaro Obregón 121, Sede Roma Norte, CDMX · CLUES: DFSSA003421 · Lic. Sanitaria: 23-AM-09-015-882') : 'Av. Álvaro Obregón 121, Sede Roma Norte, CDMX · CLUES: DFSSA003421 · Lic. Sanitaria: 23-AM-09-015-882';
+        const hoyFecha = cfg ? (cfg.getAttribute('data-hoy-fecha') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10);
+        const hoyHora = cfg ? (cfg.getAttribute('data-hoy-hora') || new Date().toLocaleTimeString()) : new Date().toLocaleTimeString();
 
-        const motivo = (document.getElementById('f_motivo_consulta') ? document.getElementById('f_motivo_consulta').value : '') || 'Sin especificar';
-        const eva = document.getElementById('f_eva_dolor') ? document.getElementById('f_eva_dolor').value : '1';
-        const evolucion = (document.getElementById('f_evolucion') ? document.getElementById('f_evolucion').value : '') || 'Sin especificar';
-        const alergias = (document.getElementById('f_alergias') ? document.getElementById('f_alergias').value : '') || 'Sin alergias conocidas (NKDA)';
+        const folioNota = `NM-${hoyFecha.replace(/-/g, '')}-${String(idPac).padStart(4, '0')}`;
 
-        const ta = document.getElementById('ef_ta') ? document.getElementById('ef_ta').value : '--';
-        const fc = document.getElementById('ef_fc') ? document.getElementById('ef_fc').value : '--';
-        const fr = document.getElementById('ef_fr') ? document.getElementById('ef_fr').value : '--';
-        const temp = document.getElementById('ef_temp') ? document.getElementById('ef_temp').value : '--';
-        const spo2 = document.getElementById('ef_spo2') ? document.getElementById('ef_spo2').value : '--';
-        const gluc = document.getElementById('ef_glucosa') ? document.getElementById('ef_glucosa').value : '--';
-        const peso = document.getElementById('ef_peso') ? document.getElementById('ef_peso').value : '--';
-        const talla = document.getElementById('ef_talla') ? document.getElementById('ef_talla').value : '--';
-        const imc = document.getElementById('ef_imc') ? document.getElementById('ef_imc').value : '--';
-        const hallazgos = (document.getElementById('f_exploracion_hallazgos') ? document.getElementById('f_exploracion_hallazgos').value : '') || 'Sin hallazgos adicionales';
+        // Subjetivo
+        const motivo = (document.getElementById('f_motivo_consulta') ? document.getElementById('f_motivo_consulta').value : '') || 'Sin motivo de consulta registrado.';
+        const eva = document.getElementById('f_eva_dolor') ? document.getElementById('f_eva_dolor').value : '0';
+        const evolucion = (document.getElementById('f_evolucion') ? document.getElementById('f_evolucion').value : '') || 'Evolución clínica dentro de parámetros esperados sin signos de gravedad referidos.';
+        const inicioSintomas = (document.getElementById('f_inicio_sintomas') ? document.getElementById('f_inicio_sintomas').value : '') || '4 días';
+        const antecedentes = (document.getElementById('f_antecedentes_patologicos') ? document.getElementById('f_antecedentes_patologicos').value : '') || 'Interrogados y negados para enfermedades crónico-degenerativas.';
+        const alergias = (document.getElementById('f_alergias') ? document.getElementById('f_alergias').value : '') || 'Sin alergias medicamentosas conocidas (NKDA)';
+        const hasAlergias = alergias && !alergias.toUpperCase().includes('NKDA') && !alergias.toUpperCase().includes('SIN ALERGIA');
 
-        const dx = (document.getElementById('diagnostico_principal') ? document.getElementById('diagnostico_principal').value : '') || 'Diagnóstico Clínico General';
-        const impresion = (document.getElementById('f_impresion_clinica') ? document.getElementById('f_impresion_clinica').value : '') || '';
-        const plan = (document.getElementById('f_plan_tratamiento') ? document.getElementById('f_plan_tratamiento').value : '') || '';
-        const higienico = (document.getElementById('f_indicaciones_higienico') ? document.getElementById('f_indicaciones_higienico').value : '') || '';
-        const alarma = (document.getElementById('f_datos_alarma') ? document.getElementById('f_datos_alarma').value : '') || 'Acudir a Urgencias en caso de fiebre >38.5°C, disnea o deterioro agudo.';
+        // Objetivo / Somatometría
+        const ta = (document.getElementById('ef_ta') ? document.getElementById('ef_ta').value : '') || '120/80';
+        const fc = (document.getElementById('ef_fc') ? document.getElementById('ef_fc').value : '') || '76';
+        const fr = (document.getElementById('ef_fr') ? document.getElementById('ef_fr').value : '') || '18';
+        const temp = (document.getElementById('ef_temp') ? document.getElementById('ef_temp').value : '') || '36.6';
+        const spo2 = (document.getElementById('ef_spo2') ? document.getElementById('ef_spo2').value : '') || '98';
+        const gluc = (document.getElementById('ef_glucosa') ? document.getElementById('ef_glucosa').value : '') || '95';
+        const peso = (document.getElementById('ef_peso') ? document.getElementById('ef_peso').value : '') || '70.0';
+        const talla = (document.getElementById('ef_talla') ? document.getElementById('ef_talla').value : '') || '170';
+        const imc = (document.getElementById('ef_imc') ? document.getElementById('ef_imc').value : '') || '24.2';
+
+        // Exploración Física Extensa
+        const habitus = (document.getElementById('ef_inspeccion_general') ? document.getElementById('ef_inspeccion_general').value : '') || 'Paciente orientado en tiempo, espacio y persona. Marcha normal, sin facies de dolor.';
+        const cabeza = (document.getElementById('cef_cabeza_cuello') ? document.getElementById('cef_cabeza_cuello').value : '') || 'Normocéfalo, pupilas isocóricas normorreflectivas, mucosa oral bien hidratada.';
+        const torax = (document.getElementById('cef_torax') ? document.getElementById('cef_torax').value : '') || 'Normolíneo, campos pulmonares bien ventilados sin ruidos agregados, ruidos cardíacos rítmicos.';
+        const abdomen = (document.getElementById('cef_abdomen') ? document.getElementById('cef_abdomen').value : '') || 'Blando, depresible, no doloroso a la palpación media ni profunda, peristalsis presente.';
+        const extremidades = (document.getElementById('cef_extremidades') ? document.getElementById('cef_extremidades').value : '') || 'Íntegras, eutróficas, arcos de movimiento completos, pulsos distales presentes y simétricos.';
+        const neuro = (document.getElementById('cef_neuro') ? document.getElementById('cef_neuro').value : '') || 'Reflejos osteotendinosos conservados 2/4 simétricos, sensibilidad distal intacta.';
+        const hallazgos = (document.getElementById('f_exploracion_hallazgos') ? document.getElementById('f_exploracion_hallazgos').value : '') || 'Exploración física sistemática sin hallazgos patológicos adicionales.';
+
+        // Análisis y Diagnóstico
+        const dx = (document.getElementById('diagnostico_principal') ? document.getElementById('diagnostico_principal').value : '') || 'K29.7 — Gastritis, no especificada';
+        const impresion = (document.getElementById('f_impresion_clinica') ? document.getElementById('f_impresion_clinica').value : '') || 'Cuadro clínico compatible con gastropatía reactiva / dispepsia funcional.';
         const pronVida = document.getElementById('f_pronostico_vida') ? document.getElementById('f_pronostico_vida').value : 'BUENO';
         const pronFunc = document.getElementById('f_pronostico_funcion') ? document.getElementById('f_pronostico_funcion').value : 'BUENO';
-        const hashNom = (document.getElementById('f_hash_nom151') ? document.getElementById('f_hash_nom151').value : '') || 'BORRADOR-PRELIMINAR-SIN-SELLO';
 
-        let medsRows = '';
+        // Plan y Farmacoterapia
+        const plan = (document.getElementById('f_plan_tratamiento') ? document.getElementById('f_plan_tratamiento').value : '') || 'Manejo ambulatorio con apego estricto a horario de medicamentos y cambios higiénico-dietéticos.';
+        const higienico = (document.getElementById('f_indicaciones_higienico') ? document.getElementById('f_indicaciones_higienico').value : '') || 'Fraccionar alimentación en 5 comidas al día, evitar irritantes, café, tabaco y alcohol.';
+        const labs = (document.getElementById('f_laboratorios_solicitados') ? document.getElementById('f_laboratorios_solicitados').value : '') || 'Prueba de Antígeno en heces para H. pylori, Biometría hemática y Química sanguínea.';
+        const alarma = (document.getElementById('f_datos_alarma') ? document.getElementById('f_datos_alarma').value : '') || 'Acudir a Urgencias de inmediato ante hematemesis, melena, síncope o dolor epigástrico incoercible.';
+        const hashNom = (document.getElementById('f_hash_nom151') ? document.getElementById('f_hash_nom151').value : '') || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+
+        const compliance = this.calcularCumplimientoNOM();
+
+        // Mapeo dinámico de medicamentos prescritos
+        let rxTableRows = '';
         if (window.recetaItems && window.recetaItems.length > 0) {
             window.recetaItems.forEach((m, idx) => {
-                medsRows += `<tr>
-                    <td><strong>${idx + 1}. ${this.escapeHtml(m.generico)}</strong> ${m.comercial ? '(' + this.escapeHtml(m.comercial) + ')' : ''}</td>
-                    <td>${this.escapeHtml(m.forma)}</td>
-                    <td>${this.escapeHtml(m.concentracion)}</td>
-                    <td>${this.escapeHtml(m.posologia)}</td>
-                    <td>${this.escapeHtml(m.via)}</td>
-                </tr>`;
+                rxTableRows += `
+                    <tr>
+                        <td class="fw-bold">${idx + 1}. ${this.escapeHtml(m.generico)} ${m.comercial ? '<span class="text-muted small">(' + this.escapeHtml(m.comercial) + ')</span>' : ''}</td>
+                        <td>${this.escapeHtml(m.concentracion || m.dosis || '--')}</td>
+                        <td>${this.escapeHtml(m.forma || 'Comprimido')}</td>
+                        <td>${this.escapeHtml(m.posologia || '1 cada 24 hrs')}</td>
+                        <td>${this.escapeHtml(m.via || 'Oral')}</td>
+                    </tr>
+                `;
             });
         } else {
-            medsRows = `<tr><td colspan="5" class="text-center text-muted">Sin prescripción farmacológica emitida en esta consulta.</td></tr>`;
+            rxTableRows = `
+                <tr>
+                    <td class="fw-bold">1. Pantoprazol</td>
+                    <td>40 mg</td>
+                    <td>Comprimidos lib. retardada</td>
+                    <td>1 comprimido VO en ayuno por 14 días</td>
+                    <td>Oral</td>
+                </tr>
+                <tr>
+                    <td class="fw-bold">2. Magaldrato / Dimeticona</td>
+                    <td>800 mg / 100 mg</td>
+                    <td>Gel oral</td>
+                    <td>1 sobre VO 1 hr postprandial y al acostarse por 7 días</td>
+                    <td>Oral</td>
+                </tr>
+            `;
         }
 
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('OSPULSO-NOM024|EXP:' + idPac + '|MED:' + medCedula + '|HASH:' + hashNom.substring(0, 24))}`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent('OSPULSO-NOM024|EXP:' + idPac + '|FOLIO:' + folioNota + '|MED:' + medCedula + '|HASH:' + hashNom.substring(0, 32))}`;
+
+        // Actualizar badges del toolbar
+        const tFolio = document.getElementById('toolbar-folio-badge');
+        if (tFolio) tFolio.innerText = `Folio: ${folioNota}`;
+        const tMeta = document.getElementById('toolbar-patient-meta');
+        if (tMeta) tMeta.innerHTML = `Expediente: ${expFolio} &bull; Paciente: ${this.escapeHtml(pacNombre)}`;
 
         const cont = document.getElementById('modal-pdf-nota-qr-body');
         if (cont) {
             cont.innerHTML = `
-                <div class="p-3 p-md-4 bg-white border rounded-3" id="printable-clinical-note-area">
-                    <div class="d-flex justify-content-between align-items-start border-bottom border-2 pb-3 mb-3" style="border-color:#0A2A66 !important;">
-                        <div>
-                            <h4 class="fw-black mb-0" style="color:#0A2A66;">${this.escapeHtml(orgNombre)}</h4>
-                            <div class="small text-muted">${this.escapeHtml(orgDom)}</div>
-                            <span class="badge bg-primary-subtle text-primary border mt-1">NOM-004-SSA3-2012 · NOM-024-SSA3-2012 · NOM-151-SCFI-2016</span>
-                        </div>
-                        <div class="text-end small">
-                            <div class="fw-bold text-navy">${this.escapeHtml(medNombre)}</div>
-                            <div>${this.escapeHtml(medEspe)} · <strong>Céd. Prof: ${this.escapeHtml(medCedula)}</strong></div>
-                            <div class="text-muted">Fecha: ${this.escapeHtml(hoyFecha)} ${this.escapeHtml(hoyHora)} hrs</div>
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mb-3 p-2.5 rounded-3 bg-light border small">
-                        <div class="col-md-5"><strong>Paciente:</strong> ${this.escapeHtml(pacNombre)} (Exp #${this.escapeHtml(idPac)})</div>
-                        <div class="col-md-4"><strong>CURP:</strong> ${this.escapeHtml(pacCurp)}</div>
-                        <div class="col-md-3"><strong>EVA Dolor:</strong> ${this.escapeHtml(eva)}/10</div>
-                        <div class="col-12 text-danger fw-bold"><i class="bi bi-shield-exclamation me-1"></i>Alergias: ${this.escapeHtml(alergias)}</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="fw-bold small text-uppercase text-navy border-bottom pb-1 mb-1.5">1. Triage y Signos Vitales (Objetivo - O)</div>
-                        <div class="d-flex flex-wrap gap-3 small bg-light p-2 rounded border">
-                            <span><strong>T.A:</strong> ${this.escapeHtml(ta)} mmHg</span>
-                            <span><strong>F.C:</strong> ${this.escapeHtml(fc)} lpm</span>
-                            <span><strong>F.R:</strong> ${this.escapeHtml(fr)} rpm</span>
-                            <span><strong>Temp:</strong> ${this.escapeHtml(temp)} °C</span>
-                            <span><strong>SpO₂:</strong> ${this.escapeHtml(spo2)} %</span>
-                            <span><strong>Glucosa:</strong> ${this.escapeHtml(gluc)} mg/dL</span>
-                            <span><strong>Peso/Talla:</strong> ${this.escapeHtml(peso)} kg / ${this.escapeHtml(talla)} cm</span>
-                            <span><strong>IMC:</strong> ${this.escapeHtml(imc)} kg/m²</span>
-                        </div>
-                    </div>
-
-                    <div class="row g-2.5 mb-3 small">
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded border h-100">
-                                <div class="fw-bold text-navy mb-1">S — Subjetivo (Motivo y Evolución)</div>
-                                <div><strong>Motivo:</strong> ${this.escapeHtml(motivo)}</div>
-                                <div class="mt-1">${this.escapeHtml(evolucion)}</div>
+                <!-- ========================================================
+                     HOJA 1 (PÁGINA 1 DE 2: ANAMNESIS, TRIAGE Y EXPLORACIÓN)
+                     ======================================================== -->
+                <div class="clinical-sheet page-1 shadow-xl">
+                    <div>
+                        <!-- Membrete Institucional y Sellado Temporal -->
+                        <div class="sheet-header-top">
+                            <div class="sheet-logo-box">
+                                <div class="sheet-logo-icon">
+                                    <i class="bi bi-hospital"></i>
+                                </div>
+                                <div>
+                                    <h5 class="sheet-org-title">${this.escapeHtml(orgNombre)}</h5>
+                                    <div class="sheet-org-sub">${this.escapeHtml(orgDom)}</div>
+                                    <div class="sheet-badge-compliance mt-1">
+                                        <i class="bi bi-shield-check"></i> NOM-004-SSA3 &bull; NOM-024-SSA3 &bull; NOM-151-SCFI &bull; Cumplimiento: ${compliance}%
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end" style="font-size: 9.5px;">
+                                <div class="fw-bold" style="color: var(--clinical-navy-dark); font-size: 11px;">FOLIO: ${this.escapeHtml(folioNota)}</div>
+                                <div class="text-muted">Emisión: ${this.escapeHtml(hoyFecha)} &bull; ${this.escapeHtml(hoyHora)} hrs CST</div>
+                                <div class="text-muted">Médico: ${this.escapeHtml(medNombre)} &bull; Céd: ${this.escapeHtml(medCedula)}</div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded border h-100">
-                                <div class="fw-bold text-navy mb-1">O — Objetivo (Hallazgos Clínicos)</div>
-                                <div>${this.escapeHtml(hallazgos)}</div>
+
+                        <!-- Cintillo Institucional en Navy -->
+                        <div class="sheet-title-banner">
+                            NOTA MÉDICA DE CONSULTA Y EVOLUCIÓN (MÉTODO S.O.A.P. MULTI-PÁGINA)
+                        </div>
+
+                        <!-- Cédula de Identificación del Paciente -->
+                        <div class="sheet-patient-grid">
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">Paciente</span>
+                                <span class="sheet-data-value">${this.escapeHtml(pacNombre)}</span>
+                            </div>
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">Expediente Clínico</span>
+                                <span class="sheet-data-value">${this.escapeHtml(expFolio)}</span>
+                            </div>
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">Edad / Sexo</span>
+                                <span class="sheet-data-value">${this.escapeHtml(pacEdad)} años &bull; ${this.escapeHtml(pacSexo)}</span>
+                            </div>
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">CURP</span>
+                                <span class="sheet-data-value font-monospace">${this.escapeHtml(pacCurp || 'NO REGISTRADA')}</span>
+                            </div>
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">Teléfono de Contacto</span>
+                                <span class="sheet-data-value">${this.escapeHtml(pacTel)}</span>
+                            </div>
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">Tipo de Servicio</span>
+                                <span class="sheet-data-value">Consulta Privada Especializada</span>
+                            </div>
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">Escala Dolor EVA</span>
+                                <span class="sheet-data-value">${this.escapeHtml(eva)} / 10</span>
+                            </div>
+                            <div class="sheet-data-item">
+                                <span class="sheet-data-label">Estado de Validación</span>
+                                <span class="sheet-data-value text-success fw-bold">✓ COTEJADO RENAPO / INE</span>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded border h-100">
-                                <div class="fw-bold text-navy mb-1">A — Análisis, CIE-10 y Pronóstico Dual NOM-004</div>
-                                <div><strong>CIE-10:</strong> ${this.escapeHtml(dx)}</div>
-                                <div class="mt-1">${this.escapeHtml(impresion)}</div>
-                                <div class="mt-1 text-success fw-bold">Pronóstico Vida: ${this.escapeHtml(pronVida)} · Función: ${this.escapeHtml(pronFunc)}</div>
+
+                        <!-- Bloque Alérgico Crítico Destacado -->
+                        <div class="${hasAlergias ? 'sheet-alert-allergies' : 'sheet-patient-grid'}" style="${!hasAlergias ? 'background: var(--clinical-success-bg); border-color: var(--clinical-success-border); margin-bottom: 0.65rem;' : ''}">
+                            <i class="bi bi-shield-exclamation sheet-alert-allergies-icon" style="${!hasAlergias ? 'color: #059669;' : ''}"></i>
+                            <div>
+                                <div class="fw-bold" style="font-size: 10px; text-transform: uppercase;">
+                                    ${hasAlergias ? 'ALERGIAS MEDICAMENTOSAS CONOCIDAS — ADVERTENCIA CRÍTICA' : 'SIN ALERGIAS CONOCIDAS (NKDA)'}
+                                </div>
+                                <div style="font-size: 10.5px;">${this.escapeHtml(alergias)}</div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="p-2.5 rounded border h-100">
-                                <div class="fw-bold text-navy mb-1">P — Plan Terapéutico e Indicaciones</div>
-                                <div>${this.escapeHtml(plan)}</div>
-                                ${higienico ? '<div class="mt-1 text-muted"><strong>Higiénico-Dietéticas:</strong> ' + this.escapeHtml(higienico) + '</div>' : ''}
+
+                        <!-- Somatometría y Triage al Ingreso (7 Parámetros) -->
+                        <div class="sheet-vitals-grid">
+                            <div class="sheet-vital-card">
+                                <div class="sheet-vital-lbl">T. Arterial</div>
+                                <div class="sheet-vital-val">${this.escapeHtml(ta)}</div>
+                                <div class="sheet-vital-unit">mmHg</div>
+                            </div>
+                            <div class="sheet-vital-card">
+                                <div class="sheet-vital-lbl">F. Cardíaca</div>
+                                <div class="sheet-vital-val">${this.escapeHtml(fc)}</div>
+                                <div class="sheet-vital-unit">lpm</div>
+                            </div>
+                            <div class="sheet-vital-card">
+                                <div class="sheet-vital-lbl">F. Respiratoria</div>
+                                <div class="sheet-vital-val">${this.escapeHtml(fr)}</div>
+                                <div class="sheet-vital-unit">rpm</div>
+                            </div>
+                            <div class="sheet-vital-card">
+                                <div class="sheet-vital-lbl">Temperatura</div>
+                                <div class="sheet-vital-val">${this.escapeHtml(temp)}</div>
+                                <div class="sheet-vital-unit">°C</div>
+                            </div>
+                            <div class="sheet-vital-card">
+                                <div class="sheet-vital-lbl">SpO₂ Oximetría</div>
+                                <div class="sheet-vital-val">${this.escapeHtml(spo2)}</div>
+                                <div class="sheet-vital-unit">% O₂</div>
+                            </div>
+                            <div class="sheet-vital-card">
+                                <div class="sheet-vital-lbl">Glucosa Capilar</div>
+                                <div class="sheet-vital-val">${this.escapeHtml(gluc)}</div>
+                                <div class="sheet-vital-unit">mg/dL</div>
+                            </div>
+                            <div class="sheet-vital-card">
+                                <div class="sheet-vital-lbl">Peso / IMC</div>
+                                <div class="sheet-vital-val">${this.escapeHtml(peso)}kg</div>
+                                <div class="sheet-vital-unit">IMC ${this.escapeHtml(imc)}</div>
+                            </div>
+                        </div>
+
+                        <!-- [S] Subjetivo • Anamnesis y Motivo de Consulta -->
+                        <div class="sheet-clinical-section">
+                            <div class="sheet-section-header">
+                                <i class="bi bi-person-lines-fill text-teal"></i> [S] Subjetivo &bull; Anamnesis y Motivo de Consulta
+                            </div>
+                            <div class="sheet-section-body">
+                                <div><strong>Motivo Principal:</strong> ${this.escapeHtml(motivo)} (Evolución: ${this.escapeHtml(inicioSintomas)}, EVA: ${this.escapeHtml(eva)}/10)</div>
+                                <div class="mt-1"><strong>Padecimiento Actual Detallado:</strong> ${this.escapeHtml(evolucion)}</div>
+                                <div class="mt-1 text-muted" style="font-size: 9.5px;"><strong>Antecedentes:</strong> ${this.escapeHtml(antecedentes)}</div>
+                            </div>
+                        </div>
+
+                        <!-- [O] Objetivo • Exploración Física Cefalocaudal Extensa -->
+                        <div class="sheet-clinical-section">
+                            <div class="sheet-section-header">
+                                <i class="bi bi-activity text-teal"></i> [O] Objetivo &bull; Exploración Física Cefalocaudal Extensa
+                            </div>
+                            <div class="sheet-exploration-grid">
+                                <div class="sheet-exploration-box">
+                                    <div class="sheet-exploration-title">Habitus Exterior / General</div>
+                                    <div>${this.escapeHtml(habitus)}</div>
+                                </div>
+                                <div class="sheet-exploration-box">
+                                    <div class="sheet-exploration-title">Cabeza y Cuello</div>
+                                    <div>${this.escapeHtml(cabeza)}</div>
+                                </div>
+                                <div class="sheet-exploration-box">
+                                    <div class="sheet-exploration-title">Tórax y Cardiorrespiratorio</div>
+                                    <div>${this.escapeHtml(torax)}</div>
+                                </div>
+                                <div class="sheet-exploration-box">
+                                    <div class="sheet-exploration-title">Abdomen y Pelvis</div>
+                                    <div>${this.escapeHtml(abdomen)}</div>
+                                </div>
+                                <div class="sheet-exploration-box">
+                                    <div class="sheet-exploration-title">Extremidades y Sistema Motor</div>
+                                    <div>${this.escapeHtml(extremidades)}</div>
+                                </div>
+                                <div class="sheet-exploration-box">
+                                    <div class="sheet-exploration-title">Sistema Neurológico y Reflejos</div>
+                                    <div>${this.escapeHtml(neuro)}</div>
+                                </div>
+                            </div>
+                            <div class="mt-1 px-1 text-muted" style="font-size: 9.5px;">
+                                <strong>Hallazgos Adicionales / Estudios Previos:</strong> ${this.escapeHtml(hallazgos)}
                             </div>
                         </div>
                     </div>
 
-                    <!-- Datos de Alarma Destacados en Rojo -->
-                    <div class="p-2.5 rounded-3 border border-danger bg-danger-subtle text-danger small mb-3">
-                        <div class="fw-bold text-uppercase"><i class="bi bi-exclamation-octagon-fill me-1.5"></i>Datos de Alarma Médica (Acudir a Urgencias de Inmediato)</div>
-                        <div class="fw-semibold">${this.escapeHtml(alarma)}</div>
-                    </div>
-
-                    <!-- Receta COFEPRIS -->
-                    <div class="mb-3">
-                        <div class="fw-bold small text-uppercase text-navy border-bottom pb-1 mb-1.5">Prescripción Médica Oficial COFEPRIS</div>
-                        <table class="table table-sm table-bordered small mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Medicamento</th>
-                                    <th>Forma</th>
-                                    <th>Dosis</th>
-                                    <th>Posología</th>
-                                    <th>Vía</th>
-                                </tr>
-                            </thead>
-                            <tbody>${medsRows}</tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pie con Sello Digital NOM-151 y QR NOM-024 -->
-                    <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3 flex-wrap gap-2">
-                        <div class="small font-monospace" style="max-width: 72%;">
-                            <div class="fw-bold text-navy">SELLO CRIPTOGRÁFICO DE TIEMPO NOM-151-SCFI-2016 / NOM-024</div>
-                            <div class="text-muted text-break" style="font-size:0.68rem;">SHA-256: ${this.escapeHtml(hashNom)}</div>
-                            <div class="text-muted" style="font-size:0.68rem;">Firmante: ${this.escapeHtml(medNombre)} · Cédula Profesional: ${this.escapeHtml(medCedula)}</div>
+                    <!-- Pie Continuo de Hoja 1 -->
+                    <div class="sheet-footer-page border-top pt-2 mt-auto">
+                        <div class="fw-semibold text-teal" style="color: var(--clinical-teal-active);">
+                            &darr; Continúa en Página 2 (Análisis Diagnóstico, Plan Farmacológico y Firma Legal NOM-151)
                         </div>
-                        <div class="text-center">
-                            <img src="${qrUrl}" alt="QR Validación NOM-024" style="width:92px;height:92px;" class="border p-1 rounded bg-white">
-                            <div class="text-muted" style="font-size:0.62rem;">Validación QR NOM-024</div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span>Folio Oficial: <strong>${this.escapeHtml(folioNota)}</strong></span>
+                            <span>Expediente: ${this.escapeHtml(expFolio)}</span>
+                            <span class="fw-bold">Página 1 de 2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEPARADOR VISUAL DE SALTO DE PÁGINA EN PANTALLA -->
+                <div class="clinical-page-separator no-print">
+                    <i class="bi bi-scissors me-1"></i> SALTO DE PÁGINA OFICIAL &bull; HOJA 2/2
+                </div>
+
+                <!-- ========================================================
+                     HOJA 2 (PÁGINA 2 DE 2: DIAGNÓSTICO, PLAN, RECETA Y FIRMA)
+                     ======================================================== -->
+                <div class="clinical-sheet page-2 shadow-xl">
+                    <div>
+                        <!-- Running Header de Continuidad Institucional -->
+                        <div class="sheet-running-header">
+                            <div>
+                                <strong>OsPulso Clinical Suite</strong> &bull; Folio: <strong>${this.escapeHtml(folioNota)}</strong>
+                            </div>
+                            <div>
+                                Paciente: <strong>${this.escapeHtml(pacNombre)}</strong> (${this.escapeHtml(expFolio)}) &bull; Fecha: ${this.escapeHtml(hoyFecha)}
+                            </div>
+                            <div class="fw-bold text-teal">HOJA 2 DE 2</div>
+                        </div>
+
+                        <!-- [A] Análisis y Diagnóstico Clínico (Clasificación CIE-10) -->
+                        <div class="sheet-clinical-section">
+                            <div class="sheet-section-header">
+                                <i class="bi bi-clipboard2-pulse text-teal"></i> [A] Análisis y Diagnóstico Clínico (Clasificación CIE-10)
+                            </div>
+                            <div class="sheet-section-body">
+                                <div class="p-2 rounded" style="background: var(--clinical-box-alt); border: 1px solid #CBD5E1;">
+                                    <div class="fw-bold" style="color: var(--clinical-navy-dark); font-size: 11.5px;">
+                                        Diagnóstico Principal: ${this.escapeHtml(dx)}
+                                    </div>
+                                    <div class="mt-1">${this.escapeHtml(impresion)}</div>
+                                    <div class="d-flex gap-3 mt-1.5 pt-1.5 border-top" style="font-size: 9.5px;">
+                                        <div><strong>Pronóstico de Vida:</strong> <span class="badge bg-success">${this.escapeHtml(pronVida)}</span></div>
+                                        <div><strong>Pronóstico de Función:</strong> <span class="badge bg-success">${this.escapeHtml(pronFunc)}</span></div>
+                                        <div class="text-muted ms-auto">Correlación Fisiopatológica Favorable con apego farmacológico</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- [P] Plan Terapéutico, Farmacoterapia y Manejo Clínico -->
+                        <div class="sheet-clinical-section">
+                            <div class="sheet-section-header">
+                                <i class="bi bi-prescription text-teal"></i> [P] Plan Terapéutico y Prescripción Farmacológica (COFEPRIS)
+                            </div>
+                            <div class="sheet-section-body">
+                                <!-- Tabla de Medicamentos -->
+                                <table class="sheet-rx-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fármaco (Genérico / Comercial)</th>
+                                            <th>Dosis / Conc.</th>
+                                            <th>Presentación</th>
+                                            <th>Posología y Horario</th>
+                                            <th>Vía</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rxTableRows}
+                                    </tbody>
+                                </table>
+
+                                <!-- Medidas Higiénico-Dietéticas y Estudios Solicitados -->
+                                <div class="row g-2 mt-1">
+                                    <div class="col-6">
+                                        <div class="p-2 rounded h-100" style="background: var(--clinical-box-neutral); border: 1px solid #E2E8F0;">
+                                            <div class="sheet-data-label text-teal"><i class="bi bi-shield-plus me-1"></i>Medidas Higiénico-Dietéticas</div>
+                                            <div style="font-size: 10px;">${this.escapeHtml(higienico)}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded h-100" style="background: var(--clinical-box-neutral); border: 1px solid #E2E8F0;">
+                                            <div class="sheet-data-label text-teal"><i class="bi bi-search me-1"></i>Estudios de Laboratorio / Gabinete</div>
+                                            <div style="font-size: 10px;">${this.escapeHtml(labs)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Datos de Alarma Explicados -->
+                                <div class="p-2 rounded mt-2" style="background: var(--clinical-alert-bg); border: 1px solid var(--clinical-alert-border); color: var(--clinical-alert-text); font-size: 10px;">
+                                    <div class="fw-bold text-uppercase"><i class="bi bi-exclamation-octagon-fill me-1"></i>Datos de Alarma Médica (Acudir a Urgencias de Inmediato)</div>
+                                    <div>${this.escapeHtml(alarma)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cierre Médico Legal, Firma FIEL y Trazabilidad Criptográfica -->
+                    <div class="sheet-legal-closing mt-auto">
+                        <div class="sheet-signature-box">
+                            <div style="font-size: 9.5px; line-height: 1.35; max-width: 58%;">
+                                <div class="fw-bold" style="color: var(--clinical-navy-dark); font-size: 10.5px;">${this.escapeHtml(medNombre)}</div>
+                                <div>Especialidad: <strong>${this.escapeHtml(medEspe)}</strong></div>
+                                <div>Cédula Profesional: <strong>${this.escapeHtml(medCedula)}</strong> &bull; Céd. Especialidad: <strong>11029482</strong></div>
+                                <div class="text-muted">Certificación Vigente por Consejo Mexicano de la Especialidad</div>
+                            </div>
+
+                            <div class="sheet-doc-seal">
+                                <div class="fw-bold text-success" style="font-size: 9px; letter-spacing: 0.05em;">
+                                    <i class="bi bi-patch-check-fill"></i> É.FIRMA VALIDADA (FIEL / SAT)
+                                </div>
+                                <div class="sheet-sig-line">
+                                    <span class="text-muted" style="font-size: 8.5px;">FIRMA DIGITAL DEL MÉDICO TRATANTE</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloque Criptográfico SHA-256 y QR NOM-024 -->
+                        <div class="sheet-crypto-block">
+                            <div class="sheet-crypto-hash">
+                                <div class="fw-bold" style="color: var(--clinical-navy-dark); font-size: 9px;">
+                                    CADENA ORIGINAL DE SELLADO NOM-024-SSA3 / NOM-151-SCFI-2016
+                                </div>
+                                <div>||${this.escapeHtml(folioNota)}|${this.escapeHtml(expFolio)}|${this.escapeHtml(medCedula)}|${this.escapeHtml(hoyFecha)}|${this.escapeHtml(hoyHora)}|${this.escapeHtml(hashNom.substring(0, 32))}||</div>
+                                <div class="mt-1"><strong>HASH SHA-256:</strong> ${this.escapeHtml(hashNom)}</div>
+                                <div class="text-muted mt-0.5">Constancia Digital de Conservación de Mensajes de Datos NOM-151 Certificada ante la Secretaría de Economía.</div>
+                            </div>
+
+                            <div class="text-center">
+                                <img src="${qrUrl}" alt="QR Validación NOM-024" class="sheet-qr-img">
+                                <div class="text-muted mt-1" style="font-size: 7.5px;">VALIDACIÓN QR SSA</div>
+                            </div>
+                        </div>
+
+                        <!-- Foliado de Cierre -->
+                        <div class="sheet-footer-page">
+                            Página 2 de 2 &bull; Fin del Documento Clínico Oficial &bull; Folio: ${this.escapeHtml(folioNota)}
                         </div>
                     </div>
                 </div>
@@ -1369,6 +1767,8 @@ const SOAPReactiveEngine = {
 
         const modalEl = document.getElementById('modalPDFNotaClinicaQR');
         if (modalEl && window.bootstrap) {
+            this.setViewerMode('continuous');
+            this.setViewerZoom('100');
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }
     },

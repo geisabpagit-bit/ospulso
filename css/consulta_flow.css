@@ -67,22 +67,31 @@
 }
 
 /* ==========================================================================
-   1. LAYOUT REACTIVO DE 2 COLUMNAS (COL LATERAL 6 PASOS + CONTEXTO | COL PRINCIPAL FORMULARIO)
+   1. LAYOUT REACTIVO DE 1 COLUMNA (FOCO CLÍNICO TOTAL - 100% ANCHO)
    ========================================================================== */
+.soap-wizard-single-layout,
 .soap-wizard-2col-layout,
 .soap-wizard-3col-layout {
-    display: grid;
-    grid-template-columns: 310px minmax(0, 1fr);
-    gap: 1.15rem;
-    align-items: start;
+    display: block;
     width: 100%;
+    max-width: 100%;
 }
 
-@media (max-width: 991.98px) {
-    .soap-wizard-2col-layout,
-    .soap-wizard-3col-layout {
-        grid-template-columns: 1fr;
-    }
+.soap-center-form-col {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.btn-outline-teal {
+    color: #00C0B5 !important;
+    border: 1.5px solid #00C0B5 !important;
+    background: #ffffff !important;
+    transition: all 0.2s ease !important;
+}
+.btn-outline-teal:hover, .btn-outline-teal:focus {
+    background: #00C0B5 !important;
+    color: #ffffff !important;
+    border-color: #00C0B5 !important;
 }
 
 /* Columna Lateral Unificada (Fija, sin desplazamientos internos, 100% visible) */
