@@ -50,7 +50,7 @@ sub render_step_exploracion {
                     <td><span class="badge bg-info-subtle text-info border border-info-subtle">$modalidad</span></td>
                     <td class="fw-bold text-dark">$desc</td>
                     <td class="text-end pe-2">
-                        <a href="render_visor_medico.pl?id=$id_paciente&estudio_id=$id_estudio" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" title="Abrir Visor DICOM"><i class="bi bi-box-arrow-up-right"></i></a>
+                        <a href="render_visor_medico.pl?id=$id_paciente&estudio_id=$id_estudio" target="_blank" class="btn btn-xs btn-navy-outline rounded-pill px-2 py-0.5" title="Abrir Visor DICOM"><i class="bi bi-box-arrow-up-right"></i></a>
                     </td>
                 </tr>
             };
@@ -64,7 +64,7 @@ sub render_step_exploracion {
         $pacs_html = qq{
             <div class="p-2 px-3 rounded-3 bg-light border small text-muted d-flex justify-content-between align-items-center mt-2">
                 <span><i class="bi bi-display me-1.5 text-teal"></i>Sin estudios DICOM en <code>estudios.dat</code>. Puede consultar laboratorios e historial en la <strong>Bóveda del Paciente</strong>.</span>
-                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-bold" onclick="BovedaService.openDrawer('LAB')">
+                <button type="button" class="btn btn-xs btn-navy-outline rounded-pill px-2.5 py-0.5 fw-semibold" onclick="BovedaService.openDrawer('LAB')">
                     <i class="bi bi-folder2-open me-1"></i>Ver Labs en Bóveda
                 </button>
             </div>
@@ -139,12 +139,12 @@ sub render_step_exploracion {
                 <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
                     <span class="qx-subcard-title mb-0 border-0 pb-0"><i class="bi bi-journal-medical text-teal me-1.5"></i>Odontogramas Clínicos Disponibles ($espe_nombre)</span>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <a href="render_visor_odontograma.pl?id=$id_paciente" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-bold">
+                        <a href="render_visor_odontograma.pl?id=$id_paciente" target="_blank" class="btn btn-xs btn-navy-outline rounded-pill px-2.5 py-0.5 fw-semibold">
                             <i class="bi bi-plus-circle me-1"></i>Nuevo Odontograma
                         </a>
                         <div class="form-check form-switch bg-light px-2.5 py-0.5 rounded-pill border mb-0">
                             <input class="form-check-input ms-0 me-1.5" type="checkbox" name="odonto_finalizar_al_cerrar" id="odonto_finalizar_al_cerrar" value="1" checked>
-                            <label class="form-check-label small fw-bold text-navy" for="odonto_finalizar_al_cerrar" style="font-size:0.7rem;">Finalizar al cerrar</label>
+                            <label class="form-check-label small fw-semibold text-navy" for="odonto_finalizar_al_cerrar" style="font-size:0.7rem;">Finalizar al cerrar</label>
                         </div>
                     </div>
                 </div>
@@ -184,7 +184,7 @@ sub render_step_exploracion {
 
             my $safe_alias = $alias; $safe_alias =~ s/"/&quot;/g; $safe_alias =~ s/'/&#39;/g;
             my $btn_evolucion = $is_odontologia
-                ? qq{<button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-bold" style="font-size:0.68rem;" onclick="crearEvolucionOdonto('$id_odonto', '$safe_alias')"><i class="bi bi-copy me-1"></i>Evolución</button>}
+                ? qq{<button type="button" class="btn btn-xs btn-navy-outline rounded-pill px-2 py-0.5 fw-semibold" style="font-size:0.68rem;" onclick="crearEvolucionOdonto('$id_odonto', '$safe_alias')"><i class="bi bi-copy me-1"></i>Evolución</button>}
                 : '';
 
             $odonto_html .= qq{
@@ -217,10 +217,10 @@ sub render_step_exploracion {
         $odonto_html = qq{
             <div class="qx-subcard mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div>
-                    <span class="fw-bold text-navy small"><i class="bi bi-journal-medical text-teal me-1.5"></i>Especialidad Odontología — Sin odontogramas previos</span>
+                    <span class="fw-semibold text-navy small"><i class="bi bi-journal-medical text-teal me-1.5"></i>Especialidad Odontología — Sin odontogramas previos</span>
                     <p class="text-muted small mb-0" style="font-size:0.72rem;">Puede crear un odontograma inicial para este paciente en el Visor FDI.</p>
                 </div>
-                <a href="render_visor_odontograma.pl?id=$id_paciente" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                <a href="render_visor_odontograma.pl?id=$id_paciente" target="_blank" class="btn btn-sm btn-navy rounded-pill px-3 fw-semibold">
                     <i class="bi bi-plus-circle me-1"></i>Crear Odontograma Inicial
                 </a>
             </div>
@@ -234,21 +234,25 @@ sub render_step_exploracion {
             <div class="qx-subcard mb-3" id="especialidad-subformulario-container">
                 <div class="qx-subcard-title d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-diagram-3-fill text-teal me-1.5"></i>Plugin Slot: Exploración Dirigida ($espe_nombre)</span>
-                    <span class="badge bg-info text-dark fw-bold">soap.objective.especialidad_data</span>
+                    <span class="badge bg-info text-dark fw-semibold">soap.objective.especialidad_data</span>
                 </div>
                 <div class="row g-2 align-items-center">
                     <div class="col-12 col-md-8">
-                        <label class="wizard-label">Notas Específicas de Especialidad ($espe_nombre)</label>
-                        <input type="text" id="f_esp_nota_especifica" class="wizard-input" placeholder="Hallazgos o escalas específicas de $espe_nombre..." oninput="SOAPReactiveEngine.syncEspecialidadData()">
+                        <div class="form-floating">
+                            <input type="text" id="f_esp_nota_especifica" class="form-control wizard-input" placeholder=" " oninput="SOAPReactiveEngine.syncEspecialidadData()">
+                            <label for="f_esp_nota_especifica">Hallazgos o escalas específicas de $espe_nombre...</label>
+                        </div>
                     </div>
                     <div class="col-12 col-md-4">
-                        <label class="wizard-label">Estado Funcional Especialidad</label>
-                        <select id="f_esp_estado_funcional" class="wizard-input" onchange="SOAPReactiveEngine.syncEspecialidadData()">
-                            <option value="Conservado / Sin compromiso">Conservado / Sin compromiso</option>
-                            <option value="Alteración Leve">Alteración Leve</option>
-                            <option value="Alteración Moderada">Alteración Moderada</option>
-                            <option value="Compromiso Severo">Compromiso Severo</option>
-                        </select>
+                        <div class="form-floating">
+                            <select id="f_esp_estado_funcional" class="form-select wizard-input" onchange="SOAPReactiveEngine.syncEspecialidadData()">
+                                <option value="Conservado / Sin compromiso">Conservado / Sin compromiso</option>
+                                <option value="Alteración Leve">Alteración Leve</option>
+                                <option value="Alteración Moderada">Alteración Moderada</option>
+                                <option value="Compromiso Severo">Compromiso Severo</option>
+                            </select>
+                            <label for="f_esp_estado_funcional">Estado Funcional</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,9 +265,9 @@ sub render_step_exploracion {
             <input type="hidden" name="especialidad_data_json" id="f_especialidad_data_json" value="{}">
 
             <!-- Encabezado de Paso 2 + Aceleradores de 1 Clic -->
-            <div class="d-flex justify-content-between align-items-center border-bottom pb-2.5 mb-3 flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2">
                 <div>
-                    <h5 class="fw-bold text-navy mb-0">
+                    <h5 class="fw-semibold text-navy mb-0">
                         <i class="bi bi-activity me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Paso 2: Objetivo (O), Triage Semaforizado y Estudios Previos
                     </h5>
                     <p class="text-muted small mb-0">6 Signos Vitales + IMC OMS en vivo, Exploración Cefalocaudal por excepción y acceso contextual a Bóveda.</p>
@@ -275,7 +279,7 @@ sub render_step_exploracion {
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-sm btn-accelerator-action" onclick="SOAPReactiveEngine.aplicarTodoNormal()" title="Rellenar signos vitales normales, inspección general, cefalocaudal y hallazgos base en 1 clic">
                         <i class="bi bi-lightning-charge-fill me-1"></i>⚡ Todo Normal (1 Clic)
                     </button>
-                    <span class="badge bg-primary-subtle text-primary fw-bold">Paso 2 de 6</span>
+                    <span class="badge bg-primary-subtle text-primary fw-semibold">Paso 2 de 6</span>
                 </div>
             </div>
 
@@ -393,45 +397,60 @@ sub render_step_exploracion {
 
                 <div class="row g-2.5">
                     <div class="col-12 col-md-4">
-                        <label class="wizard-label">Habitus Exterior / Inspección General</label>
-                        <input type="text" name="inspeccion_general" id="ef_inspeccion_general" class="wizard-input" placeholder="Consciente, orientado, Glasgow 15, hidratado..." oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                        <div class="form-floating">
+                            <input type="text" name="inspeccion_general" id="ef_inspeccion_general" class="form-control wizard-input" placeholder=" " oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                            <label for="ef_inspeccion_general">Habitus Exterior / Inspección General</label>
+                        </div>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="wizard-label">Cabeza, Cuello y ORL</label>
-                        <input type="text" id="cef_cabeza_cuello" class="wizard-input" placeholder="Normocéfalo, faringe sin exudados, cuello sin adenopatías..." oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                        <div class="form-floating">
+                            <input type="text" id="cef_cabeza_cuello" class="form-control wizard-input" placeholder=" " oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                            <label for="cef_cabeza_cuello">Cabeza, Cuello y ORL</label>
+                        </div>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="wizard-label">Tórax y Cardiopulmonar</label>
-                        <input type="text" id="cef_torax" class="wizard-input" placeholder="Murmullo vesicular normal, ruidos cardíacos rítmicos..." oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                        <div class="form-floating">
+                            <input type="text" id="cef_torax" class="form-control wizard-input" placeholder=" " oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                            <label for="cef_torax">Tórax y Cardiopulmonar</label>
+                        </div>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="wizard-label">Abdomen</label>
-                        <input type="text" id="cef_abdomen" class="wizard-input" placeholder="Blando, depresible, no doloroso, peristalsis normal..." oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                        <div class="form-floating">
+                            <input type="text" id="cef_abdomen" class="form-control wizard-input" placeholder=" " oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                            <label for="cef_abdomen">Abdomen</label>
+                        </div>
                     </div>
                     <div class="col-6 col-md-4">
-                        <label class="wizard-label">Extremidades y Columna</label>
-                        <input type="text" id="cef_extremidades" class="wizard-input" placeholder="Íntegras, simétricas, sin edema, llenado capilar <2s..." oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                        <div class="form-floating">
+                            <input type="text" id="cef_extremidades" class="form-control wizard-input" placeholder=" " oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                            <label for="cef_extremidades">Extremidades y Columna</label>
+                        </div>
                     </div>
                     <div class="col-12 col-md-4">
-                        <label class="wizard-label">Neurológico y Piel</label>
-                        <input type="text" id="cef_neuro" class="wizard-input" placeholder="Pares craneales íntegros, sin focalización..." oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                        <div class="form-floating">
+                            <input type="text" id="cef_neuro" class="form-control wizard-input" placeholder=" " oninput="SOAPReactiveEngine.syncCefalocaudal()">
+                            <label for="cef_neuro">Neurológico y Piel</label>
+                        </div>
                     </div>
 
                     <!-- Narrativa Consolidada de Hallazgos Clínicos (Obligatoria) -->
                     <div class="col-12 mt-2">
                         <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
-                            <label class="wizard-label mb-0">Hallazgos Clínicos de Exploración Física <span class="req-star">*</span></label>
+                            <span class="wizard-section-title">Hallazgos Clínicos de Exploración Física</span>
                             <div class="d-flex align-items-center gap-1">
                                 <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2.5 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=exploracion_hallazgos]', this)">
-                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-bold">Dictar</span>
+                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-semibold">Dictar</span>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=exploracion_hallazgos]'); SOAPReactiveEngine.syncAll();">
                                     <i class="bi bi-eraser-fill me-1"></i><span class="small fw-semibold">Limpiar</span>
                                 </button>
                             </div>
                         </div>
-                        <textarea name="exploracion_hallazgos" id="f_exploracion_hallazgos" class="wizard-input" rows="3" placeholder="Describa los hallazgos relevantes de la exploración física o pulse ⚡ Todo Normal..." required oninput="SOAPReactiveEngine.syncAll()"></textarea>
-                        <div class="dictado-live-badge text-danger fw-bold mt-1 d-none align-items-center gap-2">
+                        <div class="form-floating">
+                            <textarea name="exploracion_hallazgos" id="f_exploracion_hallazgos" class="form-control wizard-input" placeholder=" " style="height: 90px;" required oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                            <label for="f_exploracion_hallazgos">Describa hallazgos relevantes o pulse ⚡ Todo Normal... <span class="req-star">*</span></label>
+                        </div>
+                        <div class="dictado-live-badge text-danger fw-semibold mt-1 d-none align-items-center gap-2">
                             <span class="spinner-grow spinner-grow-sm text-danger"></span><span>Escuchando dictado...</span>
                         </div>
                         <div class="chip-bar">
@@ -452,10 +471,10 @@ sub render_step_exploracion {
                 <div class="qx-subcard-title d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <span><i class="bi bi-file-earmark-medical-fill text-teal me-1.5"></i>3. Interpretación de Estudios Previos (PACS / Laboratorio / Bóveda)</span>
                     <div class="d-flex gap-1.5">
-                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-bold" onclick="BovedaService.openDrawer('PACS')">
+                        <button type="button" class="btn btn-xs btn-navy-outline rounded-pill px-2.5 py-0.5 fw-semibold" onclick="BovedaService.openDrawer('PACS')">
                             <i class="bi bi-images me-1"></i>Abrir PACS en Bóveda
                         </button>
-                        <button type="button" class="btn btn-xs btn-outline-teal rounded-pill px-2.5 py-0.5 fw-bold" style="border-color:#19B7A5;color:#0f766e;" onclick="BovedaService.openDrawer('LAB')">
+                        <button type="button" class="btn btn-xs btn-outline-teal rounded-pill px-2.5 py-0.5 fw-semibold" style="border-color:#19B7A5;color:#0f766e;" onclick="BovedaService.openDrawer('LAB')">
                             <i class="bi bi-eyedropper me-1"></i>Ver Laboratorios Previos
                         </button>
                     </div>
@@ -465,13 +484,16 @@ sub render_step_exploracion {
 
                 <div class="mt-2.5">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="wizard-label mb-0">Resultados Previos / Observaciones de Estudios</label>
+                        <span class="wizard-section-title">Resultados Previos / Observaciones de Estudios</span>
                         <div class="d-flex gap-1">
                             <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-0" onclick="toggleDictadoVoz('textarea[name=resultados_estudios]', this)"><i class="bi bi-mic-fill"></i></button>
                             <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0" onclick="limpiarCampoTexto('textarea[name=resultados_estudios]'); SOAPReactiveEngine.syncAll();"><i class="bi bi-eraser-fill"></i></button>
                         </div>
                     </div>
-                    <textarea name="resultados_estudios" id="f_resultados_estudios" class="wizard-input" rows="2" placeholder="Interprete aquí estudios previos o use el botón 'Citar en Nota Actual' desde la Bóveda (Alt+B)..." oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                    <div class="form-floating">
+                        <textarea name="resultados_estudios" id="f_resultados_estudios" class="form-control wizard-input" placeholder=" " style="height: 80px;" oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                        <label for="f_resultados_estudios">Interprete aquí estudios previos o cite desde la Bóveda (Alt+B)...</label>
+                    </div>
                 </div>
             </div>
 

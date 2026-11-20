@@ -70,7 +70,7 @@ sub render_step_cierre_privado {
                     <p class="small text-muted mb-2.5">
                         Al aplicar la firma clínica, se genera la estampilla de tiempo <strong>SHA-256 NOM-151-SCFI-2016</strong>, se detiene el cronómetro de consulta y los <strong>Pasos 1 al 4 quedan bloqueados contra modificación</strong> conforme a la NOM-004.
                     </p>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" style="background: linear-gradient(135deg, #0A2A66 0%, #19B7A5 100%); border:none;" onclick="SOAPReactiveEngine.sellarNotaClinicaNOM151()">
+                    <button type="button" class="btn btn-navy rounded-pill px-4 py-2 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #0A2A66 0%, #19B7A5 100%); border:none;" onclick="SOAPReactiveEngine.sellarNotaClinicaNOM151()">
                         <i class="bi bi-fingerprint me-1.5 fs-5 align-middle"></i>Sellar Nota Clínica (e.firma / NOM-151) y Congelar Pasos 1–4
                     </button>
                 </div>
@@ -78,8 +78,8 @@ sub render_step_cierre_privado {
                 <div id="panel-post-firma-nom151" class="d-none p-3 rounded-3 border border-success bg-success-subtle">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                         <div>
-                            <h6 class="fw-bold text-success mb-1">
-                                <i class="bi bi-patch-check-fill me-1.5"></i>NOTA CLÍNICA SELLADA BAJO NOM-151-SCFI-2016 (PASOS 1–4 INMUTABLES)
+                            <h6 class="fw-semibold text-success mb-1">
+                                <i class="bi bi-patch-check-fill me-1.5"></i>Nota Clínica Sellada bajo NOM-151-SCFI-2016 (Pasos 1–4 Inmutables)
                             </h6>
                             <div class="small text-dark font-monospace">
                                 <div><strong>Certificado SAT:</strong> <span id="lbl-cert-sat">--</span> &bull; <strong>Estampilla:</strong> <span id="lbl-fecha-sello">--</span></div>
@@ -87,10 +87,10 @@ sub render_step_cierre_privado {
                             </div>
                         </div>
                         <div class="d-flex gap-1.5 flex-wrap">
-                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 fw-bold" onclick="SOAPReactiveEngine.abrirModalPDFNotaQR()">
+                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 fw-semibold" onclick="SOAPReactiveEngine.abrirModalPDFNotaQR()">
                                 <i class="bi bi-qr-code-scan me-1"></i>Vista Imprimible PDF + QR NOM-024
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="SOAPReactiveEngine.enviarNotaCifradaTLS()">
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="SOAPReactiveEngine.enviarNotaCifradaTLS()">
                                 <i class="bi bi-shield-lock me-1"></i>Enviar por Canal TLS 1.3
                             </button>
                         </div>
@@ -109,13 +109,13 @@ sub render_step_cierre_privado {
                     <!-- Opción A: Enviar a Recepción / Caja (Clínica / Municipio) -->
                     <div class="qx-type-card selected-programada" id="card-cierre-recepcion">
                         <div class="d-flex justify-content-between align-items-center mb-1.5">
-                            <span class="fw-bold text-navy"><i class="bi bi-building-check text-primary me-1.5"></i>A. CLÍNICA CON RECEPCIÓN / CAJA DESACOPLADA</span>
+                            <span class="fw-semibold text-navy"><i class="bi bi-building-check text-primary me-1.5"></i>A. Clínica con Recepción / Caja Desacoplada</span>
                             <span class="badge bg-primary">Fin Acto Médico</span>
                         </div>
                         <p class="text-muted small mb-2.5" style="font-size:0.74rem;">
                             El médico concluye su atención aquí. La nota SOAP, receta y consentimientos se archivan en el expediente, y la orden de cobro se envía con estatus <code>Cobro por recepción</code> a la ventanilla de Caja.
                         </p>
-                        <button type="button" class="btn btn-sm btn-primary w-100 rounded-pill fw-bold py-1.5" onclick="SOAPReactiveEngine.finalizarYEnviarACajaRecepcion()">
+                        <button type="button" class="btn btn-sm btn-navy w-100 rounded-pill fw-semibold py-1.5" onclick="SOAPReactiveEngine.finalizarYEnviarACajaRecepcion()">
                             <i class="bi bi-send-check-fill me-1.5"></i>Sellar y Enviar Orden a Caja Recepción (Cerrar Consulta)
                         </button>
                     </div>

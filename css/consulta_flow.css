@@ -9,6 +9,61 @@
     max-width: 100%;
     margin: 0 auto;
     padding-bottom: 65px;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.wizard-container,
+.wizard-container * {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ==========================================================================
+   TIPOGRAFÍA MANDANTE Y JERARQUÍA VISUAL (FINANZAS.PL SPEC)
+   - Títulos importantes: Azul Marino (#0A2A66) en Altas y Bajas (sin negrita dura)
+   - Títulos de sección / etiquetas: Gris (#64748b) (sin negrita)
+   - Textos generales: 500-600 de Plus Jakarta Sans
+   ========================================================================== */
+.wizard-title-main,
+.wizard-panel h5,
+.wizard-panel h4,
+.qx-subcard-title,
+.soap-top-flow-title {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    letter-spacing: -0.2px;
+}
+
+.wizard-panel h5 {
+    font-size: 1.05rem !important; /* Tamaño estándar de títulos finanzas.pl */
+}
+
+.qx-subcard-title {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    color: var(--md-blue-deep, #0A2A66) !important;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.65rem;
+    text-transform: none !important;
+}
+
+.wizard-section-title,
+.wizard-label,
+.qx-label,
+.wizard-panel .text-muted.small {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    color: #64748b !important; /* Gris de sección según finanzas.pl */
+    font-weight: 500 !important;
+    font-size: 0.74rem !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+/* Suavizado de negritas excesivas para respetar el estilo de finanzas.pl */
+.wizard-container .fw-bold:not(.vital-status-pill):not(.font-monospace):not(.badge) {
+    font-weight: 600 !important;
 }
 
 /* ==========================================================================
@@ -208,12 +263,12 @@
 
 .wizard-label {
     font-size: 0.74rem;
-    font-weight: 800;
-    color: var(--md-blue-deep, #0A2A66);
-    margin-bottom: 0.3rem;
+    font-weight: 500;
+    color: #64748b; /* Gris para títulos de sección / etiquetas */
+    margin-bottom: 0.25rem;
     display: block;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    text-transform: none;
+    letter-spacing: normal;
 }
 
 .wizard-input {
@@ -223,9 +278,10 @@
     padding: 0.5rem 0.75rem;
     width: 100%;
     transition: all 0.2s;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: #0f172a;
+    font-weight: 500;
+    font-size: 0.82rem;
+    color: #1e293b;
+    font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .wizard-input:focus {
@@ -239,6 +295,146 @@
     border-color: #ef4444;
     background: #fef2f2;
 }
+
+/* ==========================================================================
+   PRINCIPIO BOOTSTRAP FORM-FLOATING CLÍNICO (SIN ENCIMAR VALORES)
+   ========================================================================== */
+.form-floating,
+.wizard-floating {
+    position: relative;
+    width: 100%;
+    margin-bottom: 0.65rem;
+}
+
+.form-floating > .form-control,
+.form-floating > .wizard-input,
+.form-floating > .form-select,
+.wizard-floating > .form-control,
+.wizard-floating > .wizard-input,
+.wizard-floating > .form-select {
+    height: calc(3.15rem + 2px) !important;
+    min-height: calc(3.15rem + 2px) !important;
+    line-height: 1.25 !important;
+    padding-top: 1.35rem !important;
+    padding-bottom: 0.35rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
+    background-color: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 9px;
+    transition: all 0.2s ease;
+}
+
+.form-floating > .form-control:focus,
+.form-floating > .wizard-input:focus,
+.form-floating > .form-select:focus,
+.wizard-floating > .form-control:focus,
+.wizard-floating > .wizard-input:focus,
+.wizard-floating > .form-select:focus {
+    border-color: #19B7A5 !important;
+    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.16) !important;
+    background-color: #ffffff;
+}
+
+.form-floating > textarea.form-control,
+.form-floating > textarea.wizard-input,
+.wizard-floating > textarea.form-control,
+.wizard-floating > textarea.wizard-input {
+    height: auto !important;
+    min-height: 90px !important;
+    padding-top: 1.65rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+.form-floating > label,
+.wizard-floating > label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0.85rem 0.75rem !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+    border: 1px solid transparent;
+    transform-origin: 0 0;
+    transition: opacity .15s ease-in-out, transform .15s ease-in-out;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    color: #64748b !important; /* Gris para la etiqueta según finanzas.pl */
+}
+
+/* Flotado activo: la etiqueta sube a la zona superior y deja el valor 100% visible abajo */
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label,
+.form-floating > .wizard-input:focus ~ label,
+.form-floating > .wizard-input:not(:placeholder-shown) ~ label,
+.form-floating > .form-select ~ label,
+.wizard-floating > .form-control:focus ~ label,
+.wizard-floating > .form-control:not(:placeholder-shown) ~ label,
+.wizard-floating > .wizard-input:focus ~ label,
+.wizard-floating > .wizard-input:not(:placeholder-shown) ~ label,
+.wizard-floating > .form-select ~ label {
+    opacity: 1 !important;
+    transform: scale(0.8) translateY(-0.6rem) translateX(0.15rem) !important;
+    color: #0A2A66 !important; /* Azul marino para lo importante al enfocar */
+    font-weight: 600 !important;
+}
+
+/* ==========================================================================
+   BOTONES AZUL MARINO (#0A2A66) CON LETRAS BLANCAS
+   (REEMPLAZO DE AZUL BOOTSTRAP, CONSERVANDO CHIP-ACCELERATOR Y BTN-ACCELERATOR-ACTION)
+   ========================================================================== */
+.btn-navy,
+.btn-navy-primary,
+.wizard-container .btn-primary:not(.chip-accelerator):not(.chip-macro-card):not(.btn-accelerator-action) {
+    background-color: #0A2A66 !important;
+    color: #ffffff !important;
+    border-color: #0A2A66 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.16) !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-navy:hover,
+.btn-navy-primary:hover,
+.wizard-container .btn-primary:not(.chip-accelerator):not(.chip-macro-card):not(.btn-accelerator-action):hover {
+    background-color: #082152 !important;
+    border-color: #082152 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25) !important;
+}
+
+.btn-navy-outline,
+.wizard-container .btn-outline-primary:not(.chip-accelerator):not(.chip-macro-card):not(.btn-accelerator-action) {
+    background-color: #ffffff !important;
+    color: #0A2A66 !important;
+    border: 1.5px solid #0A2A66 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-navy-outline:hover,
+.btn-navy-outline.active,
+.wizard-container .btn-outline-primary:not(.chip-accelerator):not(.chip-macro-card):not(.btn-accelerator-action):hover,
+.wizard-container .btn-outline-primary:not(.chip-accelerator):not(.chip-macro-card):not(.btn-accelerator-action).active {
+    background-color: #0A2A66 !important;
+    color: #ffffff !important;
+    border-color: #0A2A66 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.25) !important;
+}
+
 
 .wizard-btn-next {
     background: linear-gradient(135deg, #0A2A66 0%, #124A9E 100%);

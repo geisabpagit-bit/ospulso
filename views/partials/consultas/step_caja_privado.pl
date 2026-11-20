@@ -258,21 +258,21 @@ sub render_step_caja_privado {
             
             <div class="d-flex justify-content-between align-items-center border-bottom pb-2.5 mb-3 flex-wrap gap-2">
                 <div>
-                    <h5 class="fw-bold text-navy mb-0">
+                    <h5 class="fw-semibold text-navy mb-0">
                         <i class="bi bi-wallet2 me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Paso 6: Caja, Liquidación de Conceptos 3NF y Próxima Cita
                     </h5>
                     <p class="text-muted small mb-0">Cobro directo en consultorio, recibo oficial y programación de cita de seguimiento en Agenda.</p>
                 </div>
-                <span class="badge bg-success text-white fw-bold">Paso 6 de 6</span>
+                <span class="badge bg-success text-white fw-semibold">Paso 6 de 6</span>
             </div>
             
             $banner_odonto_caja_html
             
             <div id="caja-no-cotizacion" class="text-center py-5 border rounded-4 bg-light mb-4">
                 <i class="bi bi-info-circle text-muted fs-1 mb-3 d-block"></i>
-                <h5 class="fw-bold text-muted font-secondary">No se seleccion&oacute; ninguna cotizaci&oacute;n</h5>
+                <h5 class="fw-semibold text-muted font-secondary">No se seleccionó ninguna cotización</h5>
                 <p class="text-muted small">Puede continuar al cierre o registrar conceptos/servicios directamente para esta consulta.</p>
-                <button type="button" class="btn btn-outline-primary rounded-pill px-4 mt-2 fw-bold" onclick="abrirModalCargoConsultas()">
+                <button type="button" class="btn btn-navy-outline rounded-pill px-4 mt-2 fw-semibold" onclick="abrirModalCargoConsultas()">
                     <i class="bi bi-cart-plus me-2"></i>Registrar Conceptos / Orden de Servicio
                 </button>
             </div>
@@ -281,8 +281,8 @@ sub render_step_caja_privado {
                 <!-- Conceptos de la Cotización -->
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="border: 1px solid rgba(25, 183, 165, 0.2) !important;">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-black text-navy mb-0"><i class="bi bi-cart3 me-2" style="color: var(--md-teal-clinical);"></i>Conceptos a Cobrar</h5>
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" onclick="abrirModalCargoConsultas()">
+                        <h5 class="fw-semibold text-navy mb-0"><i class="bi bi-cart3 me-2" style="color: var(--md-teal-clinical);"></i>Conceptos a Cobrar</h5>
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" onclick="abrirModalCargoConsultas()">
                             <i class="bi bi-plus-lg me-1"></i>Agregar Concepto Adicional
                         </button>
                     </div>
@@ -305,48 +305,48 @@ sub render_step_caja_privado {
                 <div class="row g-4">
                     <div class="col-md-6" id="panel-gestion-caja">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="border: 1px solid rgba(25, 183, 165, 0.2) !important;">
-                            <h5 class="fw-black text-navy mb-3"><i class="bi bi-cash-coin me-2" style="color: var(--md-teal-clinical);"></i>Gesti&oacute;n de Caja</h5>
+                            <h5 class="fw-semibold text-navy mb-3"><i class="bi bi-cash-coin me-2" style="color: var(--md-teal-clinical);"></i>Gestión de Caja</h5>
                             
-                            <div class="mb-3">
-                                <label class="wizard-label">Tipo de Pago</label>
-                                <select name="caja_tipo_pago" id="f_caja_tipo_pago" class="wizard-input" onchange="actualizarMontoPago()">
+                            <div class="form-floating mb-3">
+                                <select name="caja_tipo_pago" id="f_caja_tipo_pago" class="form-select wizard-input" onchange="actualizarMontoPago()">
                                     <option value="Liquidar">Liquidar (Totalidad)</option>
                                     <option value="Abonar">Abonar (Pago Parcial)</option>
                                 </select>
+                                <label for="f_caja_tipo_pago" class="wizard-label">Tipo de Pago</label>
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="wizard-label">Monto a Pagar (\$)</label>
-                                <input type="number" step="0.01" min="0" name="caja_monto_abono" id="f_caja_monto_abono" class="wizard-input fw-bold" readonly>
+                            <div class="form-floating mb-3">
+                                <input type="number" step="0.01" min="0" name="caja_monto_abono" id="f_caja_monto_abono" class="form-control wizard-input fw-semibold" placeholder="0.00" readonly>
+                                <label for="f_caja_monto_abono" class="wizard-label">Monto a Pagar (\$)</label>
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="wizard-label">M&eacute;todo de Pago</label>
-                                <select name="caja_metodo_pago" class="wizard-input">
+                            <div class="form-floating mb-3">
+                                <select name="caja_metodo_pago" id="f_caja_metodo_pago" class="form-select wizard-input">
                                     <option value="Efectivo">Efectivo</option>
                                     <option value="Tarjeta">Tarjeta de Cr&eacute;dito/D&eacute;bito</option>
                                     <option value="Transferencia">Transferencia Bancaria</option>
                                 </select>
+                                <label for="f_caja_metodo_pago" class="wizard-label">M&eacute;todo de Pago</label>
                             </div>
                             
-                            <div class="mb-3">
-                                <label class="wizard-label">Destino del Tratamiento</label>
-                                <select name="caja_estado_tratamiento" id="f_caja_estado_tratamiento" class="wizard-input" onchange="actualizarMontoPago(); toggleCitaWorkflow();">
+                            <div class="form-floating mb-3">
+                                <select name="caja_estado_tratamiento" id="f_caja_estado_tratamiento" class="form-select wizard-input" onchange="actualizarMontoPago(); toggleCitaWorkflow();">
                                     <option value="Abierto">Dejar tratamiento abierto (Requiere pr&oacute;xima cita)</option>
                                     <option value="Cerrado">Finalizar y Cerrar tratamiento (Alta m&eacute;dica)</option>
                                     <option value="Cobro por recepción">Cobro por recepci&oacute;n (Pendiente por Recepcionista)</option>
                                 </select>
+                                <label for="f_caja_estado_tratamiento" class="wizard-label">Destino del Tratamiento</label>
                             </div>
                         </div>
                     </div>
                     
                     <div class="col-md-6" id="panel-programacion-cita">
                         <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="border: 1px solid rgba(25, 183, 165, 0.2) !important;">
-                            <h5 class="fw-black text-navy mb-3"><i class="bi bi-calendar-week me-2" style="color: var(--md-teal-clinical);"></i>Programaci&oacute;n de Cita</h5>
+                            <h5 class="fw-semibold text-navy mb-3"><i class="bi bi-calendar-week me-2" style="color: var(--md-teal-clinical);"></i>Programaci&oacute;n de Cita</h5>
                             
                             <div id="cita-no-requerida" class="text-center py-5 opacity-75">
                                 <i class="bi bi-check-circle text-success fs-1 mb-2 d-block"></i>
-                                <h6 class="fw-bold">El tratamiento ser&aacute; finalizado</h6>
+                                <h6 class="fw-semibold">El tratamiento ser&aacute; finalizado</h6>
                                 <p class="text-muted small m-0">No se requiere cita de seguimiento para este tratamiento.</p>
                             </div>
                             
@@ -356,12 +356,12 @@ sub render_step_caja_privado {
                                 </div>
                                 <div id="cita-status-card" class="p-3 border rounded-3 text-center bg-light">
                                     <i class="bi bi-calendar-event fs-2 mb-2 text-muted" id="cita-status-icon"></i>
-                                    <h6 class="fw-bold text-navy m-0" id="cita-status-text">Sin Cita Agendada</h6>
+                                    <h6 class="fw-semibold text-navy m-0" id="cita-status-text">Sin Cita Agendada</h6>
                                     <p class="text-muted small m-0 mt-1" id="cita-status-detail">Haga clic en el bot&oacute;n inferior para seleccionar fecha y hora en la agenda.</p>
                                     
                                     <input type="hidden" name="proxima_cita_id" id="f_proxima_cita_id" value="">
                                     
-                                    <button type="button" class="btn btn-outline-primary rounded-pill px-4 mt-3 fw-bold" onclick="abrirModalCitaConsulta()">
+                                    <button type="button" class="btn btn-navy-outline rounded-pill px-4 mt-3 fw-semibold" onclick="abrirModalCitaConsulta()">
                                         <i class="bi bi-calendar-plus me-2"></i>Agendar Cita en Calendario
                                     </button>
                                 </div>
@@ -376,7 +376,7 @@ sub render_step_caja_privado {
                     <i class="bi bi-arrow-left me-1"></i> Paso 5: Firma NOM-151
                 </button>
                 <div class="d-flex gap-2 flex-wrap">
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="verReciboPrevio()">
+                    <button type="button" class="btn btn-sm btn-navy-outline rounded-pill px-3 fw-semibold" onclick="verReciboPrevio()">
                         <i class="bi bi-receipt me-1"></i>Ver Recibo Previo
                     </button>
                     <button type="button" class="wizard-btn-next" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);" onclick="finalizarConsulta()">
@@ -391,7 +391,7 @@ sub render_step_caja_privado {
             <div class="modal-dialog modal-xl modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header" style="background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, #f59e0b 100%) !important;">
-                        <h5 class="modal-title font-secondary fw-bold text-white" id="modalCargoConsultasTitle">
+                        <h5 class="modal-title font-secondary fw-semibold text-white" id="modalCargoConsultasTitle">
                             <i class="bi bi-cart-plus me-2"></i>Registrar Conceptos / Orden de Servicio
                         </h5>
                         <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
@@ -405,9 +405,9 @@ sub render_step_caja_privado {
                                     <label class="wizard-label mb-2"><i class="bi bi-pencil-square me-1 text-primary"></i>Entrada Manual</label>
                                     <div class="input-group input-group-sm">
                                         <input type="text" id="manual_nombre_consultas" class="form-control animate__animated" placeholder="Concepto (ej. Consulta Especialista)" style="border-radius: 8px 0 0 8px;">
-                                        <span class="input-group-text fw-bold">\$</span>
+                                        <span class="input-group-text fw-semibold">\$</span>
                                         <input type="number" id="manual_precio_consultas" class="form-control" style="max-width: 90px;" placeholder="0.00" step="0.01" min="0">
-                                        <button type="button" onclick="agregarCargoManualConsultas()" class="btn btn-primary px-3 fw-bold" style="border-radius: 0 8px 8px 0;">
+                                        <button type="button" onclick="agregarCargoManualConsultas()" class="btn btn-navy px-3 fw-semibold" style="border-radius: 0 8px 8px 0;">
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
                                     </div>

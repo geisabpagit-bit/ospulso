@@ -50,8 +50,8 @@ sub render_step_soap {
             <!-- Barra de Macros Clínicas Completas (1 Clic) -->
             <div class="qx-subcard mb-3" style="background: linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%);">
                 <div class="d-flex justify-content-between align-items-center mb-1.5 flex-wrap gap-2">
-                    <span class="qx-label mb-0 text-navy"><i class="bi bi-magic text-teal me-1"></i>Macros Clínicas Completas en 1 Clic (Rellena CIE-10, Impresión, Plan, Pronóstico, Alarma y Receta)</span>
-                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-bold" onclick="BovedaService.openDrawer('RECETA')">
+                    <span class="wizard-section-title mb-0"><i class="bi bi-magic text-teal me-1"></i>Macros Clínicas Completas en 1 Clic (Rellena CIE-10, Impresión, Plan, Pronóstico, Alarma y Receta)</span>
+                    <button type="button" class="btn btn-xs btn-navy-outline rounded-pill px-2.5 py-0.5 fw-semibold" onclick="BovedaService.openDrawer('RECETA')">
                         <i class="bi bi-clock-history me-1"></i>Clonar Receta Previa de Bóveda
                     </button>
                 </div>
@@ -60,7 +60,7 @@ sub render_step_soap {
                         <i class="bi bi-thermometer-high text-danger"></i> Faringitis Aguda (J02.9)
                     </span>
                     <span class="chip-macro-card btn-accelerator-action" onclick="SOAPReactiveEngine.aplicarMacroClinica('GASTRITIS')">
-                        <i class="bi bi-Fire text-warning"></i> Gastritis Aguda / ERGE (K29.7)
+                        <i class="bi bi-fire text-warning"></i> Gastritis Aguda / ERGE (K29.7)
                     </span>
                     <span class="chip-macro-card btn-accelerator-action" onclick="SOAPReactiveEngine.aplicarMacroClinica('HTA_CONTROL')">
                         <i class="bi bi-heart-pulse text-primary"></i> Control HTA Esencial (I10)
@@ -80,7 +80,7 @@ sub render_step_soap {
                     <span><i class="bi bi-search-heart text-teal me-1.5"></i>1. Codificación Diagnóstica Oficial CIE-10 (SSa / NOM-024)</span>
                     <div class="form-check form-switch mb-0">
                         <input class="form-check-input" type="checkbox" role="switch" id="check_usar_cif" onchange="document.getElementById('seccion-cif-opcional').classList.toggle('d-none', !this.checked)">
-                        <label class="form-check-label small fw-bold text-muted" for="check_usar_cif">Mostrar Valoración Funcional CIF</label>
+                        <label class="form-check-label small fw-semibold text-muted" for="check_usar_cif">Mostrar Valoración Funcional CIF</label>
                     </div>
                 </div>
 
@@ -88,32 +88,38 @@ sub render_step_soap {
 
                 <div class="row g-2.5">
                     <div class="col-12 col-md-5">
-                        <label class="wizard-label">Buscador Predictivo Catálogo CIE-10</label>
                         <div class="position-relative">
-                            <input type="text" id="cie10_search" class="wizard-input border-primary" placeholder="Escriba código o diagnóstico (ej. J02, K29, I10, K04)..." autocomplete="off">
+                            <div class="form-floating">
+                                <input type="text" id="cie10_search" class="form-control wizard-input border-primary" placeholder=" " autocomplete="off">
+                                <label for="cie10_search">Buscador Predictivo CIE-10 (ej. J02, K29, I10)...</label>
+                            </div>
                             <div id="cie10_results" class="list-group position-absolute w-100 shadow-lg rounded-3 mt-1" style="z-index: 1055; display: none; max-height: 240px; overflow-y: auto; background: white;"></div>
                         </div>
                     </div>
 
                     <div class="col-12 col-md-5">
-                        <label class="wizard-label">Diagnóstico Principal Seleccionado</label>
-                        <input type="text" name="diagnostico_principal" id="diagnostico_principal" class="wizard-input bg-light fw-bold text-navy" placeholder="Seleccione del buscador o escriba diagnóstico..." oninput="SOAPReactiveEngine.syncAll()">
+                        <div class="form-floating">
+                            <input type="text" name="diagnostico_principal" id="diagnostico_principal" class="form-control wizard-input bg-light text-navy" placeholder=" " oninput="SOAPReactiveEngine.syncAll()">
+                            <label for="diagnostico_principal">Diagnóstico Principal Seleccionado</label>
+                        </div>
                         <input type="hidden" name="clave_diagnostico_cie10" id="clave_diagnostico_cie10">
                     </div>
 
                     <div class="col-12 col-md-2">
-                        <label class="wizard-label">Severidad</label>
-                        <select name="severidad" id="f_severidad" class="wizard-input">
-                            <option value="Leve">Leve</option>
-                            <option value="Moderada">Moderada</option>
-                            <option value="Grave">Grave</option>
-                        </select>
+                        <div class="form-floating">
+                            <select name="severidad" id="f_severidad" class="form-select wizard-input">
+                                <option value="Leve">Leve</option>
+                                <option value="Moderada">Moderada</option>
+                                <option value="Grave">Grave</option>
+                            </select>
+                            <label for="f_severidad">Severidad</label>
+                        </div>
                     </div>
 
                     <!-- Diagnósticos Secundarios CIE-10 -->
                     <div class="col-12">
                         <div class="d-flex align-items-center flex-wrap gap-1.5" id="cie10-secundarios-chips">
-                            <span class="small text-muted fw-bold">Dx Secundarios / Comorbilidades:</span>
+                            <span class="small text-muted fw-semibold">Dx Secundarios / Comorbilidades:</span>
                             <span class="badge bg-light text-muted border">Ninguno agregado</span>
                         </div>
                     </div>
@@ -159,49 +165,61 @@ sub render_step_soap {
                     <!-- Impresión Clínica -->
                     <div class="col-12 col-md-8">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="wizard-label mb-0">Impresión Clínica y Juicio Diagnóstico (Assessment) <span class="req-star">*</span></label>
+                            <span class="wizard-section-title">Impresión Clínica y Juicio Diagnóstico (Assessment)</span>
                             <div class="d-flex gap-1">
                                 <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-0" onclick="toggleDictadoVoz('textarea[name=impresion_clinica]', this)"><i class="bi bi-mic-fill"></i></button>
                                 <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0" onclick="limpiarCampoTexto('textarea[name=impresion_clinica]'); SOAPReactiveEngine.syncAll();"><i class="bi bi-eraser-fill"></i></button>
                             </div>
                         </div>
-                        <textarea name="impresion_clinica" id="f_impresion_clinica" class="wizard-input" rows="2" placeholder="Integración sindromática, diagnóstico nosológico y estado hemodinámico..." required oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                        <div class="form-floating">
+                            <textarea name="impresion_clinica" id="f_impresion_clinica" class="form-control wizard-input" placeholder=" " style="height: 85px;" required oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                            <label for="f_impresion_clinica">Integración sindromática, diagnóstico nosológico y estado... <span class="req-star">*</span></label>
+                        </div>
                     </div>
 
                     <!-- Pronóstico Dual NOM-004 (Vida y Función) -->
                     <div class="col-6 col-md-2">
-                        <label class="wizard-label">Pronóstico Vida <span class="req-star">*</span></label>
-                        <select name="pronostico_vida" id="f_pronostico_vida" class="wizard-input fw-bold text-success" onchange="SOAPReactiveEngine.syncAll()">
-                            <option value="BUENO" selected>BUENO</option>
-                            <option value="RESERVADO">RESERVADO</option>
-                            <option value="MALO">MALO</option>
-                        </select>
+                        <div class="form-floating">
+                            <select name="pronostico_vida" id="f_pronostico_vida" class="form-select wizard-input text-success" onchange="SOAPReactiveEngine.syncAll()">
+                                <option value="BUENO" selected>BUENO</option>
+                                <option value="RESERVADO">RESERVADO</option>
+                                <option value="MALO">MALO</option>
+                            </select>
+                            <label for="f_pronostico_vida">Pronóstico Vida <span class="req-star">*</span></label>
+                        </div>
                     </div>
                     <div class="col-6 col-md-2">
-                        <label class="wizard-label">Pronóstico Función <span class="req-star">*</span></label>
-                        <select name="pronostico_funcion" id="f_pronostico_funcion" class="wizard-input fw-bold text-success" onchange="SOAPReactiveEngine.syncAll()">
-                            <option value="BUENO" selected>BUENO</option>
-                            <option value="RESERVADO">RESERVADO</option>
-                            <option value="MALO">MALO</option>
-                        </select>
+                        <div class="form-floating">
+                            <select name="pronostico_funcion" id="f_pronostico_funcion" class="form-select wizard-input text-success" onchange="SOAPReactiveEngine.syncAll()">
+                                <option value="BUENO" selected>BUENO</option>
+                                <option value="RESERVADO">RESERVADO</option>
+                                <option value="MALO">MALO</option>
+                            </select>
+                            <label for="f_pronostico_funcion">Pronóstico Función <span class="req-star">*</span></label>
+                        </div>
                     </div>
 
                     <!-- Plan de Tratamiento -->
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="wizard-label mb-0">Plan de Tratamiento y Abordaje Clínico (Plan) <span class="req-star">*</span></label>
+                            <span class="wizard-section-title">Plan de Tratamiento y Abordaje Clínico (Plan)</span>
                             <div class="d-flex gap-1">
                                 <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-0" onclick="toggleDictadoVoz('textarea[name=plan_tratamiento]', this)"><i class="bi bi-mic-fill"></i></button>
                                 <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0" onclick="limpiarCampoTexto('textarea[name=plan_tratamiento]'); SOAPReactiveEngine.syncAll();"><i class="bi bi-eraser-fill"></i></button>
                             </div>
                         </div>
-                        <textarea name="plan_tratamiento" id="f_plan_tratamiento" class="wizard-input" rows="2" placeholder="Manejo farmacológico, medidas no farmacológicas y metas terapéuticas..." required oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                        <div class="form-floating">
+                            <textarea name="plan_tratamiento" id="f_plan_tratamiento" class="form-control wizard-input" placeholder=" " style="height: 85px;" required oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                            <label for="f_plan_tratamiento">Manejo farmacológico, medidas no farmacológicas y metas... <span class="req-star">*</span></label>
+                        </div>
                     </div>
 
                     <!-- Indicaciones Higiénico-Dietéticas y Datos de Alarma -->
                     <div class="col-12 col-md-6">
-                        <label class="wizard-label">Medidas Higiénico-Dietéticas</label>
-                        <textarea name="indicaciones_higienico" id="f_indicaciones_higienico" class="wizard-input" rows="2" placeholder="Hidratación abundante, dieta blanda sin irritantes, reposo relativo..." oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                        <div class="form-floating">
+                            <textarea name="indicaciones_higienico" id="f_indicaciones_higienico" class="form-control wizard-input" placeholder=" " style="height: 85px;" oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                            <label for="f_indicaciones_higienico">Medidas Higiénico-Dietéticas (Hidratación, reposo...)</label>
+                        </div>
                         <div class="chip-bar">
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_indicaciones_higienico', 'Abundantes líquidos orales (2L/día), dieta blanda libre de irritantes y grasas.')">⚡ Hidratación + Dieta blanda</span>
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_indicaciones_higienico', 'Dieta hiposódica (<2g Na/día), caminata aeróbica 30 min/día.')">⚡ Dieta hiposódica + Ejercicio</span>
@@ -209,8 +227,10 @@ sub render_step_soap {
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="wizard-label text-danger"><i class="bi bi-exclamation-octagon-fill me-1"></i>Datos de Alarma (Destacados en Rojo en PDF/Receta)</label>
-                        <textarea name="datos_alarma" id="f_datos_alarma" class="wizard-input border-danger-subtle" rows="2" placeholder="Fiebre >38.5°C persistente, disnea, dolor intenso no controlado..." oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                        <div class="form-floating">
+                            <textarea name="datos_alarma" id="f_datos_alarma" class="form-control wizard-input border-danger-subtle" placeholder=" " style="height: 85px;" oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                            <label for="f_datos_alarma"><i class="bi bi-exclamation-octagon-fill text-danger me-1"></i>Datos de Alarma (Destacados en Rojo)</label>
+                        </div>
                         <div class="chip-bar">
                             <span class="chip-accelerator text-danger border-danger-subtle bg-danger-subtle" onclick="SOAPReactiveEngine.appendChip('f_datos_alarma', 'Acudir a Urgencias si presenta fiebre >38.5°C, dificultad respiratoria, intolerancia a la vía oral o deterioro clínico.')">🚨 Alarma General / Fiebre / Disnea</span>
                             <span class="chip-accelerator text-danger border-danger-subtle bg-danger-subtle" onclick="SOAPReactiveEngine.appendChip('f_datos_alarma', 'Acudir a Urgencias si T.A. ≥160/100 mmHg, cefalea intensa, acúfenos, fosfenos o dolor precordial.')">🚨 Alarma Hipertensiva</span>
@@ -219,8 +239,10 @@ sub render_step_soap {
 
                     <!-- Órdenes de Laboratorio y Gabinete Solicitados -->
                     <div class="col-12 col-md-6">
-                        <label class="wizard-label">Órdenes de Laboratorio Solicitadas</label>
-                        <input type="text" name="laboratorios_solicitados" id="f_laboratorios_solicitados" class="wizard-input" placeholder="BH, QS6, EGO, HbA1c, Perfil Lipídico...">
+                        <div class="form-floating">
+                            <input type="text" name="laboratorios_solicitados" id="f_laboratorios_solicitados" class="form-control wizard-input" placeholder=" ">
+                            <label for="f_laboratorios_solicitados">Órdenes de Laboratorio Solicitadas (BH, QS6, EGO...)</label>
+                        </div>
                         <div class="chip-bar">
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_laboratorios_solicitados', 'Biometría Hemática Completa, Química Sanguínea 6 Elementos y EGO.')">⚡ Paquete Básico (BH + QS6 + EGO)</span>
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_laboratorios_solicitados', 'HbA1c, Perfil de Lípidos Completo y Microalbuminuria.')">⚡ Control Metabólico</span>
@@ -228,8 +250,10 @@ sub render_step_soap {
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="wizard-label">Órdenes de Gabinete / Imagenología Solicitadas</label>
-                        <input type="text" name="gabinete_solicitados" id="f_gabinete_solicitados" class="wizard-input" placeholder="Tele de Tórax, USG Abdominal, Rx Panorámica...">
+                        <div class="form-floating">
+                            <input type="text" name="gabinete_solicitados" id="f_gabinete_solicitados" class="form-control wizard-input" placeholder=" ">
+                            <label for="f_gabinete_solicitados">Órdenes de Gabinete / Imagenología (Tele Tórax, USG...)</label>
+                        </div>
                         <div class="chip-bar">
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_gabinete_solicitados', 'Radiografía Tele de Tórax PA.')">⚡ Tele de Tórax</span>
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_gabinete_solicitados', 'Ultrasonido Abdominal Superior.')">⚡ USG Abdominal</span>
@@ -243,14 +267,14 @@ sub render_step_soap {
             <div class="qx-subcard mb-3">
                 <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-2.5 flex-wrap gap-2">
                     <div>
-                        <h6 class="fw-bold m-0 text-navy">
+                        <h6 class="fw-semibold m-0 text-navy">
                             <i class="bi bi-capsule-pill me-1.5 text-primary"></i>3. Receta Médica Oficial COFEPRIS + Motor de Seguridad Farmacológica
                         </h6>
                         <small class="text-muted">Conectado a <code>productos.dat</code> (3NF) con cruce en vivo contra las alergias del Paso 1</small>
                     </div>
                     <div class="form-check form-switch fs-5 mb-0">
                         <input class="form-check-input" type="checkbox" role="switch" id="check_requiere_receta" name="requiere_receta" value="1" onchange="toggleSeccionReceta(this.checked)">
-                        <label class="form-check-label fs-6 fw-bold text-navy" for="check_requiere_receta">¿Expedir Receta Médica?</label>
+                        <label class="form-check-label fs-6 fw-semibold text-navy" for="check_requiere_receta">¿Expedir Receta Médica?</label>
                     </div>
                 </div>
 
@@ -272,16 +296,18 @@ sub render_step_soap {
 
                     <div class="row g-2 mb-2.5">
                         <div class="col-12 col-md-7">
-                            <label class="wizard-label">Buscar Medicamento en Catálogo 3NF (productos.dat)</label>
-                            <select id="select_producto_receta" class="wizard-input" onchange="seleccionarProductoReceta(this.value)">
-                                @{[ cargar_opciones_productos($id_empresa) ]}
-                            </select>
+                            <div class="form-floating">
+                                <select id="select_producto_receta" class="form-select wizard-input" onchange="seleccionarProductoReceta(this.value)">
+                                    @{[ cargar_opciones_productos($id_empresa) ]}
+                                </select>
+                                <label for="select_producto_receta">Buscar Medicamento en Catálogo 3NF (productos.dat)</label>
+                            </div>
                         </div>
-                        <div class="col-12 col-md-5 d-flex align-items-end gap-1.5">
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold flex-grow-1" onclick="agregarMedicamentoRecetaManual()">
+                        <div class="col-12 col-md-5 d-flex align-items-center gap-1.5">
+                            <button type="button" class="btn btn-sm btn-navy-outline rounded-pill px-3 py-2 fw-semibold flex-grow-1" onclick="agregarMedicamentoRecetaManual()">
                                 <i class="bi bi-plus-circle me-1"></i>+ Prescripción Manual
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1.5 fw-bold" style="border-color:#19B7A5;color:#0f766e;" onclick="BovedaService.openDrawer('RECETA')" title="Clonar medicamentos desde una receta previa en la Bóveda">
+                            <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-2 fw-semibold" style="border-color:#19B7A5;color:#0f766e;" onclick="BovedaService.openDrawer('RECETA')" title="Clonar medicamentos desde una receta previa en la Bóveda">
                                 <i class="bi bi-copy me-1"></i>Clonar de Bóveda
                             </button>
                         </div>

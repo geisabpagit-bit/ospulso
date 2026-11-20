@@ -51,11 +51,11 @@ sub render_step_comunicacion {
                 
                 <div class="col-12 mt-4">
                     <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
-                        <label class="wizard-label mb-0">Observaciones Adicionales de la Interacci&oacute;n</label>
+                        <span class="wizard-section-title mb-0">Observaciones Adicionales de la Interacción</span>
                         <div class="d-flex align-items-center gap-1">
                             <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-3 py-1 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=com_observaciones]', this)" title="Dictar observaciones por voz con micrófono">
                                 <i class="bi bi-mic-fill me-1"></i>
-                                <span class="btn-dictado-text fw-bold">Dictar</span>
+                                <span class="btn-dictado-text fw-semibold">Dictar</span>
                             </button>
                             <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=com_observaciones]')" title="Limpiar observaciones">
                                 <i class="bi bi-eraser-fill me-1"></i>
@@ -63,12 +63,13 @@ sub render_step_comunicacion {
                             </button>
                         </div>
                     </div>
-                    <div class="position-relative">
-                        <textarea name="com_observaciones" class="wizard-input" rows="3" placeholder="Comentarios sobre la recepci&oacute;n de las noticias por parte del paciente o familiares o dicte usando el micr&oacute;fono..."></textarea>
-                        <div class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
-                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
-                            <span>Escuchando... Hable claramente al micr&oacute;fono de su dispositivo (haga clic en 'Detener Dictado' para pausar).</span>
-                        </div>
+                    <div class="form-floating">
+                        <textarea name="com_observaciones" id="f_com_observaciones" class="form-control wizard-input" placeholder=" " style="height: 90px;"></textarea>
+                        <label for="f_com_observaciones">Comentarios sobre la recepción de las noticias por parte del paciente o familiares...</label>
+                    </div>
+                    <div class="dictado-live-badge text-danger fw-semibold mt-2 d-none align-items-center gap-2">
+                        <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
+                        <span>Escuchando... Hable claramente al micrófono de su dispositivo.</span>
                     </div>
                 </div>
 
@@ -80,7 +81,7 @@ sub render_step_comunicacion {
                     <div class="card-medentia-aura border-0 bg-white p-4 rounded-4 shadow-sm">
                         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                             <div>
-                                <h5 class="fw-bold m-0" style="color: var(--md-blue-deep);">
+                                <h5 class="fw-semibold m-0" style="color: var(--md-blue-deep, #0A2A66);">
                                     <i class="bi bi-file-earmark-medical me-2 text-primary"></i>Expediente Legal & Consentimientos (Uso en Consulta)
                                 </h5>
                                 <small class="text-muted">Documentos oficiales archivados en el repositorio atómico del paciente</small>
@@ -89,7 +90,7 @@ sub render_step_comunicacion {
                                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-xs" onclick="cargarConsentimientosWizard()">
                                     <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
                                 </button>
-                                <button type="button" id="btn-emitir-cons-wizard" class="btn btn-sm btn-primary rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1.5" onclick="abrirModalNuevoConsentimientoWizard()">
+                                <button type="button" id="btn-emitir-cons-wizard" class="btn btn-sm btn-navy rounded-pill px-3.5 py-1.5 fw-semibold shadow-sm d-flex align-items-center gap-1.5" onclick="abrirModalNuevoConsentimientoWizard()">
                                     <i class="bi bi-plus-circle-fill"></i> + Emitir Nuevo Consentimiento
                                 </button>
                             </div>
@@ -100,11 +101,11 @@ sub render_step_comunicacion {
                             <div class="d-flex align-items-center gap-3">
                                 <i class="bi bi-shield-slash fs-3 text-secondary"></i>
                                 <div>
-                                    <span class="fw-bold d-block text-dark small">Documentación Legal Inhabilitada</span>
+                                    <span class="fw-semibold d-block text-dark small">Documentación Legal Inhabilitada</span>
                                     <span class="small text-muted">Esta consulta fue configurada en el Paso 0 (Registro) como rutinaria y prescinde de consentimientos legales.</span>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="habilitarConsentimientoDesdePaso5()">
+                            <button type="button" class="btn btn-sm btn-navy-outline rounded-pill px-3 fw-semibold" onclick="habilitarConsentimientoDesdePaso5()">
                                 <i class="bi bi-toggle-on me-1"></i> Habilitar para esta Consulta
                             </button>
                         </div>
@@ -175,29 +176,39 @@ sub render_step_comunicacion {
 
                                 <div class="row g-2.5">
                                     <div class="col-12">
-                                        <label class="form-label small fw-bold text-dark mb-1">Procedimiento / Tratamiento en Consulta <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control form-control-sm" name="procedimiento_descripcion" id="wiz_cons_proc" placeholder="Ej: Procedimiento invasivo menor / Sutura / Biopsia" required>
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control wizard-input" name="procedimiento_descripcion" id="wiz_cons_proc" placeholder=" " required>
+                                            <label for="wiz_cons_proc">Procedimiento / Tratamiento en Consulta <span class="text-danger">*</span></label>
+                                        </div>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label small fw-bold text-dark mb-1">Objetivo</label>
-                                        <input type="text" class="form-control form-control-sm" name="procedimiento_objetivo" id="wiz_cons_obj" placeholder="Ej: Restablecer función y aliviar dolor">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control wizard-input" name="procedimiento_objetivo" id="wiz_cons_obj" placeholder=" ">
+                                            <label for="wiz_cons_obj">Objetivo del Procedimiento</label>
+                                        </div>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label small fw-bold text-dark mb-1">Beneficios Esperados</label>
-                                        <input type="text" class="form-control form-control-sm" name="procedimiento_beneficios" id="wiz_cons_ben" placeholder="Ej: Curación y prevención de secuelas">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control wizard-input" name="procedimiento_beneficios" id="wiz_cons_ben" placeholder=" ">
+                                            <label for="wiz_cons_ben">Beneficios Esperados</label>
+                                        </div>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label small fw-bold text-dark mb-1">Riesgos y Complicaciones</label>
-                                        <textarea class="form-control form-control-sm" name="procedimiento_riesgos" id="wiz_cons_ries" rows="2" placeholder="Ej: Inflamación local, molestia temporal"></textarea>
+                                        <div class="form-floating">
+                                            <textarea class="form-control wizard-input" name="procedimiento_riesgos" id="wiz_cons_ries" placeholder=" " style="height:75px;"></textarea>
+                                            <label for="wiz_cons_ries">Riesgos y Complicaciones</label>
+                                        </div>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label small fw-bold text-dark mb-1">Alternativas</label>
-                                        <textarea class="form-control form-control-sm" name="procedimiento_alternativas" id="wiz_cons_alt" rows="2" placeholder="Ej: Manejo farmacológico conservador"></textarea>
+                                        <div class="form-floating">
+                                            <textarea class="form-control wizard-input" name="procedimiento_alternativas" id="wiz_cons_alt" placeholder=" " style="height:75px;"></textarea>
+                                            <label for="wiz_cons_alt">Alternativas Terapéuticas</label>
+                                        </div>
                                     </div>
 
                                     <!-- Pads de Firma Digital Compactos -->
                                     <div class="col-12 col-md-6 text-center mt-2">
-                                        <label class="form-label small fw-bold text-dark d-block mb-1">Firma Digital del Paciente</label>
+                                        <label class="form-label small fw-semibold text-dark d-block mb-1">Firma Digital del Paciente</label>
                                         <div class="border rounded-3 p-1.5 bg-white shadow-xs">
                                             <canvas id="canvas-wiz-paciente" width="260" height="85" style="border:1px dashed #94a3b8; background:#ffffff; cursor:crosshair; touch-action:none; border-radius: 6px;"></canvas>
                                             <div class="mt-1">
@@ -207,7 +218,7 @@ sub render_step_comunicacion {
                                     </div>
 
                                     <div class="col-12 col-md-6 text-center mt-2">
-                                        <label class="form-label small fw-bold text-dark d-block mb-1">Firma Digital del Médico</label>
+                                        <label class="form-label small fw-semibold text-dark d-block mb-1">Firma Digital del Médico</label>
                                         <div class="border rounded-3 p-1.5 bg-white shadow-xs">
                                             <canvas id="canvas-wiz-medico" width="260" height="85" style="border:1px dashed #94a3b8; background:#ffffff; cursor:crosshair; touch-action:none; border-radius: 6px;"></canvas>
                                             <div class="mt-1">
@@ -219,7 +230,7 @@ sub render_step_comunicacion {
 
                                 <div class="d-flex justify-content-end gap-2 mt-3 pt-2.5 border-top">
                                     <button type="button" class="btn btn-sm btn-light rounded-pill px-3 fw-semibold border" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                                    <button type="submit" class="btn btn-sm btn-navy rounded-pill px-4 fw-semibold shadow-sm">
                                         <i class="bi bi-shield-check me-1"></i> Sellar y Vincular Documento
                                     </button>
                                 </div>
@@ -311,8 +322,8 @@ sub render_step_comunicacion {
                     const rowClass = esVinculado ? 'table-primary border-primary' : '';
                     const procEscaped = (c.procedimiento || 'Procedimiento').replace(/'/g, "\\'");
                     const btnVincular = esVinculado 
-                        ? '<span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-bold"><i class="bi bi-check-lg me-1"></i>Vinculado</span>'
-                        : '<button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-bold" onclick="window.vincularConsentimiento(\'' + c.id_consentimiento + '\', \'' + procEscaped + '\')"><i class="bi bi-link-45deg me-1"></i>Vincular a Consulta</button>';
+                        ? '<span class="badge bg-primary text-white rounded-pill px-3 py-1.5 fw-semibold"><i class="bi bi-check-lg me-1"></i>Vinculado</span>'
+                        : '<button type="button" class="btn btn-xs btn-navy-outline rounded-pill px-2.5 py-1 fw-semibold" onclick="window.vincularConsentimiento(\'' + c.id_consentimiento + '\', \'' + procEscaped + '\')"><i class="bi bi-link-45deg me-1"></i>Vincular a Consulta</button>';
 
                     rows += '<tr class="' + rowClass + '">' +
                         '<td class="font-monospace fw-bold text-dark">' + c.id_consentimiento + '</td>' +

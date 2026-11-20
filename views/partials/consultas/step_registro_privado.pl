@@ -126,15 +126,17 @@ sub render_step_registro_privado {
         };
     } else {
         $cot_section = qq{
-            <label class="wizard-label"><i class="bi bi-receipt me-1 text-teal"></i>Cotización del Paciente</label>
-            <select name="id_cotizacion" id="f_id_cotizacion" class="wizard-input" onchange="toggleConversionCheckbox()">
-                $cot_options
-            </select>
+            <div class="form-floating">
+                <select name="id_cotizacion" id="f_id_cotizacion" class="form-select wizard-input" onchange="toggleConversionCheckbox()">
+                    $cot_options
+                </select>
+                <label for="f_id_cotizacion"><i class="bi bi-receipt me-1 text-teal"></i>Cotización del Paciente</label>
+            </div>
         };
         $conversion_section = qq{
             <div class="form-check form-switch p-2 px-3 border rounded-3 w-100 bg-light" id="conversion_wrapper" style="display: none; align-items: center;">
                 <input class="form-check-input ms-0 me-2" type="checkbox" name="convertir_tratamiento" id="f_convertir_tratamiento" value="1" onchange="toggleConversionStyle()">
-                <label class="form-check-label fw-bold text-navy small" for="f_convertir_tratamiento">¿Convertir en Tratamiento Activo?</label>
+                <label class="form-check-label fw-semibold text-navy small" for="f_convertir_tratamiento">¿Convertir en Tratamiento Activo?</label>
             </div>
         };
         $tipo_consulta_options = qq{
@@ -149,16 +151,16 @@ sub render_step_registro_privado {
     return qq{
         <div class="wizard-panel active" id="step-panel-0" data-step-index="0">
             <!-- Encabezado de Paso Estilo Quirófano -->
-            <div class="d-flex justify-content-between align-items-center border-bottom pb-2.5 mb-3 flex-wrap gap-2">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2">
                 <div>
-                    <h5 class="fw-bold text-navy mb-0">
+                    <h5 class="fw-semibold text-navy mb-0">
                         <i class="bi bi-person-vcard-fill me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Paso 1: Subjetivo (S), Registro e Interrogatorio
                     </h5>
                     <p class="text-muted small mb-0">Motivo de consulta, escala EVA de dolor, evolución del padecimiento actual, alergias/NKDA y consentimiento anticipado.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     $badge_tipo_paciente
-                    <span class="badge bg-primary-subtle text-primary fw-bold">Paso 1 de 6</span>
+                    <span class="badge bg-primary-subtle text-primary fw-semibold">Paso 1 de 6</span>
                 </div>
             </div>
 
@@ -170,43 +172,57 @@ sub render_step_registro_privado {
                 </div>
                 <div class="row g-2.5">
                     <div class="col-12 col-md-4">
-                        <label class="wizard-label">Paciente Titular</label>
-                        <input type="text" id="f_paciente_nombre" name="paciente_nombre_display" class="wizard-input bg-light fw-bold" value="$paciente->{nombre}" readonly data-preserve="true">
+                        <div class="form-floating">
+                            <input type="text" id="f_paciente_nombre" name="paciente_nombre_display" class="form-control wizard-input bg-light" placeholder=" " value="$paciente->{nombre}" readonly data-preserve="true">
+                            <label for="f_paciente_nombre">Paciente Titular</label>
+                        </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <label class="wizard-label">CURP</label>
-                        <input type="text" id="f_paciente_curp" name="paciente_curp_display" class="wizard-input bg-light font-monospace" value="$paciente->{curp}" readonly data-preserve="true">
+                        <div class="form-floating">
+                            <input type="text" id="f_paciente_curp" name="paciente_curp_display" class="form-control wizard-input bg-light font-monospace" placeholder=" " value="$paciente->{curp}" readonly data-preserve="true">
+                            <label for="f_paciente_curp">CURP</label>
+                        </div>
                     </div>
                     <div class="col-3 col-md-2">
-                        <label class="wizard-label">Sexo</label>
-                        <input type="text" id="f_paciente_sexo" name="paciente_sexo_display" class="wizard-input bg-light" value="$paciente->{sexo}" readonly data-preserve="true">
+                        <div class="form-floating">
+                            <input type="text" id="f_paciente_sexo" name="paciente_sexo_display" class="form-control wizard-input bg-light" placeholder=" " value="$paciente->{sexo}" readonly data-preserve="true">
+                            <label for="f_paciente_sexo">Sexo</label>
+                        </div>
                     </div>
                     <div class="col-3 col-md-1.5">
-                        <label class="wizard-label">Edad</label>
-                        <input type="text" id="f_paciente_edad" name="paciente_edad_display" class="wizard-input bg-light" value="$paciente->{edad}" readonly data-preserve="true">
+                        <div class="form-floating">
+                            <input type="text" id="f_paciente_edad" name="paciente_edad_display" class="form-control wizard-input bg-light" placeholder=" " value="$paciente->{edad}" readonly data-preserve="true">
+                            <label for="f_paciente_edad">Edad</label>
+                        </div>
                     </div>
                     <div class="col-6 col-md-1.5">
-                        <label class="wizard-label">Hora</label>
-                        <input type="text" name="hora_consulta" class="wizard-input bg-light text-center" value="$paciente->{hora_consulta}" readonly data-preserve="true">
+                        <div class="form-floating">
+                            <input type="text" id="f_paciente_hora" name="hora_consulta" class="form-control wizard-input bg-light text-center" placeholder=" " value="$paciente->{hora_consulta}" readonly data-preserve="true">
+                            <label for="f_paciente_hora">Hora</label>
+                        </div>
                         <input type="hidden" name="fecha_consulta" value="$paciente->{fecha_consulta}" data-preserve="true">
                     </div>
 
                     <div class="col-6 col-md-3">
-                        <label class="wizard-label">Tipo de Consulta <span class="req-star">*</span></label>
-                        <select name="tipo_consulta" id="f_tipo_consulta" class="wizard-input" required onchange="SOAPReactiveEngine.syncAll()">
-                            $tipo_consulta_options
-                        </select>
+                        <div class="form-floating">
+                            <select name="tipo_consulta" id="f_tipo_consulta" class="form-select wizard-input" required onchange="SOAPReactiveEngine.syncAll()">
+                                $tipo_consulta_options
+                            </select>
+                            <label for="f_tipo_consulta">Tipo de Consulta <span class="req-star">*</span></label>
+                        </div>
                     </div>
                     <div class="col-12 col-md-3">
-                        <label class="wizard-label">Especialidad (Inamovible)</label>
-                        <input type="text" id="f_paciente_espe" class="wizard-input bg-light fw-bold text-primary" value="$paciente->{espe_nombre_medico}" readonly data-preserve="true">
+                        <div class="form-floating">
+                            <input type="text" id="f_paciente_espe" class="form-control wizard-input bg-light text-primary" placeholder=" " value="$paciente->{espe_nombre_medico}" readonly data-preserve="true">
+                            <label for="f_paciente_espe">Especialidad (Inamovible)</label>
+                        </div>
                         <input type="hidden" name="especialidad" value="$paciente->{espe_nombre_medico}" data-preserve="true">
                         <input type="hidden" name="id_espe" value="$paciente->{id_espe_medico}" data-preserve="true">
                     </div>
                     <div class="col-12 col-md-3">
                         $cot_section
                     </div>
-                    <div class="col-12 col-md-3 d-flex align-items-end">
+                    <div class="col-12 col-md-3 d-flex align-items-center">
                         $conversion_section
                     </div>
                 </div>
@@ -223,18 +239,21 @@ sub render_step_registro_privado {
                     <!-- Motivo de Consulta -->
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
-                            <label class="wizard-label mb-0">Motivo Principal de Consulta <span class="req-star">*</span></label>
+                            <span class="wizard-section-title">Motivo Principal de Consulta</span>
                             <div class="d-flex align-items-center gap-1">
                                 <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2.5 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=motivo]', this)">
-                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-bold">Dictar</span>
+                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-semibold">Dictar</span>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=motivo]'); SOAPReactiveEngine.syncAll();">
                                     <i class="bi bi-eraser-fill me-1"></i><span class="small fw-semibold">Limpiar</span>
                                 </button>
                             </div>
                         </div>
-                        <textarea name="motivo" id="f_motivo_consulta" class="wizard-input" rows="2" placeholder="Describa el motivo por el cual acude el paciente..." required oninput="SOAPReactiveEngine.syncAll()">$motivo_precargado</textarea>
-                        <div class="dictado-live-badge text-danger fw-bold mt-1 d-none align-items-center gap-2">
+                        <div class="form-floating">
+                            <textarea name="motivo" id="f_motivo_consulta" class="form-control wizard-input" placeholder=" " style="height: 85px;" required oninput="SOAPReactiveEngine.syncAll()">$motivo_precargado</textarea>
+                            <label for="f_motivo_consulta">Describa el motivo por el cual acude el paciente... <span class="req-star">*</span></label>
+                        </div>
+                        <div class="dictado-live-badge text-danger fw-semibold mt-1 d-none align-items-center gap-2">
                             <span class="spinner-grow spinner-grow-sm text-danger"></span><span>Escuchando dictado...</span>
                         </div>
                         <div class="chip-bar">
@@ -250,12 +269,14 @@ sub render_step_registro_privado {
 
                     <!-- Inicio de síntomas y Escala EVA 1-10 -->
                     <div class="col-12 col-md-4">
-                        <label class="wizard-label">Inicio de Síntomas</label>
-                        <input type="date" name="inicio_sintomas" id="f_inicio_sintomas" class="wizard-input" value="$hoy_str" onchange="SOAPReactiveEngine.syncAll()">
+                        <div class="form-floating">
+                            <input type="date" name="inicio_sintomas" id="f_inicio_sintomas" class="form-control wizard-input" placeholder=" " value="$hoy_str" onchange="SOAPReactiveEngine.syncAll()">
+                            <label for="f_inicio_sintomas">Inicio de Síntomas</label>
+                        </div>
                     </div>
                     <div class="col-12 col-md-8">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="wizard-label mb-0">Escala Visual Analógica del Dolor (EVA 1–10)</label>
+                            <span class="wizard-section-title">Escala Visual Analógica del Dolor (EVA 1–10)</span>
                             <span id="lbl-eva-badge" class="badge bg-success rounded-pill">EVA 1/10 · Sin Dolor / Leve</span>
                         </div>
                         <input type="hidden" name="intensidad" id="f_intensidad_eva" value="1">
@@ -277,18 +298,21 @@ sub render_step_registro_privado {
                     <!-- Evolución y semiología -->
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
-                            <label class="wizard-label mb-0">Evolución y Semiología del Cuadro Clínico <span class="req-star">*</span></label>
+                            <span class="wizard-section-title">Evolución y Semiología del Cuadro Clínico</span>
                             <div class="d-flex align-items-center gap-1">
                                 <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2.5 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=evolucion]', this)">
-                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-bold">Dictar</span>
+                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-semibold">Dictar</span>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=evolucion]'); SOAPReactiveEngine.syncAll();">
                                     <i class="bi bi-eraser-fill me-1"></i><span class="small fw-semibold">Limpiar</span>
                                 </button>
                             </div>
                         </div>
-                        <textarea name="evolucion" id="f_evolucion" class="wizard-input" rows="2" placeholder="Cronología, factores desencadenantes, síntomas acompañantes y medicamentos previos..." required oninput="SOAPReactiveEngine.syncAll()"></textarea>
-                        <div class="dictado-live-badge text-danger fw-bold mt-1 d-none align-items-center gap-2">
+                        <div class="form-floating">
+                            <textarea name="evolucion" id="f_evolucion" class="form-control wizard-input" placeholder=" " style="height: 85px;" required oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                            <label for="f_evolucion">Cronología, factores desencadenantes y síntomas acompañantes... <span class="req-star">*</span></label>
+                        </div>
+                        <div class="dictado-live-badge text-danger fw-semibold mt-1 d-none align-items-center gap-2">
                             <span class="spinner-grow spinner-grow-sm text-danger"></span><span>Escuchando dictado...</span>
                         </div>
                         <div class="chip-bar">
@@ -304,7 +328,7 @@ sub render_step_registro_privado {
             <div class="qx-subcard mb-3">
                 <div class="qx-subcard-title d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <span><i class="bi bi-shield-exclamation text-danger me-1.5"></i>3. Alergias Farmacológicas (Cruce COFEPRIS) y Antecedentes</span>
-                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-0.5 fw-bold shadow-xs btn-accelerator-action" onclick="SOAPReactiveEngine.marcarNKDA()">
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-0.5 fw-semibold shadow-xs btn-accelerator-action" onclick="SOAPReactiveEngine.marcarNKDA()">
                         <i class="bi bi-check2-all me-1"></i>✓ Sin Alergias Conocidas (NKDA)
                     </button>
                 </div>
@@ -314,13 +338,16 @@ sub render_step_registro_privado {
                 <div class="row g-2.5">
                     <div class="col-12 col-md-6">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="wizard-label mb-0 text-danger"><i class="bi bi-capsule me-1"></i>Alergias a Medicamentos / Alimentos</label>
+                            <span class="wizard-section-title text-danger"><i class="bi bi-capsule me-1"></i>Alergias a Medicamentos / Alimentos</span>
                             <div class="d-flex gap-1">
                                 <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-0" onclick="toggleDictadoVoz('textarea[name=alergias]', this)"><i class="bi bi-mic-fill"></i></button>
                                 <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0" onclick="limpiarCampoTexto('textarea[name=alergias]'); SOAPReactiveEngine.onAlergiasInput();"><i class="bi bi-eraser-fill"></i></button>
                             </div>
                         </div>
-                        <textarea name="alergias" id="f_alergias" class="wizard-input border-danger-subtle" rows="2" placeholder="Ej. Penicilina, Betalactámicos, AINEs, Sulfas... o presione ✓ Sin Alergias (NKDA)" oninput="SOAPReactiveEngine.onAlergiasInput()">$alergias_val</textarea>
+                        <div class="form-floating">
+                            <textarea name="alergias" id="f_alergias" class="form-control wizard-input border-danger-subtle" placeholder=" " style="height: 85px;" oninput="SOAPReactiveEngine.onAlergiasInput()">$alergias_val</textarea>
+                            <label for="f_alergias">Ej. Penicilina, Betalactámicos, AINEs, Sulfas... o marque NKDA</label>
+                        </div>
                         <div class="chip-bar">
                             <span class="chip-accelerator text-danger border-danger-subtle bg-danger-subtle" onclick="SOAPReactiveEngine.setAlergiaRapida('Penicilina / Betalactámicos')">⚠️ Alergia Penicilina</span>
                             <span class="chip-accelerator text-danger border-danger-subtle bg-danger-subtle" onclick="SOAPReactiveEngine.setAlergiaRapida('AINEs (Ibuprofeno / Ketorolaco / Naproxeno)')">⚠️ Alergia AINEs</span>
@@ -331,13 +358,16 @@ sub render_step_registro_privado {
 
                     <div class="col-12 col-md-6">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="wizard-label mb-0">Antecedentes Personales Patológicos (Notas)</label>
+                            <span class="wizard-section-title">Antecedentes Personales Patológicos</span>
                             <div class="d-flex gap-1">
                                 <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-0" onclick="toggleDictadoVoz('textarea[name=antecedentes_patologicos]', this)"><i class="bi bi-mic-fill"></i></button>
                                 <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0" onclick="limpiarCampoTexto('textarea[name=antecedentes_patologicos]'); SOAPReactiveEngine.syncAll();"><i class="bi bi-eraser-fill"></i></button>
                             </div>
                         </div>
-                        <textarea name="antecedentes_patologicos" id="f_antecedentes_patologicos" class="wizard-input" rows="2" placeholder="Crónico-degenerativos, quirúrgicos, hospitalizaciones..." oninput="SOAPReactiveEngine.syncAll()">$patologicos_val</textarea>
+                        <div class="form-floating">
+                            <textarea name="antecedentes_patologicos" id="f_antecedentes_patologicos" class="form-control wizard-input" placeholder=" " style="height: 85px;" oninput="SOAPReactiveEngine.syncAll()">$patologicos_val</textarea>
+                            <label for="f_antecedentes_patologicos">Crónico-degenerativos, quirúrgicos, hospitalizaciones...</label>
+                        </div>
                         <div class="chip-bar">
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_antecedentes_patologicos', 'Niega crónico-degenerativos, quirúrgicos y transfusionales.')">⚡ Crónicos y Qx Negados</span>
                             <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_antecedentes_patologicos', 'Hipertensión Arterial Sistémica en tratamiento.')">⚡ HTA en control</span>
@@ -349,10 +379,10 @@ sub render_step_registro_privado {
                     <div class="col-12 mt-2">
                         <div class="p-2.5 rounded-3 bg-light border d-flex flex-wrap justify-content-between align-items-center gap-2">
                             <div class="d-flex flex-wrap gap-1 align-items-center">
-                                <span class="small fw-bold text-navy me-1"><i class="bi bi-journal-medical text-teal me-1"></i>Expediente:</span>
+                                <span class="small fw-semibold text-navy me-1"><i class="bi bi-journal-medical text-teal me-1"></i>Expediente:</span>
                                 $hf_html $pp_html $pnp_html
                             </div>
-                            <a href="crud_paciente.pl?accion=U&edit_id=$id_p&from=expediente" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-bold" style="font-size:0.7rem;">
+                            <a href="crud_paciente.pl?accion=U&edit_id=$id_p&from=expediente" target="_blank" class="btn btn-xs btn-navy-outline rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size:0.7rem;">
                                 <i class="bi bi-pencil-square me-1"></i>Editar Ficha
                             </a>
                         </div>
@@ -368,7 +398,7 @@ sub render_step_registro_privado {
                             <i class="bi bi-file-earmark-lock2-fill fs-5"></i>
                         </div>
                         <div>
-                            <h6 class="fw-bold mb-0 text-navy small">
+                            <h6 class="fw-semibold mb-0 text-navy small">
                                 ¿Requiere Procedimiento Invasivo Menor o Consentimiento Informado en esta Consulta? (NOM-004)
                             </h6>
                             <p class="text-muted mb-0" style="font-size:0.72rem;">
@@ -377,7 +407,15 @@ sub render_step_registro_privado {
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" id="btn-consentimiento-anticipado-p1" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold shadow-xs d-none" onclick="if(window.abrirModalNuevoConsentimientoWizard) window.abrirModalNuevoConsentimientoWizard();">
+                        <button type="button" id="btn-consentimiento-anticipado-p1" class="btn btn-sm btn-navy rounded-pill px-3 py-1 fw-semibold shadow-xs d-none" onclick="if(window.abrirModalNuevoConsentimientoWizard) window.abrirModalNuevoConsentimientoWizard();">
+                            <i class="bi bi-pen-fill me-1"></i>Firmar Consentimiento Anticipado Ahora
+                        </button>
+                        <div class="form-check form-switch fs-5 mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="check_requiere_consentimiento_registro" name="requiere_consentimiento_registro" value="1" onchange="SOAPReactiveEngine.toggleConsentimientoAnticipado(this.checked)">
+                        </div>
+                    </div>
+                </div>
+            </div>
                             <i class="bi bi-pen-fill me-1"></i>Firmar Consentimiento Anticipado Ahora
                         </button>
                         <div class="form-check form-switch fs-5 mb-0">

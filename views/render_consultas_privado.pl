@@ -568,6 +568,9 @@ my $btn_import_municipio_hdr = $has_pacientes_estado
     : '';
 
 print <<HTML;
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght\@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
 <link rel="stylesheet" href="../css/quirofano_wizard.css">
 <link rel="stylesheet" href="../css/consulta_flow.css?v=$^T">
@@ -869,7 +872,7 @@ print <<HTML;
                         <span id="ctx-caja-total" class="fw-black text-success" style="font-size:0.85rem;">\$0.00</span>
                     </div>
                     <div class="d-grid gap-1">
-                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill fw-bold py-0.5" style="font-size:0.68rem;" onclick="BovedaService.openDrawer('ALL')">
+                        <button type="button" class="btn btn-xs btn-navy-outline rounded-pill fw-semibold py-0.5" style="font-size:0.68rem;" onclick="BovedaService.openDrawer('ALL')">
                             <i class="bi bi-safe2 me-1"></i>Abrir Bóveda del Paciente (Alt+B)
                         </button>
                     </div>
@@ -931,12 +934,12 @@ print <<HTML;
                 <input type="text" id="boveda-search-input" class="form-control" placeholder="Buscar por título, folio, fármaco o fecha..." oninput="BovedaService.renderDocs()">
             </div>
             <div class="btn-group btn-group-sm flex-shrink-0">
-                <button type="button" id="btn-boveda-mode-cat" class="btn btn-outline-primary active fw-bold" style="font-size:0.7rem;" onclick="BovedaService.toggleViewMode('CATEGORIES')" title="Vista 2 Niveles por Categoría">2 Niveles</button>
-                <button type="button" id="btn-boveda-mode-time" class="btn btn-outline-primary fw-bold" style="font-size:0.7rem;" onclick="BovedaService.toggleViewMode('TIMELINE')" title="Vista Línea de Tiempo">Timeline</button>
+                <button type="button" id="btn-boveda-mode-cat" class="btn btn-navy-outline active fw-semibold" style="font-size:0.7rem;" onclick="BovedaService.toggleViewMode('CATEGORIES')" title="Vista 2 Niveles por Categoría">2 Niveles</button>
+                <button type="button" id="btn-boveda-mode-time" class="btn btn-navy-outline fw-semibold" style="font-size:0.7rem;" onclick="BovedaService.toggleViewMode('TIMELINE')" title="Vista Línea de Tiempo">Timeline</button>
             </div>
         </div>
         <div class="d-flex flex-wrap gap-1">
-            <button type="button" class="btn btn-xs btn-primary rounded-pill px-2.5 py-0.5 fw-bold boveda-filter-chip" data-filter="ALL" onclick="BovedaService.setFilter('ALL')">Todos</button>
+            <button type="button" class="btn btn-xs btn-navy rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="ALL" onclick="BovedaService.setFilter('ALL')">Todos</button>
             <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="PACS" onclick="BovedaService.setFilter('PACS')">PACS</button>
             <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="LAB" onclick="BovedaService.setFilter('LAB')">Labs</button>
             <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="RECETA" onclick="BovedaService.setFilter('RECETA')">Recetas</button>
@@ -980,7 +983,7 @@ print <<HTML;
                 </button>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold" onclick="window.print()">
+                    <button type="button" class="btn btn-sm btn-navy rounded-pill px-4 fw-semibold" onclick="window.print()">
                         <i class="bi bi-printer-fill me-1"></i>Imprimir / Guardar PDF
                     </button>
                 </div>
@@ -1048,7 +1051,7 @@ print <<HTML;
                 <div class="input-group input-group-sm mb-2.5">
                     <span class="input-group-text bg-white"><i class="bi bi-search text-teal"></i></span>
                     <input type="text" id="iptBuscarEmpleadoWizard" class="form-control fw-bold" placeholder="Escriba No. de empleado o nombre/apellidos (mín. 2 caracteres)..." oninput="debounceBuscarEmpleadoWizard(this.value)">
-                    <button type="button" class="btn btn-primary fw-bold px-3" onclick="ejecutarBusquedaEmpleadoWizard()">Buscar en Padrón</button>
+                    <button type="button" class="btn btn-navy fw-semibold px-3" onclick="ejecutarBusquedaEmpleadoWizard()">Buscar en Padrón</button>
                 </div>
                 <div id="resEmpleadoWizardCont" class="p-2 bg-white rounded-3 border" style="min-height: 180px; max-height: 320px; overflow-y: auto;">
                     <div class="text-center py-4 text-muted small">Ingrese número de empleado o nombre para consultar el padrón municipal.</div>
