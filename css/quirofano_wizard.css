@@ -614,3 +614,546 @@
     width: 8px;
     height: 8px;
 }
+
+/* ==========================================================================
+   REFACTORIZACIÓN PREMIUM KANBAN: ESTILO FINANZAS.PL (TEAL RAISED) +
+   THREE-TIER EXECUTIVE TOOLBAR + SMART GLANCE CARDS + MODAL ZOOM CARD 360°
+   ========================================================================== */
+
+.kanban-wrapper-compact {
+    padding-top: 0.35rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+/* CONTENEDOR EJECUTIVO DE 3 FILAS (THREE-TIER HEADER CON BORDE TEAL RAISED) */
+.qx-executive-three-tier {
+    background: #ffffff;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(10, 42, 102, 0.08), 0 2px 6px rgba(25, 183, 165, 0.12);
+    overflow: hidden;
+    margin-bottom: 0.65rem;
+}
+
+/* FILA 1: CABECERA NAVY CONTEXTUAL + ACCIONES PRIORITARIAS */
+.qx-tier1-navy {
+    background: linear-gradient(180deg, #0A2A66 0%, #082152 100%);
+    color: #ffffff;
+    padding: 0.42rem 0.9rem;
+    border-bottom: 2px solid #19B7A5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.qx-tier1-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.qx-tier1-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(25, 183, 165, 0.22);
+    border: 1px solid rgba(25, 183, 165, 0.55);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #19B7A5;
+    font-size: 0.95rem;
+}
+
+.qx-tier1-date-pill {
+    background: rgba(25, 183, 165, 0.22);
+    border: 1px solid #19B7A5;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.16rem 0.7rem;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.btn-qx-tier1-action {
+    background-color: #19B7A5 !important;
+    color: #ffffff !important;
+    border: 1px solid #19B7A5 !important;
+    border-radius: 50px !important;
+    padding: 0.3rem 0.95rem !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    box-shadow: 0 3px 10px rgba(25, 183, 165, 0.35) !important;
+    text-decoration: none !important;
+    transition: all 0.18s ease !important;
+}
+
+.btn-qx-tier1-action:hover {
+    background-color: #149686 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(25, 183, 165, 0.5) !important;
+}
+
+.btn-qx-tier1-ghost {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    border-radius: 50px !important;
+    padding: 0.28rem 0.75rem !important;
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    text-decoration: none !important;
+    transition: all 0.18s ease !important;
+}
+
+.btn-qx-tier1-ghost:hover {
+    background: rgba(255, 255, 255, 0.24) !important;
+    border-color: #ffffff !important;
+}
+
+/* FILA 2: BANDEJA OPERATIVA DE NAVEGACIÓN TEMPORAL Y FILTROS DIRECTOS */
+.qx-tier2-controls {
+    background: #ffffff;
+    padding: 0.38rem 0.9rem;
+    border-bottom: 1px solid rgba(25, 183, 165, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.btn-qx-today-pill {
+    background: #0A2A66;
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    padding: 0.24rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-qx-today-pill:hover {
+    background: #124A9E;
+    transform: translateY(-1px);
+}
+
+.qx-date-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1.5px solid rgba(25, 183, 165, 0.45);
+    border-radius: 50px;
+    padding: 0.1rem 0.35rem;
+}
+
+.qx-date-chevron {
+    background: transparent;
+    border: none;
+    color: #0A2A66;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.qx-date-chevron:hover {
+    background: rgba(25, 183, 165, 0.15);
+}
+
+.qx-date-input-clean {
+    border: none !important;
+    background: transparent !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    color: #0A2A66 !important;
+    padding: 0.1rem 0.3rem !important;
+    outline: none !important;
+}
+
+.qx-filter-pill-box {
+    display: inline-flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid rgba(25, 183, 165, 0.42);
+    border-radius: 50px;
+    padding: 0.15rem 0.65rem;
+    gap: 0.35rem;
+    box-shadow: 0 1px 4px rgba(10, 42, 102, 0.03);
+}
+
+.qx-filter-select-clean,
+.qx-filter-input-clean {
+    border: none !important;
+    background: transparent !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0.1rem 0.25rem !important;
+}
+
+/* FILA 3: BARRA DE MICRO-CARDS KPI ESTILO FINANZAS.PL (TEAL RAISED) */
+.qx-tier3-kpis {
+    background: linear-gradient(180deg, #F8FBFF 0%, #F1F7FE 100%);
+    padding: 0.42rem 0.9rem;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.48rem;
+}
+
+@media (max-width: 991.98px) {
+    .qx-tier3-kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .qx-tier3-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.qx-fin-kpi-card {
+    background: #ffffff;
+    border: 1.5px solid rgba(25, 183, 165, 0.45);
+    border-radius: 10px;
+    padding: 0.32rem 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.04);
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.qx-fin-kpi-card:hover,
+.qx-fin-kpi-card.active-kpi-filter {
+    border-color: #0A2A66;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(25, 183, 165, 0.22);
+    background: #f0fdf9;
+}
+
+.qx-fin-kpi-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.qx-fin-kpi-val {
+    font-size: 1.02rem;
+    font-weight: 800;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1;
+}
+
+/* ESTACIONES KANBAN (COLUMNAS CON BORDE TEAL RAISED) */
+.kanban-board-raised {
+    gap: 0.6rem !important;
+    min-height: calc(100vh - 240px) !important;
+}
+
+.kanban-col-raised {
+    background: #f8fbff !important;
+    border: 1.5px solid rgba(25, 183, 165, 0.45) !important;
+    border-radius: 13px !important;
+    box-shadow: 0 6px 16px rgba(10, 42, 102, 0.05), 0 1px 4px rgba(25, 183, 165, 0.08) !important;
+}
+
+.kanban-col-raised .kanban-header {
+    padding: 0.55rem 0.75rem !important;
+    font-size: 0.76rem !important;
+    font-weight: 800 !important;
+}
+
+.kanban-col-raised .kanban-body {
+    padding: 0.5rem !important;
+    gap: 0.5rem !important;
+    max-height: calc(100vh - 285px) !important;
+}
+
+/* SMART GLANCE CARD (TARJETA COMPACTA CON AIRE Y BOTÓN DE ZOOM) */
+.qx-glance-card {
+    background: #ffffff;
+    border-radius: 11px;
+    padding: 0.55rem 0.65rem !important;
+    border: 1.5px solid rgba(25, 183, 165, 0.38) !important;
+    border-left: 4px solid #0A2A66 !important;
+    box-shadow: 0 3px 10px rgba(10, 42, 102, 0.06);
+    cursor: pointer;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+    position: relative;
+}
+
+.qx-glance-card:hover {
+    transform: translateY(-2px) scale(1.012);
+    border-color: #19B7A5 !important;
+    box-shadow: 0 10px 22px rgba(10, 42, 102, 0.12), 0 0 0 2px rgba(25, 183, 165, 0.15);
+}
+
+.col-programada .qx-glance-card { border-left-color: #64748b !important; }
+.col-preop .qx-glance-card      { border-left-color: #f59e0b !important; }
+.col-quirofano .qx-glance-card  { border-left-color: #ef4444 !important; }
+.col-recuperacion .qx-glance-card { border-left-color: #3b82f6 !important; }
+.col-alta .qx-glance-card       { border-left-color: #10b981 !important; }
+
+.qx-glance-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    margin-bottom: 0.38rem;
+}
+
+.qx-glance-time {
+    background: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    font-size: 0.67rem;
+    font-weight: 800;
+    padding: 0.1rem 0.42rem;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.qx-glance-room {
+    background: #f8fafc;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 6px;
+}
+
+.qx-glance-badge-urg {
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 0.1rem 0.42rem;
+    border-radius: 50px;
+    letter-spacing: 0.2px;
+}
+
+.qx-glance-badge-prog {
+    background: rgba(25, 183, 165, 0.15);
+    color: #0f766e;
+    border: 1px solid rgba(25, 183, 165, 0.45);
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 0.1rem 0.42rem;
+    border-radius: 50px;
+}
+
+.qx-glance-patient-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.35rem;
+}
+
+.qx-glance-avatar {
+    width: 27px;
+    height: 27px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0A2A66 0%, #19B7A5 100%);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.68rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.qx-glance-patient-name {
+    font-size: 0.81rem;
+    font-weight: 800;
+    color: #0A2A66;
+    line-height: 1.15;
+}
+
+.qx-glance-proc {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #0f766e;
+    line-height: 1.15;
+}
+
+.qx-glance-doctor {
+    font-size: 0.68rem;
+    color: #64748b;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.qx-glance-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.22rem 0.45rem;
+    margin-bottom: 0.38rem;
+}
+
+.qx-glance-dots {
+    display: flex;
+    align-items: center;
+    gap: 3.5px;
+}
+
+.qx-glance-dot {
+    width: 7.5px;
+    height: 7.5px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.qx-glance-cost {
+    font-size: 0.69rem;
+    font-weight: 800;
+    color: #0A2A66;
+}
+
+.qx-glance-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.3rem;
+}
+
+.btn-glance-zoom {
+    background: #f0fdf9;
+    color: #0f766e;
+    border: 1px solid rgba(25, 183, 165, 0.5);
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.2rem 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    transition: all 0.15s ease;
+}
+
+.btn-glance-zoom:hover {
+    background: #19B7A5;
+    color: #ffffff;
+}
+
+.btn-glance-wizard {
+    background: #0A2A66;
+    color: #ffffff;
+    border: 1px solid #0A2A66;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.2rem 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.btn-glance-wizard:hover {
+    background: #124A9E;
+    color: #ffffff;
+}
+
+/* MODAL ZOOM CARD 360° (EFECTO MAGNIFICACIÓN AL HACER CLIC EN LA TARJETA) */
+.modal-zoom-card .modal-content {
+    border-radius: 18px !important;
+    border: 2px solid var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 24px 60px rgba(10, 42, 102, 0.32), 0 0 0 4px rgba(25, 183, 165, 0.16) !important;
+    overflow: hidden;
+    animation: qxCardZoomIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes qxCardZoomIn {
+    from {
+        opacity: 0;
+        transform: scale(0.86) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.zoom-card-header {
+    background: linear-gradient(135deg, #0A2A66 0%, #0d3885 100%);
+    color: #ffffff;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 2.5px solid #19B7A5;
+}
+
+.zoom-actor-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .zoom-actor-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.zoom-actor-box {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.45rem 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+}
+
+.zoom-actor-box.st-verde { border-color: #86efac; background: #f0fdf4; }
+.zoom-actor-box.st-ambar { border-color: #fde047; background: #fefce8; }
+.zoom-actor-box.st-rojo  { border-color: #fca5a5; background: #fef2f2; }
+
+.zoom-fin-card {
+    background: #ffffff;
+    border: 1.5px solid rgba(25, 183, 165, 0.45);
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    box-shadow: 0 3px 10px rgba(10, 42, 102, 0.04);
+}

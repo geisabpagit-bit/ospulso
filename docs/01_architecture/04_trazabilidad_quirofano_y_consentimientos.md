@@ -194,9 +194,14 @@ Vista médica legal diseñada para archivo físico o exportación a PDF, que inc
 
 ## 8. Módulo Quirúrgico Integral: Wizard de 6 Pasos, Catálogo 3NF y Semaforización de 8 Actores
 
-### 8.1 Navegación Lateral (`utils/sub_sidebar.pl`)
+### 8.1 Navegación Lateral (`utils/sub_sidebar.pl`) y Estética Premium del Tablero Kanban (`views/quirofano_kanban.pl`)
 El módulo Quirófano se organiza como un acordeón colapsable en el menú lateral izquierdo con dos vistas:
-- **Tablero** (`views/quirofano_kanban.pl`): Tablero Kanban de 5 columnas en vivo con tarjetas enriquecidas (badge `PROGRAMADA` vs `URGENCIAS`, tira de 8 semáforos miniatura, acumulado de insumos 3NF y botón para retomar el Wizard en el paso exacto).
+- **Tablero** (`views/quirofano_kanban.pl`): Tablero Kanban de 5 estaciones en vivo con estética homologada a `views/finanzas.pl` y `views/agenda_espacios.pl`:
+  - **Cabecera Ejecutiva de 3 Filas (Three-Tier Toolbar con Bordes Teal Raised)**:
+    - *Fila 1 (Navy Contextual)*: Marca clínica, indicador en vivo de fecha, enlace directo a `Agenda Espacios` y botón principal `+ Nuevo Ingreso (Wizard)`.
+    - *Fila 2 (Controles Directos)*: Botón `HOY`, navegador de fecha en píldora, conmutador `Todas las fechas`, selector de Cirujano y buscador en tiempo real sin etiquetas ruidosas.
+    - *Fila 3 (Micro-Cards KPI Raised)*: 6 tarjetas KPI interactivas con borde Teal (`Total`, `Programadas`, `Pre-Op`, `En Quirófano`, `Recuperación`, `Concluidas`) que filtran visualmente la estación al hacer clic.
+  - **Smart Glance Cards & Modal Zoom Card 360° (`#modalZoomCardQx`)**: Las tarjetas de cada estación presentan una vista compacta con aire (Hora, Sala abreviada `Qx 1`, badge `PROG`/`⚡ URG`, avatar + paciente + procedimiento, cápsula de 8 micro-leds + monto 3NF y botones duales `🔍 Zoom` y `🪄 Paso X`). Al hacer clic en la tarjeta o en `Zoom`, se despliega con animación `qxCardZoomIn` una super-tarjeta expandida con los 8 semáforos detallados, 3 tarjetas financieras y transición de estación en 1 clic.
 - **Nuevo Ingreso** (`views/quirofano_ingreso.pl`): Wizard guiado de 6 pasos con panel lateral de monitoreo de actores en tiempo real.
 
 ### 8.2 Arquitectura de Datos del Catálogo Universal de Insumos (Estricto 3NF)

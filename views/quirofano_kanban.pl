@@ -122,128 +122,116 @@ print <<"HTML";
 <link rel="stylesheet" href="../css/quirofano_wizard.css" />
 <script src="https://cdn.jsdelivr.net/npm/sortablejs\@latest/Sortable.min.js"></script>
 
-<main class="container-fluid container-mobile-flush pt-3 px-3 px-lg-4 pb-5 animate__animated animate__fadeIn kanban-wrapper">
-    
-    <!-- Header principal & Quick Actions -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-        <div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="p-2 bg-primary-subtle text-primary rounded-3">
-                    <i class="bi bi-hospital fs-5"></i>
-                </div>
-                <div>
-                    <h4 class="fw-bold mb-0 text-navy d-flex align-items-center gap-2">
-                        Tablero Quirúrgico
-                        <span class="badge bg-primary text-white fs-8 rounded-pill px-2 py-1">En Vivo</span>
-                    </h4>
-                    <p class="text-muted small mb-0">Gestión de flujo transoperatorio y seguridad del paciente</p>
-                </div>
+<main class="container-fluid container-mobile-flush pb-4 animate__animated animate__fadeIn kanban-wrapper kanban-wrapper-compact">
+
+    <!-- CABECERA EJECUTIVA DE 3 FILAS (THREE-TIER TOOLBAR CON BORDE TEAL RAISED ESTILO FINANZAS & AGENDAS) -->
+    <header class="qx-executive-three-tier">
+        <!-- FILA 1: CABECERA NAVY CONTEXTUAL + ACCIONES PRIORITARIAS -->
+        <div class="qx-tier1-navy">
+            <div class="qx-tier1-brand">
+                <span class="qx-tier1-icon">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </span>
+                <span>Tablero Quirúrgico &amp; Control Transoperatorio</span>
+                <span class="opacity-50 d-none d-sm-inline">•</span>
+                <span class="qx-tier1-date-pill">
+                    <span class="pulse-live"></span>
+                    <span>En Vivo:</span>
+                    <span id="lblFechaHoy"></span>
+                </span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <a href="agenda_espacios.pl" class="btn-qx-tier1-ghost" title="Ver disponibilidad en Agenda de Renta de Espacios">
+                    <i class="bi bi-door-open-fill text-teal"></i>
+                    <span class="d-none d-md-inline">Agenda Espacios</span>
+                </a>
+                <a href="quirofano_ingreso.pl" class="btn-qx-tier1-action" title="Iniciar Wizard de 6 Pasos para Nuevo Ingreso Quirúrgico">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>+ Nuevo Ingreso (Wizard)</span>
+                </a>
+                <button type="button" class="btn-qx-tier1-ghost" onclick="cargarTablero(fechaActualSeleccionada)" title="Sincronizar tablero en vivo">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
             </div>
         </div>
-        <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="badge bg-white text-navy border py-2 px-3 shadow-sm rounded-3 fw-bold d-flex align-items-center">
-                <i class="bi bi-calendar-event text-primary me-2"></i>
-                <span id="lblFechaHoy" class="fw-bold text-primary"></span>
-            </span>
-            <a href="quirofano_ingreso.pl" class="btn btn-sm btn-primary btn-mobile-standard shadow-sm d-flex align-items-center fw-bold">
-                <i class="bi bi-plus-circle-fill me-1.5"></i> + Programar Cirugía (Wizard)
-            </a>
-            <button class="btn btn-sm btn-light border text-muted shadow-sm d-flex align-items-center" onclick="cargarTablero(fechaActualSeleccionada)" title="Refrescar datos">
-                <i class="bi bi-arrow-clockwise"></i>
-            </button>
-        </div>
-    </div>
 
-    <!-- Barra de KPIs Rápidos del Día -->
-    <div class="d-flex flex-wrap gap-2 mb-3">
-        <div class="kpi-chip">
-            <i class="bi bi-calendar3 text-muted"></i>
-            <span>Total:</span>
-            <span id="kpi-total" class="fw-bold text-dark">0</span>
-        </div>
-        <div class="kpi-chip">
-            <i class="bi bi-calendar-check text-secondary"></i>
-            <span>Programadas:</span>
-            <span id="kpi-prog" class="fw-bold text-secondary">0</span>
-        </div>
-        <div class="kpi-chip">
-            <i class="bi bi-hourglass-split text-warning"></i>
-            <span>Pre-Op:</span>
-            <span id="kpi-preop" class="fw-bold text-warning">0</span>
-        </div>
-        <div class="kpi-chip">
-            <span class="pulse-live"></span>
-            <span class="text-danger">En Quirófano:</span>
-            <span id="kpi-qx" class="fw-bold text-danger">0</span>
-        </div>
-        <div class="kpi-chip">
-            <i class="bi bi-bandaid-fill text-primary"></i>
-            <span>Recuperación:</span>
-            <span id="kpi-ucpa" class="fw-bold text-primary">0</span>
-        </div>
-        <div class="kpi-chip">
-            <i class="bi bi-check-circle-fill text-success"></i>
-            <span>Concluidas:</span>
-            <span id="kpi-alta" class="fw-bold text-success">0</span>
-        </div>
-    </div>
+        <!-- FILA 2: BANDEJA OPERATIVA DE NAVEGACIÓN TEMPORAL Y FILTROS DIRECTOS (SIN ETIQUETAS RUIDOSAS) -->
+        <div class="qx-tier2-controls">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <button type="button" id="btnFechaHoy" class="btn-qx-today-pill" title="Ir al Día de Hoy">HOY</button>
 
-    <!-- Barra de Filtros y Navegación Quirúrgica -->
-    <div class="card border-0 shadow-sm rounded-3 mb-3 bg-white">
-        <div class="card-body p-2 p-md-3">
-            <div class="row g-2 align-items-end">
-                <!-- 1. Navegador de Fecha -->
-                <div class="col-12 col-md-4 col-lg-4">
-                    <label class="form-label small text-muted fw-bold mb-1">
-                        <i class="bi bi-calendar3 text-primary me-1"></i>Fecha de Cirugías
-                    </label>
-                    <div class="input-group input-group-sm">
-                        <button class="btn btn-outline-secondary" type="button" id="btnFechaAnt" title="Día Anterior">
-                            <i class="bi bi-chevron-left"></i>
-                        </button>
-                        <input type="date" id="filtroFecha" class="form-control text-center fw-bold text-primary">
-                        <button class="btn btn-outline-primary fw-semibold" type="button" id="btnFechaHoy" title="Ir al día de hoy">
-                            Hoy
-                        </button>
-                        <button class="btn btn-outline-secondary" type="button" id="btnFechaSig" title="Día Siguiente">
-                            <i class="bi bi-chevron-right"></i>
-                        </button>
-                    </div>
+                <div class="qx-date-nav-pill">
+                    <button type="button" id="btnFechaAnt" class="qx-date-chevron" title="Día Anterior">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <input type="date" id="filtroFecha" class="qx-date-input-clean" title="Seleccionar fecha quirúrgica">
+                    <button type="button" id="btnFechaSig" class="qx-date-chevron" title="Día Siguiente">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
                 </div>
 
-                <!-- 2. Filtro por Cirujano -->
-                <div class="col-12 col-sm-6 col-md-4 col-lg-4">
-                    <label class="form-label small text-muted fw-bold mb-1">
-                        <i class="bi bi-person-badge text-info me-1"></i>Cirujano / Especialista
-                    </label>
-                    <select id="filtroMedico" class="form-select form-select-sm fw-semibold">
-                        <option value="">👨‍⚕️ Todos los Médicos / Cirujanos</option>
+                <button type="button" id="btnVerTodasFechas" class="qx-filter-pill-box fw-bold text-navy" onclick="alternarTodasLasFechas()" title="Mostrar cirugías de todas las fechas">
+                    <i class="bi bi-calendar-range text-teal"></i>
+                    <span id="lblBtnTodasFechas" class="small">Todas las fechas</span>
+                </button>
+            </div>
+
+            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto">
+                <!-- Selector Directo de Cirujano -->
+                <div class="qx-filter-pill-box">
+                    <i class="bi bi-person-badge-fill text-teal"></i>
+                    <select id="filtroMedico" class="qx-filter-select-clean">
+                        <option value="">Todos los Cirujanos</option>
                         $medicos_options_filtro
                     </select>
                 </div>
 
-                <!-- 3. Búsqueda de Paciente / Procedimiento -->
-                <div class="col-12 col-sm-6 col-md-4 col-lg-4">
-                    <label class="form-label small text-muted fw-bold mb-1">
-                        <i class="bi bi-search text-success me-1"></i>Buscar Paciente / Procedimiento
-                    </label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" id="filtroTexto" class="form-control" placeholder="Nombre, procedimiento, sala...">
-                        <button class="btn btn-outline-secondary" type="button" id="btnLimpiarTexto" title="Limpiar filtro" style="display:none;">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </div>
+                <!-- Buscador Directo en Píldora -->
+                <div class="qx-filter-pill-box">
+                    <i class="bi bi-search text-teal"></i>
+                    <input type="text" id="filtroTexto" class="qx-filter-input-clean" placeholder="Buscar paciente, folio, sala, cirugía...">
+                    <button type="button" id="btnLimpiarTexto" class="btn btn-sm p-0 border-0 text-muted" title="Limpiar filtro" style="display:none;">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- FILA 3: BARRA DE MICRO-CARDS KPI ESTILO FINANZAS.PL CON BORDES TEAL RAISED -->
+        <div class="qx-tier3-kpis">
+            <div class="qx-fin-kpi-card active-kpi-filter" data-kpi-est="" onclick="filtrarPorEstacionKpi('', this)" title="Clic para mostrar todas las estaciones">
+                <span class="qx-fin-kpi-label"><i class="bi bi-grid-fill text-teal"></i> Total</span>
+                <span id="kpi-total" class="qx-fin-kpi-val text-navy">0</span>
+            </div>
+            <div class="qx-fin-kpi-card" data-kpi-est="Programada" onclick="filtrarPorEstacionKpi('Programada', this)" title="Filtrar estación: Programadas">
+                <span class="qx-fin-kpi-label"><i class="bi bi-calendar-check text-secondary"></i> Programadas</span>
+                <span id="kpi-prog" class="qx-fin-kpi-val text-secondary">0</span>
+            </div>
+            <div class="qx-fin-kpi-card" data-kpi-est="Pre-Operatorio" onclick="filtrarPorEstacionKpi('Pre-Operatorio', this)" title="Filtrar estación: Pre-Operatorio">
+                <span class="qx-fin-kpi-label"><i class="bi bi-hourglass-split text-warning"></i> Pre-Op</span>
+                <span id="kpi-preop" class="qx-fin-kpi-val text-warning">0</span>
+            </div>
+            <div class="qx-fin-kpi-card" data-kpi-est="En Quirófano" onclick="filtrarPorEstacionKpi('En Quirófano', this)" title="Filtrar estación: En Quirófano">
+                <span class="qx-fin-kpi-label"><span class="pulse-live"></span> En Quirófano</span>
+                <span id="kpi-qx" class="qx-fin-kpi-val text-danger">0</span>
+            </div>
+            <div class="qx-fin-kpi-card" data-kpi-est="Recuperación" onclick="filtrarPorEstacionKpi('Recuperación', this)" title="Filtrar estación: Recuperación UCPA">
+                <span class="qx-fin-kpi-label"><i class="bi bi-bandaid-fill text-primary"></i> Recuperación</span>
+                <span id="kpi-ucpa" class="qx-fin-kpi-val text-primary">0</span>
+            </div>
+            <div class="qx-fin-kpi-card" data-kpi-est="Alta" onclick="filtrarPorEstacionKpi('Alta', this)" title="Filtrar estación: Alta / Concluidas">
+                <span class="qx-fin-kpi-label"><i class="bi bi-check-circle-fill text-success"></i> Concluidas</span>
+                <span id="kpi-alta" class="qx-fin-kpi-val text-success">0</span>
+            </div>
+        </div>
+    </header>
     
-    <!-- Tablero Kanban Fluid 5 Columnas -->
-    <div class="kanban-board">
+    <!-- Tablero Kanban Fluid 5 Estaciones con Bordes Teal Raised -->
+    <div class="kanban-board kanban-board-raised">
         
         <!-- PROGRAMADA -->
-        <div class="kanban-col col-programada">
+        <div class="kanban-col kanban-col-raised col-programada">
             <div class="kanban-header">
                 <span class="d-flex align-items-center gap-1.5"><i class="bi bi-calendar-check text-secondary"></i> Programada</span>
                 <span class="badge bg-secondary badge-counter rounded-pill" id="cnt-Programada">0</span>
@@ -252,7 +240,7 @@ print <<"HTML";
         </div>
         
         <!-- PRE-OPERATORIO -->
-        <div class="kanban-col col-preop">
+        <div class="kanban-col kanban-col-raised col-preop">
             <div class="kanban-header">
                 <span class="d-flex align-items-center gap-1.5"><i class="bi bi-hourglass-split text-warning"></i> Pre-Operatorio</span>
                 <span class="badge bg-warning text-dark badge-counter rounded-pill" id="cnt-Pre-Operatorio">0</span>
@@ -261,7 +249,7 @@ print <<"HTML";
         </div>
         
         <!-- EN QUIRÓFANO -->
-        <div class="kanban-col col-quirofano">
+        <div class="kanban-col kanban-col-raised col-quirofano">
             <div class="kanban-header">
                 <span class="d-flex align-items-center gap-1.5">
                     <span class="pulse-live"></span>
@@ -273,7 +261,7 @@ print <<"HTML";
         </div>
         
         <!-- RECUPERACIÓN (UCPA) -->
-        <div class="kanban-col col-recuperacion">
+        <div class="kanban-col kanban-col-raised col-recuperacion">
             <div class="kanban-header">
                 <span class="d-flex align-items-center gap-1.5"><i class="bi bi-bandaid-fill text-primary"></i> Recuperación</span>
                 <span class="badge bg-primary badge-counter rounded-pill" id="cnt-Recuperación">0</span>
@@ -282,7 +270,7 @@ print <<"HTML";
         </div>
         
         <!-- ALTA / TRASLADO -->
-        <div class="kanban-col col-alta">
+        <div class="kanban-col kanban-col-raised col-alta">
             <div class="kanban-header">
                 <span class="d-flex align-items-center gap-1.5"><i class="bi bi-check-circle-fill text-success"></i> Alta / Traslado</span>
                 <span class="badge bg-success badge-counter rounded-pill" id="cnt-Alta">0</span>
@@ -293,6 +281,96 @@ print <<"HTML";
     </div>
 
 </main>
+
+<!-- MODAL ZOOM CARD 360° (EFECTO ZOOM AL HACER CLIC EN LA TARJETA DE CUALQUIER ESTACIÓN) -->
+<div class="modal fade modal-zoom-card" id="modalZoomCardQx" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="zoom-card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="qx-glance-avatar" id="zc_avatar" style="width:40px;height:40px;font-size:0.95rem;">PX</div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <h5 class="fw-bold text-white mb-0" id="zc_paciente">Paciente</h5>
+                            <span id="zc_badge_tipo" class="badge bg-info text-dark fw-bold">PROGRAMADA</span>
+                            <span id="zc_badge_estado" class="badge bg-light text-navy fw-bold">Programada</span>
+                        </div>
+                        <div class="small text-white-50" id="zc_folio_meta">Folio #CIR-000</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body p-3 p-md-4" style="background:#F8FBFF;">
+                <!-- Banner de Alerta Paralela si aplica -->
+                <div id="zc_alert_paralelo" class="alert alert-danger py-2 px-3 mb-3 d-none border-danger d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-exclamation-triangle-fill me-1.5"></i>
+                        <strong>Flujo en Paralelo de Urgencia Activo:</strong> Trámite de Recepción (Consentimiento) o Depósito en Caja (\$5,000) pendiente.
+                    </div>
+                    <a href="#" id="zc_btn_resolver_paralelo" class="btn btn-sm btn-danger fw-bold">Resolver en Paso 2</a>
+                </div>
+
+                <!-- Bloque 1: Ficha Clínica y Espacios (3 Mini-Cards con Borde Teal Raised estilo finanzas.pl) -->
+                <div class="row g-2.5 mb-3">
+                    <div class="col-12 col-md-4">
+                        <div class="zoom-fin-card h-100">
+                            <span class="qx-label"><i class="bi bi-clipboard2-pulse text-teal me-1"></i>Procedimiento &amp; Sala</span>
+                            <div class="fw-bold text-navy" id="zc_procedimiento">-</div>
+                            <div class="small text-muted mt-1" id="zc_sala_horario">-</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="zoom-fin-card h-100">
+                            <span class="qx-label"><i class="bi bi-people-fill text-teal me-1"></i>Equipo Quirúrgico</span>
+                            <div class="fw-bold text-navy" id="zc_cirujano">-</div>
+                            <div class="small text-muted mt-1" id="zc_anestesiologo">-</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="zoom-fin-card h-100">
+                            <span class="qx-label"><i class="bi bi-cash-coin text-teal me-1"></i>Insumos 3NF &amp; Garantía Caja</span>
+                            <div class="fw-bold text-success fs-5 plus-jakarta" id="zc_total_insumos">\$0.00</div>
+                            <div class="small text-muted mt-0.5" id="zc_deposito_info">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloque 2: Matriz Expandida de los 8 Semáforos en Tiempo Real -->
+                <div class="qx-subcard mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="qx-subcard-title mb-0 border-0 pb-0"><i class="bi bi-stoplights-fill text-teal me-1.5"></i>Semaforización Sincronizada de los 8 Actores</span>
+                        <span class="small text-muted">Tiempo Real</span>
+                    </div>
+                    <div class="zoom-actor-grid" id="zc_actors_grid"></div>
+                </div>
+
+                <!-- Bloque 3: Transición Rápida de Estación Kanban -->
+                <div class="qx-subcard">
+                    <span class="qx-label mb-1.5"><i class="bi bi-arrows-move text-teal me-1"></i>Mover Tarjeta de Estación Kanban</span>
+                    <div class="d-flex flex-wrap gap-1.5" id="zc_quick_move_btns"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white border-top px-3 py-2.5 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex flex-wrap gap-1.5">
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold" id="zc_btn_bitacora_clinica">
+                        <i class="bi bi-journal-medical me-1"></i>Bitácora OMS / Nota Qx / Aldrete
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark fw-bold" id="zc_btn_imprimir_alta">
+                        <i class="bi bi-printer-fill me-1"></i>Imprimir Alta &amp; Receta
+                    </button>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="#" id="zc_btn_ir_wizard" class="btn btn-sm btn-qx-tier1-action">
+                        <i class="bi bi-magic"></i>
+                        <span id="zc_lbl_ir_wizard">Abrir en Wizard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal de Inspección Quirúrgica Compacto y Alto Contraste (Estilos Mandantes Medentia Aura) -->
 <div class="modal fade modal-qx-compact" id="modalDetalleCirugia" tabindex="-1" aria-hidden="true">
@@ -842,15 +920,53 @@ print <<'JS';
         });
     }
 
+    let estacionKpiFiltro = '';
+    let modoTodasLasFechas = false;
+
     function obtenerIniciales(nombre) {
         if (!nombre) return 'PX';
         const parts = nombre.trim().split(/\s+/);
         if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
+
+    function alternarTodasLasFechas() {
+        modoTodasLasFechas = !modoTodasLasFechas;
+        const btn = document.getElementById('btnVerTodasFechas');
+        const lbl = document.getElementById('lblBtnTodasFechas');
+        if (modoTodasLasFechas) {
+            if (btn) btn.style.background = '#e6fcf5';
+            if (lbl) lbl.textContent = 'Mostrando: Todas';
+            $('#lblFechaHoy').text('TODAS LAS FECHAS');
+            cargarTablero('todas');
+        } else {
+            if (btn) btn.style.background = '#ffffff';
+            if (lbl) lbl.textContent = 'Todas las fechas';
+            $('#lblFechaHoy').text(formatearFechaTexto(fechaActualSeleccionada));
+            cargarTablero(fechaActualSeleccionada);
+        }
+    }
+
+    function filtrarPorEstacionKpi(estacion, elCard) {
+        estacionKpiFiltro = estacion || '';
+        document.querySelectorAll('.qx-fin-kpi-card').forEach(k => k.classList.remove('active-kpi-filter'));
+        if (elCard) elCard.classList.add('active-kpi-filter');
+
+        document.querySelectorAll('.kanban-col').forEach(col => {
+            const listEl = col.querySelector('.sortable-list');
+            const estCol = listEl ? listEl.getAttribute('data-estado') : '';
+            if (!estacionKpiFiltro || estCol === estacionKpiFiltro) {
+                col.style.opacity = '1';
+                col.style.filter = 'none';
+            } else {
+                col.style.opacity = '0.42';
+                col.style.filter = 'grayscale(30%)';
+            }
+        });
+    }
     
     async function cargarTablero(fechaFiltro) {
-        const fecha = fechaFiltro || fechaActualSeleccionada;
+        const fecha = fechaFiltro || (modoTodasLasFechas ? 'todas' : fechaActualSeleccionada);
         
         const columnas = ['Programada', 'Pre-Operatorio', 'En\\ Quirófano', 'Recuperación', 'Alta'];
         columnas.forEach(c => $('#list-' + c).empty());
@@ -863,14 +979,12 @@ print <<'JS';
             
             if (cirugiasCargadas.length > 0) {
                 cirugiasCargadas.forEach(c => {
-                    const anestesiaHtml = c.nombre_anestesio ? `<div class="text-truncate mt-0.5" title="Anestesiólogo: ${c.nombre_anestesio}"><i class="bi bi-lungs text-info me-1"></i>${c.nombre_anestesio}</div>` : '';
-                    const salaLabel = c.sala ? c.sala : 'Sin Sala';
-                    const salaHtml = `<span class="badge bg-light text-dark border px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">${salaLabel}</span>`;
+                    const salaShort = (c.sala || 'Qx 1').replace(/Quir[oó]fano/i, 'Qx');
                     const iniciales = obtenerIniciales(c.nombre_paciente);
                     const tipoCir = (c.tipo_cirugia || 'PROGRAMADA').toUpperCase();
                     const tipoBadge = tipoCir === 'URGENCIAS'
-                        ? `<span class="badge bg-danger text-white px-1.5 py-0.5 fw-bold" style="font-size:0.65rem;"><i class="bi bi-lightning-charge-fill me-0.5"></i>URGENCIAS</span>`
-                        : `<span class="badge bg-info-subtle text-primary border border-info-subtle px-1.5 py-0.5 fw-bold" style="font-size:0.65rem;">PROGRAMADA</span>`;
+                        ? `<span class="qx-glance-badge-urg" title="Cirugía de Urgencias (Flujo en Paralelo)"><i class="bi bi-lightning-charge-fill"></i> URG</span>`
+                        : `<span class="qx-glance-badge-prog" title="Cirugía Programada">PROG</span>`;
 
                     const sem = c.semaforos || {};
                     const actorsOrder = [
@@ -890,13 +1004,11 @@ print <<'JS';
                         if (st === 'VERDE') cls = 'dot-verde';
                         else if (st === 'AMBAR') cls = 'dot-ambar';
                         else if (st === 'ROJO') cls = 'dot-rojo';
-                        return `<span class="kanban-mini-dot ${cls}" title="${a.n}: ${st}"></span>`;
+                        return `<span class="qx-glance-dot ${cls}" title="${a.n}: ${st}"></span>`;
                     }).join('');
 
-                    const alertParaleloHtml = hasRedAlert
-                        ? `<div class="mt-1 px-2 py-0.5 rounded bg-danger-subtle text-danger fw-bold d-flex align-items-center justify-content-between" style="font-size:0.66rem;">
-                               <span><i class="bi bi-exclamation-triangle-fill me-1"></i>Recepción/Caja en Paralelo Pendiente</span>
-                           </div>`
+                    const alertIcon = hasRedAlert
+                        ? `<span class="text-danger fw-bold ms-1" style="font-size:0.65rem;" title="Trámite paralelo de Recepción/Caja pendiente"><i class="bi bi-exclamation-triangle-fill"></i></span>`
                         : '';
 
                     const pasoWiz = c.paso_actual_wizard || 1;
@@ -904,47 +1016,50 @@ print <<'JS';
                     const searchIndex = `${c.id_cirugia || ''} ${c.nombre_paciente || ''} ${c.procedimiento || ''} ${c.nombre_medico || ''} ${c.sala || ''} ${c.notas || ''} ${tipoCir}`.toLowerCase();
                     
                     const card = `
-                        <div class="kanban-card" data-id="${c.id_cirugia}" data-medico-id="${c.id_medico || ''}" data-search="${searchIndex.replace(/"/g, '&quot;')}" onclick="abrirModalDetalleCirugia('${c.id_cirugia}')">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-muted fw-bold" style="font-size:0.68rem;">#${c.id_cirugia}</span>
+                        <div class="kanban-card qx-glance-card" data-id="${c.id_cirugia}" data-medico-id="${c.id_medico || ''}" data-search="${searchIndex.replace(/"/g, '&quot;')}" onclick="abrirModalZoomCard('${c.id_cirugia}')">
+                            <!-- Fila 1: Hora, Sala Compacta y Badge de Modalidad -->
+                            <div class="qx-glance-top">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="qx-glance-time"><i class="bi bi-clock"></i>${c.hora || '00:00'}</span>
+                                    <span class="qx-glance-room" title="${c.sala || 'Quirófano'}">${salaShort}</span>
+                                </div>
                                 ${tipoBadge}
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.7rem;">
-                                    <i class="bi bi-clock me-1"></i>${c.hora || '00:00'}
-                                </span>
-                                ${salaHtml}
-                            </div>
                             
-                            <div class="d-flex align-items-center gap-2 mb-1.5">
-                                <div class="avatar-monogram" title="${c.nombre_paciente}">${iniciales}</div>
-                                <div class="overflow-hidden">
-                                    <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size: 0.86rem;" title="${c.nombre_paciente}">${c.nombre_paciente}</h6>
-                                    <div class="text-primary fw-semibold text-truncate" style="font-size: 0.75rem;" title="${c.procedimiento || 'Procedimiento'}">${c.procedimiento || 'Cirugía'}</div>
+                            <!-- Fila 2: Avatar + Nombre Paciente + Procedimiento Limpio -->
+                            <div class="qx-glance-patient-row">
+                                <div class="qx-glance-avatar" title="${c.nombre_paciente}">${iniciales}</div>
+                                <div class="overflow-hidden flex-grow-1">
+                                    <div class="qx-glance-patient-name text-truncate" title="${c.nombre_paciente}">${c.nombre_paciente}</div>
+                                    <div class="qx-glance-proc text-truncate" title="${c.procedimiento || 'Procedimiento'}">${c.procedimiento || 'Cirugía'}</div>
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mb-1.5">
-                                <div class="kanban-mini-semaphores" title="Semáforos de 8 actores en tiempo real">
-                                    ${dotsHtml}
-                                </div>
-                                <span class="badge bg-light text-primary border fw-bold" style="font-size:0.7rem;" title="Insumos 3NF Acumulados">
-                                    <i class="bi bi-box-seam me-0.5"></i>\$${totalIns}
-                                </span>
+                            <!-- Cirujano en 1 línea limpia -->
+                            <div class="qx-glance-doctor text-truncate" title="Cirujano: ${c.nombre_medico}">
+                                <i class="bi bi-person-badge text-teal me-1"></i>${c.nombre_medico}
                             </div>
-                            ${alertParaleloHtml}
-                            
-                            <div class="small text-muted border-top pt-1.5 mt-1.5" style="font-size: 0.72rem;">
-                                <div class="text-truncate" title="Cirujano: ${c.nombre_medico}"><i class="bi bi-person-badge text-secondary me-1"></i>${c.nombre_medico}</div>
-                                ${anestesiaHtml}
-                                <div class="mt-1.5 d-flex gap-1">
-                                    <a href="quirofano_ingreso.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}&step=${pasoWiz}"
-                                       onclick="event.stopPropagation();"
-                                       class="btn btn-sm btn-outline-primary w-100 py-0.5 fw-bold"
-                                       style="font-size:0.71rem; border-radius:6px;">
-                                        <i class="bi bi-magic me-1"></i>Retomar Wizard (Paso ${pasoWiz})
-                                    </a>
+
+                            <!-- Fila 3: Barra de 8 Semáforos + Acumulado 3NF -->
+                            <div class="qx-glance-status-bar" title="Clic para hacer Zoom 360° a los 8 semáforos y detalles">
+                                <div class="qx-glance-dots">
+                                    ${dotsHtml}
+                                    ${alertIcon}
                                 </div>
+                                <span class="qx-glance-cost"><i class="bi bi-box-seam text-teal me-0.5"></i>\$${totalIns}</span>
+                            </div>
+                            
+                            <!-- Fila 4: Acciones Rápidas (Zoom Card Modal + Wizard) -->
+                            <div class="qx-glance-actions">
+                                <button type="button" class="btn-glance-zoom" onclick="event.stopPropagation(); abrirModalZoomCard('${c.id_cirugia}')" title="Ampliar Tarjeta en Vista Zoom 360°">
+                                    <i class="bi bi-arrows-angle-expand"></i> Zoom
+                                </button>
+                                <a href="quirofano_ingreso.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}&step=${pasoWiz}"
+                                   onclick="event.stopPropagation();"
+                                   class="btn-glance-wizard"
+                                   title="Continuar en el Paso ${pasoWiz} del Wizard">
+                                    <i class="bi bi-magic"></i> Paso ${pasoWiz}
+                                </a>
                             </div>
                         </div>
                     `;
@@ -963,6 +1078,113 @@ print <<'JS';
             console.error(e);
             CrystalToast.fire({icon: 'error', title: 'Error al sincronizar tablero quirúrgico'});
         }
+    }
+
+    function abrirModalZoomCard(idCirugia) {
+        const c = cirugiasCargadas.find(item => String(item.id_cirugia) === String(idCirugia));
+        if (!c) return;
+
+        const tipoCir = (c.tipo_cirugia || 'PROGRAMADA').toUpperCase();
+        const pasoWiz = c.paso_actual_wizard || 1;
+        const totalIns = Number(c.total_insumos_3nf || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        $('#zc_avatar').text(obtenerIniciales(c.nombre_paciente));
+        $('#zc_paciente').text(c.nombre_paciente || 'Paciente');
+        $('#zc_folio_meta').text(`Folio Quirúrgico: #${c.id_cirugia} • Exp. Físico: ${c.expediente_fisico_folio || 'Asignado'} • Fecha: ${c.fecha || fechaActualSeleccionada}`);
+
+        const badgeTipo = document.getElementById('zc_badge_tipo');
+        if (badgeTipo) {
+            badgeTipo.className = tipoCir === 'URGENCIAS' ? 'badge bg-danger text-white fw-bold' : 'badge bg-info text-dark fw-bold';
+            badgeTipo.innerHTML = tipoCir === 'URGENCIAS' ? '<i class="bi bi-lightning-charge-fill me-1"></i>URGENCIAS' : 'PROGRAMADA';
+        }
+        $('#zc_badge_estado').text(`Estación: ${c.estado}`);
+
+        $('#zc_procedimiento').text(c.procedimiento || 'Procedimiento Quirúrgico');
+        $('#zc_sala_horario').html(`<i class="bi bi-door-open text-teal me-1"></i><strong>${c.sala || 'Quirófano 1'}</strong> • <i class="bi bi-clock ms-1 me-1"></i>${c.hora || '00:00'} hrs`);
+        $('#zc_cirujano').html(`<i class="bi bi-person-badge text-primary me-1"></i>${c.nombre_medico || 'Sin Cirujano'}`);
+        $('#zc_anestesiologo').html(`<i class="bi bi-lungs text-info me-1"></i>Anestesia: ${c.nombre_anestesio || 'Por asignar'}`);
+        $('#zc_total_insumos').text('$' + totalIns);
+
+        if (c.deposito_pagado) {
+            $('#zc_deposito_info').html(`<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Depósito \$5,000 Pagado (${c.folio_recibo_caja || 'Recibo OK'})</span>`);
+        } else {
+            $('#zc_deposito_info').html(`<span class="text-danger fw-bold"><i class="bi bi-exclamation-circle-fill me-1"></i>Depósito \$5,000 Pendiente en Caja</span>`);
+        }
+
+        const sem = c.semaforos || {};
+        const hasRedAlert = (sem.recepcion_consentimiento === 'ROJO' || sem.caja === 'ROJO');
+        const alertBanner = document.getElementById('zc_alert_paralelo');
+        if (alertBanner) {
+            if (hasRedAlert) {
+                alertBanner.classList.remove('d-none');
+                document.getElementById('zc_btn_resolver_paralelo').href = `quirofano_ingreso.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}&step=2`;
+            } else {
+                alertBanner.classList.add('d-none');
+            }
+        }
+
+        const actorsList = [
+            { k: 'agenda_espacios', n: '1. Agenda Espacios', ic: 'bi-door-open-fill' },
+            { k: 'agenda_paciente', n: '2. Agenda Paciente', ic: 'bi-calendar-check-fill' },
+            { k: 'recepcion_consentimiento', n: '3. Recepción / Consent.', ic: 'bi-file-earmark-medical-fill' },
+            { k: 'caja', n: '4. Caja ($5,000 Dep.)', ic: 'bi-cash-coin' },
+            { k: 'enfermeria', n: '5. Enfermería Pre-Op', ic: 'bi-heart-pulse-fill' },
+            { k: 'quirofano', n: '6. Quirófano', ic: 'bi-activity' },
+            { k: 'recuperacion', n: '7. Recuperación UCPA', ic: 'bi-bandaid-fill' },
+            { k: 'alta_receta', n: '8. Alta y Receta', ic: 'bi-clipboard2-check-fill' }
+        ];
+
+        const gridHtml = actorsList.map(a => {
+            const st = (sem[a.k] || 'GRIS').toUpperCase();
+            let dotCls = 'dot-gris';
+            let boxCls = '';
+            let lblSt = 'Pendiente';
+            if (st === 'VERDE') { dotCls = 'dot-verde'; boxCls = 'st-verde'; lblSt = 'Validado'; }
+            else if (st === 'AMBAR') { dotCls = 'dot-ambar'; boxCls = 'st-ambar'; lblSt = 'En proceso'; }
+            else if (st === 'ROJO')  { dotCls = 'dot-rojo';  boxCls = 'st-rojo';  lblSt = 'Alerta Paralela'; }
+
+            return `
+                <div class="zoom-actor-box ${boxCls}">
+                    <div class="overflow-hidden">
+                        <div class="fw-bold text-navy text-truncate" style="font-size:0.74rem;"><i class="bi ${a.ic} text-teal me-1"></i>${a.n}</div>
+                        <div class="text-muted" style="font-size:0.66rem;">${lblSt}</div>
+                    </div>
+                    <span class="qx-traffic-dot ${dotCls}"></span>
+                </div>
+            `;
+        }).join('');
+        $('#zc_actors_grid').html(gridHtml);
+
+        const estaciones = ['Programada', 'Pre-Operatorio', 'En Quirófano', 'Recuperación', 'Alta'];
+        const moveBtns = estaciones.map(est => {
+            const active = (c.estado === est);
+            return `<button type="button" class="btn btn-sm ${active ? 'btn-primary fw-bold' : 'btn-outline-secondary'}" ${active ? 'disabled' : ''} onclick="moverDesdeZoomCard('${c.id_cirugia}', '${est}')">
+                        ${active ? '<i class="bi bi-check2-circle me-1"></i>' : ''}${est}
+                    </button>`;
+        }).join('');
+        $('#zc_quick_move_btns').html(moveBtns);
+
+        document.getElementById('zc_btn_ir_wizard').href = `quirofano_ingreso.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}&step=${pasoWiz}`;
+        $('#zc_lbl_ir_wizard').text(`Retomar Wizard (Paso ${pasoWiz})`);
+
+        document.getElementById('zc_btn_bitacora_clinica').onclick = function() {
+            bootstrap.Modal.getInstance(document.getElementById('modalZoomCardQx')).hide();
+            abrirModalDetalleCirugia(c.id_cirugia);
+        };
+        document.getElementById('zc_btn_imprimir_alta').onclick = function() {
+            window.open(`imprimir_alta_quirurgica.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}`, '_blank');
+        };
+
+        const modalEl = document.getElementById('modalZoomCardQx');
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    async function moverDesdeZoomCard(idCirugia, nuevoEstado) {
+        const modalEl = document.getElementById('modalZoomCardQx');
+        const m = bootstrap.Modal.getInstance(modalEl);
+        if (m) m.hide();
+        await actualizarEstadoCirugia(idCirugia, nuevoEstado);
+        cargarTablero(modoTodasLasFechas ? 'todas' : fechaActualSeleccionada);
     }
     
     function aplicarFiltrosLocales() {
