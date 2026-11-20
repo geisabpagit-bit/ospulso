@@ -117,6 +117,15 @@ fi
 # 5. Restauración íntegra y silenciosa de los datos reales de producción
 log "Paso 3: Restaurando datos reales de producción sobre /dat..."
 if [ -d "$BACKUP_DIR" ]; then
+    # Preservar cabecera de 14 columnas de dat/quirofano.dat si el respaldo de producción aún tenía la versión de 11 columnas
+    if [ -f "$BACKUP_DIR/quirofano.dat" ]; then
+        OLD_HDR=$(head -n 1 "$BACKUP_DIR/quirofano.dat" | tr -d '\r')
+        if [[ "$OLD_HDR" != *"TIPO_CIRUGIA"* ]]; then
+            log "Migrando cabecera de quirofano.dat de producción a 14 columnas sin alterar registros..."
+            sed -i '1s/.*/ID_CIRUGIA|ID_ORG|ID_PACIENTE|ID_MEDICO|FECHA_PROGRAMADA|HORA_PROGRAMADA|ESTADO|SALA_QUIROFANO|PROCEDIMIENTO|ID_ANESTESIOLOGO|NOTAS|TIPO_CIRUGIA|ID_RENTA_ESPACIO|FOLIO_EXPEDIENTE/' "$BACKUP_DIR/quirofano.dat" 2>/dev/null || true
+        fi
+    fi
+
     \cp -rf "$BACKUP_DIR/"* dat/ 2>/dev/null || true
     rm -rf "$BACKUP_DIR"
     log "✅ Datos reales de producción restaurados al 100%."
