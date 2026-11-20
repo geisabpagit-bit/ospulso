@@ -99,8 +99,9 @@ const WizardController = {
         const currentPanel = document.getElementById('step-panel-' + this.currentStep);
         if (currentPanel) currentPanel.classList.add('active');
 
-        document.querySelectorAll('.soap-nav-step-item').forEach((step, index) => {
-            step.classList.toggle('active', index === this.currentStep);
+        document.querySelectorAll('.soap-nav-step-item, .soap-top-step-btn').forEach(step => {
+            const stepIdx = parseInt(step.getAttribute('data-step'), 10);
+            step.classList.toggle('active', stepIdx === this.currentStep);
         });
 
         if (this.currentStep === 4 && typeof SOAPReactiveEngine !== 'undefined') {
@@ -126,6 +127,9 @@ const WizardController = {
         const percent = Math.round((stepHuman / totalHuman) * 100);
         const bar = document.getElementById('wizard-progress-fill');
         if (bar) bar.style.width = percent + '%';
+
+        const percentBadge = document.getElementById('soap-flow-percent-badge');
+        if (percentBadge) percentBadge.innerText = percent + '%';
     },
 
     validateCurrentStep: function() {
@@ -999,17 +1003,18 @@ const SOAPReactiveEngine = {
         setTxt('ctx-soap-a', (dx || impresion) ? `${dx ? '[' + dx + '] ' : ''}${impresion.substring(0, 70)} (Pron: ${pronVida}/${pronFunc})` : 'Sin diagnóstico/impresión...');
         setTxt('ctx-soap-p', plan ? `${plan.substring(0, 75)}${reqReceta ? ' · [Receta: ' + window.recetaItems.length + ' fármaco(s)]' : ''}` : 'Sin plan terapéutico...');
 
-        // 4. Semaforización de los 6 Pasos en Columna Izquierda
+        // 4. Semaforización de los 6 Pasos en Columna Izquierda y Barra Superior
         const setStepDot = (stepIdx, color) => {
-            const dot = document.getElementById('nav-dot-step-' + stepIdx);
-            const item = document.querySelector(`.soap-nav-step-item[data-step="${stepIdx}"]`);
-            if (dot) {
-                dot.className = `qx-traffic-dot dot-${color}`;
-            }
-            if (item) {
+            const navDot = document.getElementById('nav-dot-step-' + stepIdx);
+            if (navDot) navDot.className = `qx-traffic-dot dot-${color}`;
+
+            const topDot = document.getElementById('top-dot-step-' + stepIdx);
+            if (topDot) topDot.className = `qx-traffic-dot dot-${color}`;
+
+            document.querySelectorAll(`.soap-nav-step-item[data-step="${stepIdx}"], .soap-top-step-btn[data-step="${stepIdx}"]`).forEach(item => {
                 item.classList.toggle('completed', color === 'verde');
                 item.classList.toggle('alert-step', color === 'rojo');
-            }
+            });
         };
 
         // Paso 1: Subjetivo

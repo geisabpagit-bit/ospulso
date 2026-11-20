@@ -594,3 +594,145 @@
     border-color: #fca5a5;
     color: #dc2626;
 }
+
+/* ==========================================================================
+   TARJETA SUPERIOR DE FLUJO SOAP (6 PASOS) - SALTOS ANALÍTICOS (IMAGE 1 SPEC)
+   ========================================================================== */
+.soap-top-flow-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.85rem 1.15rem;
+    margin-bottom: 1.15rem;
+    box-shadow: 0 2px 8px rgba(10, 42, 102, 0.04);
+}
+
+.soap-top-flow-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.35rem;
+}
+
+.soap-top-flow-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #334155;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+}
+
+.soap-flow-percent-badge {
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0.22rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(22, 163, 74, 0.25);
+    display: inline-flex;
+    align-items: center;
+}
+
+.soap-top-flow-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem 0.85rem;
+}
+
+@media (max-width: 991.98px) {
+    .soap-top-flow-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .soap-top-flow-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.soap-top-step-btn {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.6rem 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    text-align: left;
+    outline: none;
+    user-select: none;
+}
+
+.soap-top-step-btn:hover:not(.active) {
+    border-color: #19B7A5;
+    background: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(25, 183, 165, 0.12);
+}
+
+.soap-top-step-content {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.soap-top-step-icon {
+    font-size: 1.05rem;
+    color: #475569;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+
+.soap-top-step-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Estado ACTIVO idéntico a Imagen 1 (Fondo Azul Marino, Texto Blanco, Icono Teal) */
+.soap-top-step-btn.active {
+    background: #0A2A66 !important;
+    border-color: #0A2A66 !important;
+    box-shadow: 0 4px 14px rgba(10, 42, 102, 0.25) !important;
+}
+
+.soap-top-step-btn.active .soap-top-step-title {
+    color: #ffffff !important;
+}
+
+.soap-top-step-btn.active .soap-top-step-icon {
+    color: #2dd4bf !important; /* Teal brillante */
+}
+
+.soap-top-step-btn.active .qx-traffic-dot {
+    background-color: #ffffff !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+}
+
+.soap-top-step-btn.completed:not(.active) {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.soap-top-step-btn.alert-step:not(.active) {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+

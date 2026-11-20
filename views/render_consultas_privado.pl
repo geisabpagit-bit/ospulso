@@ -623,43 +623,81 @@ print <<HTML;
             </div>
         </div>
 
-        <!-- FILA 2: 5 SEMÁFOROS DE MÓDULOS EXTERNOS + SELECTOR DE PACIENTE (PARTICULAR / MUNICIPIO) + PROGRESO -->
-        <div class="qx-tier2-controls">
-            <div class="d-flex align-items-center flex-wrap gap-1.5">
-                <span class="small fw-bold text-navy me-1"><i class="bi bi-stoplights-fill text-teal me-1"></i>Módulos:</span>
-                <span class="kpi-chip" onclick="WizardController.jumpToStep(0)" style="cursor:pointer;" title="Estado Expediente Clínico NOM-004">
-                    <span id="mod-dot-expediente" class="qx-traffic-dot dot-ambar"></span> Expediente NOM-004
+        <!-- FILA 2: NAVEGACIÓN RÁPIDA 6 PASOS SOAP (IMAGE 1 SPEC) + SELECTOR DE PACIENTE -->
+        <div class="soap-top-flow-card">
+            <div class="soap-top-flow-header">
+                <span class="soap-top-flow-title">
+                    <i class="bi bi-diagram-3-fill text-teal me-1.5"></i>FLUJO SOAP (6 PASOS)
                 </span>
-                <span class="kpi-chip" onclick="WizardController.jumpToStep(3)" style="cursor:pointer;" title="Estado Consentimiento y Acuerdos Legales">
-                    <span id="mod-dot-legal" class="qx-traffic-dot dot-ambar"></span> Legal
-                </span>
-                <span class="kpi-chip" onclick="WizardController.jumpToStep(2)" style="cursor:pointer;" title="Estado Recetario Oficial COFEPRIS">
-                    <span id="mod-dot-receta" class="qx-traffic-dot dot-gris"></span> Receta COFEPRIS
-                </span>
-                <span class="kpi-chip" onclick="WizardController.jumpToStep(5)" style="cursor:pointer;" title="Estado Caja y Finanzas">
-                    <span id="mod-dot-caja" class="qx-traffic-dot dot-ambar"></span> Caja
-                </span>
-                <span class="kpi-chip" onclick="WizardController.jumpToStep(5)" style="cursor:pointer;" title="Estado Agenda del Paciente">
-                    <span id="mod-dot-agenda" class="qx-traffic-dot dot-verde"></span> Agenda
-                </span>
+
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <!-- Selector de Paciente Registrado en CRUD pacientes.pl (Particulares + Municipio si PACIENTES_ESTADO=1) -->
+                    <div class="qx-filter-pill-box" title="Cambiar paciente activo (Base: pacientes.dat)">
+                        <i class="bi bi-people-fill text-teal"></i>
+                        <select id="hdr-selector-paciente" class="qx-filter-select-clean" onchange="if(this.value) window.location.href='render_consultas_privado.pl?id='+encodeURIComponent(this.value);">
+                            $html_selector_pacientes
+                        </select>
+                    </div>
+                    $btn_import_municipio_hdr
+
+                    <!-- Badge de Progreso Porcentual (Image 1 Spec) -->
+                    <span id="soap-flow-percent-badge" class="soap-flow-percent-badge" title="Progreso del Flujo SOAP">17%</span>
+
+                    <!-- Retrocompatibilidad JS para progreso -->
+                    <span id="hdr-step-progress-lbl" class="d-none">Paso 1 de 6</span>
+                    <div id="wizard-progress-fill" class="d-none" style="width: 17%;"></div>
+                </div>
             </div>
 
-            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto">
-                <!-- Selector de Paciente Registrado en CRUD pacientes.pl (Particulares + Municipio si PACIENTES_ESTADO=1) -->
-                <div class="qx-filter-pill-box" title="Cambiar paciente activo (Base: pacientes.dat)">
-                    <i class="bi bi-people-fill text-teal"></i>
-                    <select id="hdr-selector-paciente" class="qx-filter-select-clean" onchange="if(this.value) window.location.href='render_consultas_privado.pl?id='+encodeURIComponent(this.value);">
-                        $html_selector_pacientes
-                    </select>
-                </div>
-                $btn_import_municipio_hdr
-
-                <div class="d-flex align-items-center gap-2 bg-light px-2.5 py-1 rounded-pill border">
-                    <span id="hdr-step-progress-lbl" class="small fw-bold text-navy">Paso 1 de 6</span>
-                    <div style="width: 75px; height: 7px; background: #cbd5e1; border-radius: 10px; overflow: hidden;">
-                        <div id="wizard-progress-fill" style="height: 100%; width: 16%; background: linear-gradient(90deg, #19B7A5, #0A2A66); transition: width 0.3s;"></div>
+            <!-- GRID DE 6 SALTOS ANALÍTICOS SOAP (3 COLS X 2 FILAS) -->
+            <div class="soap-top-flow-grid">
+                <button type="button" class="soap-top-step-btn active" data-step="0" onclick="WizardController.jumpToStep(0)" title="Paso 1: Subjetivo (S) y Registro">
+                    <div class="soap-top-step-content">
+                        <i class="bi bi-person-vcard soap-top-step-icon"></i>
+                        <span class="soap-top-step-title">1. Subjetivo (S) y Registro</span>
                     </div>
-                </div>
+                    <span id="top-dot-step-0" class="qx-traffic-dot dot-ambar"></span>
+                </button>
+
+                <button type="button" class="soap-top-step-btn" data-step="1" onclick="WizardController.jumpToStep(1)" title="Paso 2: Objetivo (O) y Previos">
+                    <div class="soap-top-step-content">
+                        <i class="bi bi-stethoscope soap-top-step-icon"></i>
+                        <span class="soap-top-step-title">2. Objetivo (O) y Previos</span>
+                    </div>
+                    <span id="top-dot-step-1" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-top-step-btn" data-step="2" onclick="WizardController.jumpToStep(2)" title="Paso 3: Análisis (A), Plan y Receta">
+                    <div class="soap-top-step-content">
+                        <i class="bi bi-file-earmark-plus soap-top-step-icon"></i>
+                        <span class="soap-top-step-title">3. Análisis (A), Plan y Receta</span>
+                    </div>
+                    <span id="top-dot-step-2" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-top-step-btn" data-step="3" onclick="WizardController.jumpToStep(3)" title="Paso 4: Acuerdos y Legal">
+                    <div class="soap-top-step-content">
+                        <i class="bi bi-scale soap-top-step-icon"></i>
+                        <span class="soap-top-step-title">4. Acuerdos y Legal</span>
+                    </div>
+                    <span id="top-dot-step-3" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-top-step-btn" data-step="4" onclick="WizardController.jumpToStep(4)" title="Paso 5: Firma Clínica (NOM-151)">
+                    <div class="soap-top-step-content">
+                        <i class="bi bi-pencil-square soap-top-step-icon"></i>
+                        <span class="soap-top-step-title">5. Firma Clínica (NOM-151)</span>
+                    </div>
+                    <span id="top-dot-step-4" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-top-step-btn" data-step="5" onclick="WizardController.jumpToStep(5)" title="Paso 6: Caja y Seguimiento">
+                    <div class="soap-top-step-content">
+                        <i class="bi bi-cash-stack soap-top-step-icon"></i>
+                        <span class="soap-top-step-title">6. Caja y Seguimiento</span>
+                    </div>
+                    <span id="top-dot-step-5" class="qx-traffic-dot dot-gris"></span>
+                </button>
             </div>
         </div>
     </header>
@@ -682,7 +720,7 @@ print <<HTML;
                     <button type="button" class="soap-nav-step-item active" data-step="0" onclick="WizardController.jumpToStep(0)">
                         <span class="soap-step-badge-num">1</span>
                         <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Subjetivo (S)</span>
+                            <span class="soap-step-title">Subjetivo (S) y Registro</span>
                             <span class="soap-step-sub">Motivo &middot; EVA &middot; Alergias</span>
                         </div>
                         <span id="nav-dot-step-0" class="qx-traffic-dot dot-ambar"></span>
@@ -691,7 +729,7 @@ print <<HTML;
                     <button type="button" class="soap-nav-step-item" data-step="1" onclick="WizardController.jumpToStep(1)">
                         <span class="soap-step-badge-num">2</span>
                         <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Objetivo (O)</span>
+                            <span class="soap-step-title">Objetivo (O) y Previos</span>
                             <span class="soap-step-sub">Triage &middot; Exploración &middot; PACS</span>
                         </div>
                         <span id="nav-dot-step-1" class="qx-traffic-dot dot-gris"></span>
@@ -700,7 +738,7 @@ print <<HTML;
                     <button type="button" class="soap-nav-step-item" data-step="2" onclick="WizardController.jumpToStep(2)">
                         <span class="soap-step-badge-num">3</span>
                         <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Análisis y Plan</span>
+                            <span class="soap-step-title">Análisis (A), Plan y Receta</span>
                             <span class="soap-step-sub">CIE-10 &middot; Pronóstico &middot; Receta</span>
                         </div>
                         <span id="nav-dot-step-2" class="qx-traffic-dot dot-gris"></span>
@@ -718,7 +756,7 @@ print <<HTML;
                     <button type="button" class="soap-nav-step-item" data-step="4" onclick="WizardController.jumpToStep(4)">
                         <span class="soap-step-badge-num">5</span>
                         <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Firma NOM-151</span>
+                            <span class="soap-step-title">Firma Clínica (NOM-151)</span>
                             <span class="soap-step-sub">e.firma &middot; QR &middot; Enviar Caja</span>
                         </div>
                         <span id="nav-dot-step-4" class="qx-traffic-dot dot-gris"></span>
@@ -727,7 +765,7 @@ print <<HTML;
                     <button type="button" class="soap-nav-step-item" data-step="5" onclick="WizardController.jumpToStep(5)">
                         <span class="soap-step-badge-num">6</span>
                         <div class="soap-step-text-wrap">
-                            <span class="soap-step-title">Caja y Agenda</span>
+                            <span class="soap-step-title">Caja y Seguimiento</span>
                             <span class="soap-step-sub">Cobro 3NF &middot; Próxima Cita</span>
                         </div>
                         <span id="nav-dot-step-5" class="qx-traffic-dot dot-gris"></span>
