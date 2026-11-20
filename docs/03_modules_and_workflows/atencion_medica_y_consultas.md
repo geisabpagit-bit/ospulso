@@ -350,5 +350,15 @@ graph LR
   - **Resolución de Error de Consola**: Se erradicó el error `Identifier 'floatingTooltip' has already been declared` asignando la referencia al objeto global `window.sidebarFloatingTooltip`.
   - **Ocultamiento Limpio de Sidebar Móvil**: Se forzó `transform: translateX(-105%) !important; visibility: hidden !important; pointer-events: none !important; box-shadow: none !important;` en estado cerrado, eliminando cualquier asomo o filtración visual del borde y su sombra en el margen izquierdo del teléfono.
 
+### 4.27 Visor Multi-Página NOM-004 / NOM-024 y Sincronización en Consulta Detalles (`views/consulta_detalles.pl`, `css/nota_clinica_soap_multipage.css`)
+- **Arquitectura de Impresión e Inspección Clínico-Normativa (2 Páginas Carta 8.5" x 11")**:
+  - **Hoja 1 (Página 1/2)**: Membrete institucional con logotipo de la organización, CLUES, RFC, domicilio completo y datos de contacto. Título oficial NOM-004-SSA3-2012, Folio, fecha y tipo de consulta. Ficha del paciente (expediente, CURP, edad, sexo, grupo/Rh, alerta crítica de alergias), médico tratante y consultorio. Cuadrícula de 7 signos vitales de somatometría/triage con IMC calculado. Bloques estructurados Subjetivo (S) con EVA y antecedentes, y Objetivo (O) con exploración física y estudios solicitados.
+  - **Separador Visual**: Salto de página oficial para visualización en pantalla (`.page-break-indicator-web`).
+  - **Hoja 2 (Página 2/2)**: Membrete y encabezado de receta institucional. Ficha resumida de paciente y médico. Bloque Análisis (A) con diagnósticos CIE-10 (principal y secundarios), severidad y pronóstico. Plan y Tratamiento (P) con indicaciones higiénico-dietéticas. Prescripción farmacológica en tabla oficial COFEPRIS (denominación genérica, comercial, forma, concentración, posología, duración y vía). Bloque de certificación digital con cadena original, firma digital SHA-256 y QR de validación NOM-024. Firmas al calce (paciente y médico con cédula profesional).
+- **Sincronización Dual (Dashboard Bento vs. Hoja Carta WYSIWYG)**:
+  - `views/consulta_detalles.pl` implementa un switch maestro en el topbar que alterna fluidamente entre el **Dashboard Bento Interactivo** (tarjetas Bento con diseño *Clinical Pulse*, badges reactivos de cumplimiento normativo y datos dinámicos) y la **Hoja Carta WYSIWYG** (2 páginas Carta con toolbar de vista continua vs. paginada, selector de páginas, zoom 75%/100%/125%, compartir por WhatsApp y botón de impresión directa con salto estricto `@media print`).
+  - Preservación íntegra de la identidad de la organización (`$org->{logo_url}`, razón social, CLUES, RFC) y los datos clínicos reales almacenados en `dat/consultas_clinicas.dat`.
+
+
 
 

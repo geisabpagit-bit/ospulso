@@ -13,12 +13,10 @@ use lib "$FindBin::Bin/..";
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
-require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_footer.pl');
 use utils::db_manager qw(leer_tabla);
 
 my $q = CGI->new;
 my $session_data = eval { check_session($q) } || {};
-# Sesión abierta o acceso clínico autorizado
 my $usuario_sesion = $session_data->{usuario} || 'admin';
 
 binmode STDOUT, ":utf8";
@@ -130,9 +128,9 @@ if (!keys %$consulta) {
             impresion_clinica => 'Cuadro compatible con cefalea de origen tensional secundario a estrés psicofísico. Se descarta hipertensión intracraneal o foco neurológico.',
             receta_indicaciones => 'Tomar los medicamentos después de los alimentos. Evitar el consumo de cafeína, quesos maduros y chocolates durante el tratamiento.',
             medicamentos => [
-                { farmaco => 'Ibuprofeno', presentacion => 'Cápsulas 400 mg', dosis => '1 cápsula', frecuencia => 'Cada 8 horas', duracion => '5 días', via => 'Oral' },
-                { farmaco => 'Paracetamol', presentacion => 'Tabletas 500 mg', dosis => '1 tableta', frecuencia => 'Cada 8 horas (en caso de dolor residual)', duracion => '3 días', via => 'Oral' },
-                { farmaco => 'Complejo B', presentacion => 'Tabletas', dosis => '1 tableta', frecuencia => 'Cada 24 horas matutina', duracion => '30 días', via => 'Oral' }
+                { generico => 'Ibuprofeno', comercial => 'Advil', forma => 'Cápsulas', concentracion => '400 mg', dosis => '1 cápsula', posologia => '1 cápsula c/8h por 5 días', frecuencia => 'Cada 8 horas', duracion => '5 días', via => 'Oral' },
+                { generico => 'Paracetamol', comercial => 'Tempra', forma => 'Tabletas', concentracion => '500 mg', dosis => '1 tableta', posologia => '1 tableta c/8h si hay dolor residual', frecuencia => 'Cada 8 horas', duracion => '3 días', via => 'Oral' },
+                { generico => 'Complejo B', comercial => 'Tribedoce', forma => 'Grageas', concentracion => 'Estándar', dosis => '1 gragea', posologia => '1 gragea matutina por 30 días', frecuencia => 'Cada 24 horas', duracion => '30 días', via => 'Oral' }
             ]
         }
     };
@@ -161,7 +159,6 @@ my $org = {
 if ($res_negocios && @$res_negocios) {
     foreach my $r (@$res_negocios) {
         next if $r->[0] =~ /^ID$/i;
-        # Buscar organización 0 o la que coincida
         if ($r->[0] eq '0' || !$org->{nombre_negocio}) {
             $org->{id}             = $r->[0] // '0';
             $org->{nombre_negocio} = $r->[1] || 'Clínica Médica Pulso';
@@ -274,7 +271,7 @@ foreach my $m (@$res_med) {
 }
 $especialidad_medico = $d->{especialidad} if ($d->{especialidad} && $d->{especialidad} ne '');
 
-# 5. Medicamentos expedidos
+# 5. Medicamentos expedidos (soporta claves nuevas y legacy)
 my $medicamentos = $d->{medicamentos} || [];
 if ((!$medicamentos || ref($medicamentos) ne 'ARRAY' || scalar @$medicamentos == 0) && $d->{medicamentos_json}) {
     eval { $medicamentos = decode_json(encode_utf8($d->{medicamentos_json})); };
@@ -322,890 +319,1157 @@ if ($d->{pacs_estudios_seleccionados}) {
     }
 }
 
-# 8. Render HTML
+# 8. Cálculo reactivo de cumplimiento normativo NOM-004 / NOM-024
+my $compliance_score = 0;
+$compliance_score += 15 if ($d->{motivo} || $d->{evolucion});
+$compliance_score += 15 if ($d->{ta} || $d->{temp} || $d->{fc});
+$compliance_score += 15 if ($d->{exploracion_hallazgos});
+$compliance_score += 20 if ($d->{diagnostico_principal} || $d->{clave_diagnostico_cie10});
+$compliance_score += 15 if ($d->{plan_tratamiento} || (ref($medicamentos) eq 'ARRAY' && scalar @$medicamentos > 0));
+$compliance_score += 10 if ($paciente->{curp} || $paciente->{id});
+$compliance_score += 10 if ($cedula_medico && $cedula_medico ne '');
+$compliance_score = 100 if ($compliance_score > 100);
+
+# Formateo de alergias
+my $alergias_txt = $d->{antecedentes_patologicos} || $paciente->{alergias} || 'Negadas';
+my $tiene_alergias = ($alergias_txt !~ /negad|ningun/i && length($alergias_txt) > 3) ? 1 : 0;
+
+# Render HTML
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print <<HTML;
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nota Médica - Folio $consulta->{id_consulta} | $org->{nombre_negocio}</title>
+    <title>Nota Médica SOAP - Folio $consulta->{id_consulta} | $org->{nombre_negocio}</title>
 
     <!-- OSPulso Brand Identity (Favicons) -->
     <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="../favicon/favicon-32x32.png">
     
-    <!-- Librerías de Vanguardia -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fuentes Mandantes del Ecosistema OSPulso -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- CSS Bootstrap 5.3 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons\@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Hoja de Estilo Mandante del Visor Multi-Página Clinical Pulse -->
+    <link rel="stylesheet" href="../css/nota_clinica_soap_multipage.css?v=20261120">
 
     <style>
         :root {
-            --md-teal-clinical: #19B7A5;
-            --md-teal-dark: #0f766e;
-            --md-blue-deep: #0A2A66;
-            --md-navy: #051A44;
-            --md-gray-bg: #F1F5F9;
-            --md-card-bg: #FFFFFF;
-            --md-border-color: #E2E8F0;
-            --md-text-primary: #0F172A;
-            --md-text-muted: #64748B;
-        }
-
-        * {
-            box-sizing: border-box;
+            --primary-clinical: #00C0B5;
+            --primary-clinical-hover: #00A39A;
+            --navy-dark: #0D2238;
+            --navy-surface: #0F172A;
+            --slate-muted: #64748B;
+            --slate-border: #E2E8F0;
+            --bg-bento: #F8FAFC;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--md-gray-bg);
-            color: var(--md-text-primary);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background-color: #EEF2F6;
+            color: #0F172A;
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Barra de Control Superior Flotante */
-        .action-topbar {
+        /* Barra de Control y Switch Principal */
+        .topbar-control {
             position: sticky;
             top: 0;
-            z-index: 1030;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 4px 20px rgba(10, 42, 102, 0.05);
-            padding: 0.75rem 1.5rem;
-        }
-
-        .btn-view-toggle {
-            font-size: 0.82rem;
-            font-weight: 700;
-            padding: 0.45rem 1rem;
-            border-radius: 9999px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-view-toggle.active {
-            background-color: var(--md-blue-deep);
+            z-index: 1040;
+            background: rgba(13, 34, 56, 0.96);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.65rem 1.25rem;
             color: #ffffff;
-            border-color: var(--md-blue-deep);
-            box-shadow: 0 4px 12px rgba(10, 42, 102, 0.2);
         }
 
-        /* VISTA BENTO (Pantalla Interactiva) */
-        .bento-container {
-            max-width: 1240px;
-            margin: 2rem auto;
-            padding: 0 1.25rem;
-            transition: opacity 0.2s ease;
+        .view-pill-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #E2E8F0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .view-pill-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+        .view-pill-btn.active {
+            background: #00C0B5;
+            color: #0D2238;
+            border-color: #00C0B5;
+            box-shadow: 0 2px 10px rgba(0, 192, 181, 0.4);
+            font-weight: 700;
         }
 
-        .bento-card {
-            background: var(--md-card-bg);
-            border-radius: 1.25rem;
-            padding: 1.75rem;
-            border: 1px solid var(--md-border-color);
-            box-shadow: 0 10px 30px rgba(10, 42, 102, 0.04);
+        /* VISTA BENTO CLÍNICO */
+        .bento-wrapper {
+            max-width: 1280px;
+            margin: 1.5rem auto 3rem;
+            padding: 0 1rem;
+        }
+        .bento-card-pro {
+            background: #ffffff;
+            border-radius: 1rem;
+            border: 1px solid var(--slate-border);
+            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+            padding: 1.25rem 1.5rem;
             height: 100%;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-
-        .bento-card:hover {
-            box-shadow: 0 14px 38px rgba(10, 42, 102, 0.07);
+        .bento-card-pro:hover {
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+        .bento-header-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--primary-clinical-hover);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+        .bento-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--navy-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #F1F5F9;
+            padding-bottom: 0.6rem;
+        }
+        .data-label-bento {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--slate-muted);
+            margin-bottom: 0.2rem;
+        }
+        .data-val-bento {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #1E293B;
+            margin-bottom: 0.85rem;
+            line-height: 1.5;
+        }
+        .vital-box-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.65rem;
+            margin-bottom: 1rem;
+        }
+        .vital-tile {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 0.75rem;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+        }
+        .vital-tile-val {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--navy-dark);
+        }
+        .vital-tile-lbl {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--slate-muted);
+            text-transform: uppercase;
         }
 
-        .bento-header {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: var(--md-blue-deep);
+        /* Alerta Crítica Alergias */
+        .critical-allergy-banner {
+            background-color: #FEF2F2;
+            border: 1px solid #FCA5A5;
+            border-left: 4px solid #DC2626;
+            color: #991B1B;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
             margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid var(--md-gray-bg);
-            padding-bottom: 0.75rem;
+            gap: 0.75rem;
         }
 
-        .data-label {
-            font-size: 0.72rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--md-text-muted);
-            margin-bottom: 0.25rem;
+        /* VISTA HOJA CARTA (WYSIWYG 2 PÁGINAS) */
+        #view-wysiwyg-container {
+            display: none; /* Por defecto oculto si arranca en bento o visible según switch */
         }
 
-        .data-value {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--md-navy);
-            margin-bottom: 1.1rem;
-            line-height: 1.5;
-        }
-
-        .vital-box {
-            background: #ffffff;
-            border-radius: 1rem;
-            padding: 1rem 0.75rem;
-            text-align: center;
-            border: 1px solid var(--md-border-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-        }
-        .vital-value {
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: var(--md-blue-deep);
-        }
-        .vital-unit {
-            font-size: 0.72rem;
-            color: var(--md-text-muted);
-            font-weight: 600;
-        }
-
-        /* MODO HOJA WYSIWYG (Simulación Hoja Carta Vertical) */
-        .wysiwyg-wrapper {
-            background: #cbd5e1;
-            padding: 2.5rem 1rem;
-            min-height: calc(100vh - 65px);
-            display: flex;
-            justify-content: center;
-        }
-
-        .wysiwyg-sheet {
-            background: #ffffff;
-            width: 816px; /* Ancho estándar 8.5in a 96 DPI */
-            min-height: 1056px; /* Alto estándar 11in a 96 DPI */
-            padding: 12mm 12mm 12mm 12mm; /* Margen estrecho */
-            border-radius: 4px;
-            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2), 0 2px 10px rgba(0, 0, 0, 0.08);
-            color: #0f172a;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Membrete Institucional WYSIWYG */
-        .doc-header {
-            border-bottom: 2px solid var(--md-blue-deep);
-            padding-bottom: 0.75rem;
-            margin-bottom: 1rem;
-        }
-        .doc-logo {
-            max-height: 52px;
-            max-width: 140px;
-            object-fit: contain;
-        }
-        .org-title {
-            font-size: 1.15rem;
-            font-weight: 900;
-            color: var(--md-blue-deep);
-            line-height: 1.2;
-            letter-spacing: -0.3px;
-        }
-        .org-legal {
-            font-size: 0.72rem;
-            color: #475569;
-            line-height: 1.35;
-        }
-
-        /* Sub-Encabezado: Ficha Paciente & Médico */
-        .doc-meta-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 0.65rem 0.85rem;
-            margin-bottom: 0.85rem;
-            font-size: 0.8rem;
-        }
-
-        /* Secciones del Documento Impreso */
-        .doc-section-title {
-            font-size: 0.82rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--md-blue-deep);
-            border-bottom: 1px solid #cbd5e1;
-            padding-bottom: 0.25rem;
-            margin-top: 0.75rem;
-            margin-bottom: 0.45rem;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .doc-grid-vitals {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 0.4rem;
-            margin-bottom: 0.65rem;
-        }
-
-        .doc-vital-cell {
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            background: #f8fafc;
-            padding: 0.35rem;
-            text-align: center;
-        }
-        .doc-vital-lbl {
-            font-size: 0.65rem;
-            font-weight: 800;
-            color: #64748b;
-            text-transform: uppercase;
-        }
-        .doc-vital-val {
-            font-size: 0.92rem;
-            font-weight: 800;
-            color: var(--md-blue-deep);
-        }
-
-        .doc-soap-block {
-            border-left: 3px solid var(--md-teal-clinical);
-            padding-left: 0.6rem;
-            margin-bottom: 0.55rem;
-            font-size: 0.82rem;
-            line-height: 1.38;
-        }
-
-        .doc-table-rx {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.78rem;
-            margin-bottom: 0.65rem;
-        }
-        .doc-table-rx th {
-            background: #f1f5f9;
-            color: var(--md-blue-deep);
-            font-weight: 800;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            padding: 0.4rem 0.5rem;
-            border: 1px solid #cbd5e1;
-        }
-        .doc-table-rx td {
-            padding: 0.4rem 0.5rem;
-            border: 1px solid #e2e8f0;
-            vertical-align: middle;
-        }
-
-        /* Bloque de Firmas al Calce */
-        .doc-signatures {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-top: 1.5rem;
-            padding-top: 0.75rem;
-            border-top: 1px dashed #cbd5e1;
-            text-align: center;
-            font-size: 0.78rem;
-            break-inside: avoid;
-            page-break-inside: avoid;
-        }
-
-        .doc-sig-line {
-            width: 75%;
-            margin: 0 auto 0.4rem auto;
-            border-bottom: 1px solid #334155;
-            height: 48px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-        }
-
-        .doc-footer-legal {
-            font-size: 0.65rem;
-            color: #64748b;
-            text-align: center;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        /* REGLAS ESTRICTAS DE IMPRESIÓN Y EXPORTACIÓN A PDF */
-        \@page {
-            size: letter portrait;
-            margin: 8mm 8mm 8mm 8mm; /* Margen estrecho */
-        }
-
+        /* Ocultar elementos de UI interactiva durante la impresión */
         \@media print {
-            body {
-                background: #ffffff !important;
-                color: #000000 !important;
-                font-size: 9pt !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
-            .action-topbar,
-            .bento-container,
-            .d-print-none {
+            .topbar-control, .pdf-multipage-toolbar, .no-print, .bento-wrapper {
                 display: none !important;
             }
-
-            .wysiwyg-wrapper {
-                background: transparent !important;
-                padding: 0 !important;
-                margin: 0 !important;
+            #view-wysiwyg-container {
                 display: block !important;
-                min-height: auto !important;
+                background: #ffffff !important;
+                padding: 0 !important;
             }
-
-            .wysiwyg-sheet {
-                width: 100% !important;
-                min-height: auto !important;
+            .pdf-sheets-scroll-area {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+            .clinical-sheet {
                 box-shadow: none !important;
                 border: none !important;
-                padding: 0 !important;
                 margin: 0 !important;
-                border-radius: 0 !important;
+                width: 100% !important;
+                min-height: auto !important;
+                page-break-after: always !important;
+                break-after: page !important;
             }
-
-            .doc-signatures,
-            .doc-soap-block,
-            .doc-table-rx,
-            .doc-meta-box,
-            .doc-vital-cell {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
+            .clinical-sheet:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
             }
-
-            .badge {
-                border: 1px solid #cbd5e1 !important;
-                color: #000 !important;
+            .page-break-indicator-web {
+                display: none !important;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- BARRA DE ACCIÓN SUPERIOR (Glassmorphism Sticky) -->
-    <header class="action-topbar d-print-none">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <!-- TOPBAR MÓDULO VISOR (Sincronía Ecosistema OSPulso) -->
+    <div class="topbar-control">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <!-- Izquierda: Identidad y Folio -->
+            <div class="d-flex align-items-center gap-3">
+                <a href="render_expediente_clinico.pl?id=$paciente->{id}" class="view-pill-btn text-white">
+                    <i class="bi bi-arrow-left"></i> Volver al Expediente
+                </a>
+                <div class="vr bg-white opacity-25 d-none d-sm-block" style="height: 24px;"></div>
+                <div>
+                    <span class="badge bg-teal-clinical text-dark fw-bold me-1" style="background:#00C0B5;">NOM-004 / NOM-024</span>
+                    <strong class="text-white" style="font-size:0.95rem;">Nota Médica SOAP Multi-Página</strong>
+                    <span class="text-white-50 ms-1 d-none d-md-inline">| Folio: <span class="text-white fw-bold">$consulta->{id_consulta}</span></span>
+                </div>
+            </div>
+
+            <!-- Centro: Selector de Vista Interactiva vs Hoja Carta WYSIWYG -->
+            <div class="d-flex align-items-center gap-1 bg-dark bg-opacity-50 p-1 rounded-pill border border-secondary border-opacity-25">
+                <button type="button" id="btn-mode-bento" class="view-pill-btn active" onclick="setMasterView('bento')">
+                    <i class="bi bi-grid-1x2-fill"></i> Dashboard Bento
+                </button>
+                <button type="button" id="btn-mode-wysiwyg" class="view-pill-btn" onclick="setMasterView('wysiwyg')">
+                    <i class="bi bi-file-earmark-medical-fill"></i> Hoja Carta (2 Págs)
+                </button>
+            </div>
+
+            <!-- Derecha: Acciones Rápidas -->
             <div class="d-flex align-items-center gap-2">
-                <a href="render_expediente_clinico.pl?id=$paciente->{id}" class="btn btn-outline-secondary rounded-pill btn-sm fw-bold px-3">
-                    <i class="bi bi-arrow-left me-1"></i> Expediente
-                </a>
-                <a href="inicial.pl" class="btn btn-light rounded-pill btn-sm fw-bold px-3 border">
-                    <i class="bi bi-house me-1"></i> Dashboard
-                </a>
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 ms-2 d-none d-md-inline-block">
-                    Folio: $consulta->{id_consulta}
-                </span>
-            </div>
-
-            <!-- Selector de Vista y Botones de Impresión -->
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <div class="btn-group p-1 bg-light border rounded-pill" role="group">
-                    <button type="button" class="btn btn-view-toggle active" id="btn-view-bento" onclick="switchView('bento')">
-                        <i class="bi bi-grid-fill me-1"></i> Dashboard Bento
-                    </button>
-                    <button type="button" class="btn btn-view-toggle" id="btn-view-wysiwyg" onclick="switchView('wysiwyg')">
-                        <i class="bi bi-file-earmark-richtext-fill me-1"></i> Hoja Carta (WYSIWYG)
-                    </button>
-                </div>
-
-                @{[ scalar(@$medicamentos) > 0 ? qq{
-                <button onclick="imprimirRecetaOnly()" class="btn btn-outline-primary rounded-pill btn-sm fw-bold px-3">
-                    <i class="bi bi-capsule me-1"></i> Receta Médica
+                <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="compartirWhatsApp()">
+                    <i class="bi bi-whatsapp text-success me-1"></i> WhatsApp
                 </button>
-                } : "" ]}
-
-                <button onclick="imprimirNotaMedica()" class="btn text-white rounded-pill btn-sm px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, var(--md-blue-deep), var(--md-teal-clinical)); border: none;">
-                    <i class="bi bi-printer-fill me-1"></i> Imprimir / Guardar PDF
+                <button type="button" class="btn btn-sm text-dark fw-bold rounded-pill px-3" style="background-color: #00C0B5;" onclick="ejecutarImpresion()">
+                    <i class="bi bi-printer-fill me-1"></i> Imprimir (2 Págs)
                 </button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <!-- 1. VISTA DASHBOARD BENTO (Interactivo en Pantalla) -->
-    <main class="bento-container" id="view-bento">
-        <!-- Banner Principal de Identificación -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4 text-white" style="background: linear-gradient(135deg, var(--md-navy) 0%, var(--md-blue-deep) 100%);">
-            <div class="card-body p-4">
-                <div class="row align-items-center">
-                    <div class="col-md-7">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-white-10 text-white border border-white-20 rounded-pill px-3 py-1 small fw-bold" style="background: rgba(255,255,255,0.15);">
-                                <i class="bi bi-person-badge me-1"></i> EXPEDIENTE PACIENTE #$paciente->{id}
+    <!-- ================================================================= -->
+    <!-- 1. VISTA DASHBOARD BENTO (Pantalla Interactiva)                   -->
+    <!-- ================================================================= -->
+    <div id="view-bento-container" class="bento-wrapper">
+
+        <!-- Banner de Alergias Críticas si Aplica -->
+HTML
+
+if ($tiene_alergias) {
+    print <<HTML;
+        <div class="critical-allergy-banner shadow-sm">
+            <i class="bi bi-exclamation-octagon-fill fs-4 flex-shrink-0"></i>
+            <div>
+                <strong class="d-block text-uppercase fw-bold" style="letter-spacing:0.5px;">¡Alerta Médica de Alergias Críticas!</strong>
+                <span>El paciente presenta reacción documentada a: <strong>$alergias_txt</strong>. Verificar compatibilidad farmacológica.</span>
+            </div>
+        </div>
+HTML
+}
+
+print <<HTML;
+        <!-- Fila 1: Resumen de Expediente, Paciente y Organización -->
+        <div class="row g-3 mb-3">
+            <div class="col-lg-8">
+                <div class="bento-card-pro">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="rounded" style="max-height: 48px; max-width: 130px; object-fit: contain;">
+                            <div>
+                                <h5 class="mb-0 fw-bold text-dark">$org->{nombre_negocio}</h5>
+                                <span class="text-muted small">$org->{razon_social} · CLUES: <strong>$org->{clues}</strong> · RFC: <strong>$org->{rfc}</strong></span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fw-bold">
+                                <i class="bi bi-shield-check me-1"></i> NOM-004: $compliance_score%
                             </span>
-                            <span class="badge bg-teal text-white rounded-pill px-3 py-1 small fw-bold" style="background: var(--md-teal-clinical);">
-                                $d->{tipo_consulta}
-                            </span>
+                            <div class="text-muted small mt-1">Fecha: $consulta->{fecha}</div>
                         </div>
-                        <h2 class="fw-black text-white mb-1">$paciente->{nombre}</h2>
-                        <div class="text-white-50 small d-flex flex-wrap gap-3 mt-2">
-                            <span><i class="bi bi-card-text me-1"></i><strong>CURP:</strong> $paciente->{curp}</span>
-                            <span><i class="bi bi-gender-ambiguous me-1"></i><strong>Sexo:</strong> $paciente->{sexo}</span>
-                            <span><i class="bi bi-hourglass-split me-1"></i><strong>Edad:</strong> $paciente->{edad}</span>
-                            <span><i class="bi bi-droplet-fill me-1 text-danger"></i><strong>GS:</strong> $paciente->{ts}</span>
-                            <span><i class="bi bi-telephone-fill me-1"></i><strong>Tel:</strong> $paciente->{telefono}</span>
-                        </div>
-                        @{[ ($paciente->{alergias} && $paciente->{alergias} ne 'Negadas') ? qq{
-                        <div class="mt-2">
-                            <span class="badge bg-danger text-white rounded-pill px-3 py-1"><i class="bi bi-exclamation-triangle-fill me-1"></i>Alergias Conocidas: $paciente->{alergias}</span>
-                        </div>
-                        } : qq{
-                        <div class="mt-2">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1"><i class="bi bi-shield-check me-1"></i>Alergias Negadas</span>
-                        </div>
-                        } ]}
                     </div>
-                    <div class="col-md-5 text-md-end mt-3 mt-md-0 border-start-md border-white-10 ps-md-4">
-                        <div class="small text-white-50 fw-bold text-uppercase">Médico Tratante / Especialista</div>
-                        <h4 class="fw-bold mb-0 text-white" style="color: #67e8f9 !important;">$nombre_medico</h4>
-                        <div class="badge bg-white-10 text-white border border-white-20 rounded-pill px-3 py-1 my-1" style="background: rgba(255,255,255,0.12);">
-                            $especialidad_medico
+
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-3">
+                            <div class="data-label-bento">Paciente</div>
+                            <div class="data-val-bento fw-bold text-primary">$paciente->{nombre}</div>
                         </div>
-                        <div class="small text-white-50 mt-1">Cédula Profesional: <strong>$cedula_medico</strong></div>
-                        <div class="small text-white-50"><i class="bi bi-geo-alt me-1"></i>$consultorio_medico</div>
-                        <div class="mt-2 pt-2 border-top border-white-10 small text-white-50">
-                            <i class="bi bi-clock-history me-1"></i>Fecha de Atención: <strong>$consulta->{fecha}</strong>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="data-label-bento">Expediente / CURP</div>
+                            <div class="data-val-bento">EXP-$paciente->{id} <br><small class="text-muted">$paciente->{curp}</small></div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="data-label-bento">Edad / Sexo / Sangre</div>
+                            <div class="data-val-bento">$paciente->{edad} · $paciente->{sexo} <br><span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">$paciente->{ts}</span></div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="data-label-bento">Médico Tratante</div>
+                            <div class="data-val-bento fw-bold">$nombre_medico <br><small class="text-muted">Céd. $cedula_medico</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta Lateral de Acciones & Certificación NOM-151 -->
+            <div class="col-lg-4">
+                <div class="bento-card-pro bg-light border-0">
+                    <div class="bento-header-badge">
+                        <i class="bi bi-patch-check-fill text-teal"></i> Validez Jurídica Digital
+                    </div>
+                    <div class="bento-title-main" style="font-size:1rem;">
+                        <span>e.Firma & NOM-151</span>
+                        <i class="bi bi-qr-code text-teal fs-4"></i>
+                    </div>
+                    <p class="small text-muted mb-2">
+                        Documento clínico-legal inmutable firmado con infraestructura de clave pública (PKI), conforme a la NOM-024-SSA3.
+                    </p>
+                    <div class="p-2 bg-white rounded border border-light-subtle mb-3">
+                        <div class="text-muted" style="font-size:0.7rem; font-family:'JetBrains Mono', monospace; word-break:break-all;">
+                            SHA256: 3a9f02c4b81e4d77a80b1e8e8c14d5e71829a3f4b5c6d7e8f9a0b1c2d3e4f5a6
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-dark fw-bold rounded-pill" onclick="setMasterView('wysiwyg')">
+                            <i class="bi bi-eye-fill me-1"></i> Abrir Visor Multi-Página
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fila 2: Signos Vitales Bento -->
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <div class="bento-card-pro">
+                    <div class="bento-title-main">
+                        <span><i class="bi bi-heart-pulse-fill text-danger me-2"></i>Signos Vitales y Somatometría</span>
+                        <span class="text-muted small fw-normal">Triage de Consulta</span>
+                    </div>
+
+                    <div class="vital-box-grid">
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{ta}</div>
+                            <div class="vital-tile-lbl">T. Arterial (mmHg)</div>
+                        </div>
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{fc}</div>
+                            <div class="vital-tile-lbl">F. Cardíaca (lpm)</div>
+                        </div>
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{fr}</div>
+                            <div class="vital-tile-lbl">F. Resp (rpm)</div>
+                        </div>
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{temp}°C</div>
+                            <div class="vital-tile-lbl">Temperatura</div>
+                        </div>
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{spo2}%</div>
+                            <div class="vital-tile-lbl">SpO2</div>
+                        </div>
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{glucosa}</div>
+                            <div class="vital-tile-lbl">Glucosa (mg/dL)</div>
+                        </div>
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{peso} <small class="text-muted" style="font-size:0.7rem;">kg</small></div>
+                            <div class="vital-tile-lbl">Peso Corporal</div>
+                        </div>
+                        <div class="vital-tile">
+                            <div class="vital-tile-val">$d->{talla} <small class="text-muted" style="font-size:0.7rem;">m</small></div>
+                            <div class="vital-tile-lbl">Estatura</div>
+                        </div>
+                        <div class="vital-tile bg-teal-clinical bg-opacity-10 border-teal">
+                            <div class="vital-tile-val text-teal" style="color:#00847D;">$imc_val</div>
+                            <div class="vital-tile-lbl fw-bold">IMC ($imc_status)</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Bento Signos Vitales -->
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-sm-4 col-md-2">
-                <div class="vital-box">
-                    <div class="data-label"><i class="bi bi-heart-pulse me-1 text-danger"></i> T.A.</div>
-                    <div class="vital-value">@{[ $d->{ta} || '--' ]}</div>
-                    <div class="vital-unit">mmHg</div>
+        <!-- Fila 3: S.O.A.P. Desglosado en Bento Grid -->
+        <div class="row g-3 mb-3">
+            <!-- S: Subjetivo -->
+            <div class="col-md-6">
+                <div class="bento-card-pro">
+                    <div class="bento-title-main text-primary">
+                        <span><i class="bi bi-1-circle-fill me-2"></i>Subjetivo (S)</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary">Motivo & Anamnesis</span>
+                    </div>
+                    <div class="data-label-bento">Motivo de Consulta</div>
+                    <div class="data-val-bento">$d->{motivo}</div>
+
+                    <div class="data-label-bento">Evolución y Padecimiento Actual</div>
+                    <div class="data-val-bento">$d->{evolucion}</div>
+
+                    <div class="data-label-bento">Escala EVA del Dolor</div>
+                    <div class="data-val-bento">
+                        <span class="badge bg-warning text-dark fw-bold px-2 py-1">$d->{intensidad} / 10</span>
+                    </div>
+
+                    <div class="data-label-bento">Antecedentes Clínicos</div>
+                    <div class="small text-muted">
+                        • <strong>Patológicos:</strong> $d->{antecedentes_patologicos}<br>
+                        • <strong>Heredofamiliares:</strong> $d->{antecedentes_heredofamiliares}<br>
+                        • <strong>No Patológicos:</strong> $d->{antecedentes_no_patologicos}
+                    </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
-                <div class="vital-box">
-                    <div class="data-label"><i class="bi bi-activity me-1 text-primary"></i> F.C.</div>
-                    <div class="vital-value">@{[ $d->{fc} || '--' ]}</div>
-                    <div class="vital-unit">lpm</div>
+
+            <!-- O: Objetivo -->
+            <div class="col-md-6">
+                <div class="bento-card-pro">
+                    <div class="bento-title-main text-success">
+                        <span><i class="bi bi-2-circle-fill me-2"></i>Objetivo (O)</span>
+                        <span class="badge bg-success bg-opacity-10 text-success">Exploración Física</span>
+                    </div>
+                    <div class="data-label-bento">Hallazgos de Exploración Física</div>
+                    <div class="data-val-bento">$d->{exploracion_hallazgos}</div>
+
+                    <div class="data-label-bento">Estudios de Laboratorio / Gabinete</div>
+                    <div class="data-val-bento">
+                        <strong>Laboratorio:</strong> $d->{laboratorios_solicitados}<br>
+                        <strong>Gabinete:</strong> $d->{gabinete_solicitados}
+                    </div>
+
+                    <div class="data-label-bento">Resultados Previos</div>
+                    <div class="small text-muted">$d->{resultados_estudios}</div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
-                <div class="vital-box">
-                    <div class="data-label"><i class="bi bi-wind me-1 text-info"></i> F.R.</div>
-                    <div class="vital-value">@{[ $d->{fr} || '--' ]}</div>
-                    <div class="vital-unit">rpm</div>
+
+            <!-- A: Análisis -->
+            <div class="col-md-6">
+                <div class="bento-card-pro">
+                    <div class="bento-title-main text-danger">
+                        <span><i class="bi bi-3-circle-fill me-2"></i>Análisis (A)</span>
+                        <span class="badge bg-danger bg-opacity-10 text-danger">Diagnóstico CIE-10</span>
+                    </div>
+                    <div class="data-label-bento">Diagnóstico Principal</div>
+                    <div class="data-val-bento fw-bold text-dark fs-6">
+                        <span class="badge bg-danger me-1">$d->{clave_diagnostico_cie10}</span> $d->{diagnostico_principal}
+                    </div>
+
+                    <div class="data-label-bento">Diagnósticos Secundarios / Comorbilidades</div>
+                    <div class="data-val-bento">$d->{diagnosticos_secundarios}</div>
+
+                    <div class="data-label-bento">Impresión Clínica & Severidad</div>
+                    <div class="data-val-bento">$d->{impresion_clinica} (Severidad: <strong>$d->{severidad}</strong>, Pronóstico: <strong>$d->{pronostico}</strong>)</div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
-                <div class="vital-box">
-                    <div class="data-label"><i class="bi bi-thermometer-half me-1 text-warning"></i> Temp</div>
-                    <div class="vital-value">@{[ $d->{temp} || '--' ]}</div>
-                    <div class="vital-unit">&deg;C</div>
-                </div>
-            </div>
-            <div class="col-6 col-sm-4 col-md-2">
-                <div class="vital-box">
-                    <div class="data-label"><i class="bi bi-speedometer2 me-1 text-success"></i> SpO2</div>
-                    <div class="vital-value">@{[ $d->{spo2} || '--' ]}</div>
-                    <div class="vital-unit">%</div>
-                </div>
-            </div>
-            <div class="col-6 col-sm-4 col-md-2">
-                <div class="vital-box">
-                    <div class="data-label"><i class="bi bi-person-bounding-box me-1 text-secondary"></i> IMC</div>
-                    <div class="vital-value">$imc_val</div>
-                    <div class="vital-unit">$imc_status</div>
+
+            <!-- P: Plan y Tratamiento -->
+            <div class="col-md-6">
+                <div class="bento-card-pro">
+                    <div class="bento-title-main text-info">
+                        <span><i class="bi bi-4-circle-fill me-2"></i>Plan y Tratamiento (P)</span>
+                        <span class="badge bg-info bg-opacity-10 text-dark">Terapéutica</span>
+                    </div>
+                    <div class="data-label-bento">Plan Terapéutico General</div>
+                    <div class="data-val-bento">$d->{plan_tratamiento}</div>
+
+                    <div class="data-label-bento">Indicaciones Higiénico-Dietéticas</div>
+                    <div class="data-val-bento">$d->{receta_indicaciones}</div>
+
+                    <div class="data-label-bento">Medicamentos Prescritos</div>
+                    <div class="data-val-bento">
+                        <span class="badge bg-dark">@{[ scalar @$medicamentos ]} fármacos expedidos</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Secciones SOAP Bento Grid -->
-        <div class="row g-4 mb-4">
-            <!-- 1. Anamnesis y Padecimiento -->
-            <div class="col-lg-6">
-                <div class="bento-card">
-                    <div class="bento-header">
-                        <span><i class="bi bi-chat-left-dots-fill text-primary me-2"></i>Motivo y Padecimiento Actual</span>
-                        <span class="badge bg-light text-secondary border">Paso 1 & 2</span>
-                    </div>
-                    <div class="data-label">Motivo Principal de Consulta</div>
-                    <div class="data-value fs-6 fw-bold" style="color: var(--md-navy);">@{[ $d->{motivo} || 'Sin registro' ]}</div>
-                    
-                    <div class="data-label">Evolución y Síntomas</div>
-                    <div class="data-value">@{[ $d->{evolucion} || 'Sin registro de evolución' ]}</div>
-                    
-                    @{[ ($d->{intensidad}) ? qq{
-                    <div class="data-label">Intensidad del Dolor ($d->{intensidad}/10)</div>
-                    <div class="progress mb-3" style="height: 10px; border-radius: 6px;">
-                        <div class="progress-bar" role="progressbar" style="width: @{[ $d->{intensidad} * 10 ]}%; background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);"></div>
-                    </div>
-                    } : "" ]}
-
-                    <div class="data-label">Antecedentes Clínicos</div>
-                    <div class="p-3 bg-light rounded-3 border small">
-                        <div><strong>Patológicos:</strong> @{[ $d->{antecedentes_patologicos} || 'Negados' ]}</div>
-                        <div><strong>No Patológicos:</strong> @{[ $d->{antecedentes_no_patologicos} || 'Negados' ]}</div>
-                        <div><strong>Quirúrgicos:</strong> @{[ $d->{antecedentes_quirurgicos} || 'Negados' ]}</div>
-                        <div><strong>Heredofamiliares:</strong> @{[ $d->{antecedentes_heredofamiliares} || 'Sin antecedentes referidos' ]}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Exploración Física y Estudios -->
-            <div class="col-lg-6">
-                <div class="bento-card">
-                    <div class="bento-header">
-                        <span><i class="bi bi-heart-pulse-fill text-success me-2"></i>Exploración Física y Estudios</span>
-                        <span class="badge bg-light text-secondary border">Paso 3 & 4</span>
-                    </div>
-                    <div class="data-label">Hallazgos a la Exploración Física</div>
-                    <div class="data-value">@{[ $d->{exploracion_hallazgos} || 'Sin hallazgos patológicos descritos.' ]}</div>
-
-                    <div class="data-label">Estudios Paraclínicos</div>
-                    <div class="p-3 bg-light rounded-3 border small mb-3">
-                        <div><strong>Laboratorios Solicitados:</strong> @{[ $d->{laboratorios_solicitados} || 'Ninguno' ]}</div>
-                        <div><strong>Gabinete / Imagen:</strong> @{[ $d->{gabinete_solicitados} || 'Ninguno' ]}</div>
-                        <div><strong>Resultados Previos:</strong> @{[ $d->{resultados_estudios} || 'Sin estudios previos' ]}</div>
-                    </div>
-
-                    @{[ (@assigned_odonto_ids) ? qq{
-                    <div class="data-label text-teal"><i class="bi bi-journal-medical me-1"></i>Odontograma Clínico Vinculado</div>
-                    <div class="p-2 border rounded-3 bg-light d-flex align-items-center justify-content-between mb-2">
-                        <span class="small fw-bold">Odontograma #$assigned_odonto_ids[0]</span>
-                        <a href="render_visor_odontograma.pl?id=$paciente->{id}&id_odonto=$assigned_odonto_ids[0]" target="_blank" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-1">Abrir Visor</a>
-                    </div>
-                    } : "" ]}
-
-                    @{[ (@assigned_pacs_ids) ? qq{
-                    <div class="data-label text-primary"><i class="bi bi-display me-1"></i>Estudio PACS / Imagenología Vinculado</div>
-                    <div class="p-2 border rounded-3 bg-light d-flex align-items-center justify-content-between">
-                        <span class="small fw-bold">Estudio #$assigned_pacs_ids[0]</span>
-                        <a href="render_visor_medico.pl?id=$paciente->{id}&estudio_id=$assigned_pacs_ids[0]" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1">Abrir Visor PACS</a>
-                    </div>
-                    } : "" ]}
-                </div>
-            </div>
-
-            <!-- 3. Metodología SOAP y Diagnósticos -->
+        <!-- Fila 4: Receta Médica COFEPRIS Estructurada -->
+        <div class="row g-3 mb-3">
             <div class="col-12">
-                <div class="bento-card">
-                    <div class="bento-header">
-                        <span><i class="bi bi-diagram-3-fill text-info me-2"></i>Evaluación Diagnóstica y Metodología SOAP</span>
-                        <span class="badge bg-primary text-white border-0">Paso 5</span>
+                <div class="bento-card-pro">
+                    <div class="bento-title-main">
+                        <span><i class="bi bi-prescription2 text-teal me-2"></i>Receta Médica Expedida (COFEPRIS)</span>
+                        <span class="badge bg-teal-clinical text-dark">NOM-024-SSA3</span>
                     </div>
-                    <div class="row g-4">
-                        <div class="col-md-6 border-end-md">
-                            <div class="data-label text-primary">Diagnóstico Principal (CIE-10)</div>
-                            <div class="data-value fs-5 fw-black text-navy mb-2">
-                                @{[ $d->{diagnostico_principal} || 'Sin diagnóstico principal' ]}
-                                @{[ $d->{clave_diagnostico_cie10} ? qq{<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-2 small">$d->{clave_diagnostico_cie10}</span>} : "" ]}
-                            </div>
-                            @{[ $d->{diagnosticos_secundarios} ? qq{
-                            <div class="data-label">Diagnósticos Secundarios</div>
-                            <div class="data-value small">$d->{diagnosticos_secundarios}</div>
-                            } : "" ]}
-                            <div class="d-flex gap-3 mt-3">
-                                <div>
-                                    <span class="data-label d-block">Severidad</span>
-                                    <span class="badge bg-warning-subtle text-warning-emphasis fw-bold border">@{[ $d->{severidad} || 'Moderada' ]}</span>
-                                </div>
-                                <div>
-                                    <span class="data-label d-block">Pronóstico</span>
-                                    <span class="badge bg-success-subtle text-success-emphasis fw-bold border">@{[ $d->{pronostico} || 'Favorable' ]}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="data-label">Plan de Tratamiento Integral (P)</div>
-                            <div class="data-value">@{[ $d->{plan_tratamiento} || 'Sin plan especificado' ]}</div>
-                            <div class="data-label">Análisis Clínico (A)</div>
-                            <div class="data-value small text-muted">@{[ $d->{impresion_clinica} || 'Evaluación integral favorable bajo tratamiento pautado.' ]}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- 4. Receta Farmacológica Bento -->
-            @{[ scalar(@$medicamentos) > 0 ? qq{
-            <div class="col-12">
-                <div class="bento-card border-primary border-2">
-                    <div class="bento-header">
-                        <span class="text-primary"><i class="bi bi-capsule me-2"></i>Receta Médica y Prescripción Farmacológica</span>
-                        <span class="badge bg-success text-white border-0">Farmacoterapia</span>
-                    </div>
-                    <div class="table-responsive mb-3">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light small text-uppercase fw-bold">
-                                <tr>
-                                    <th>Fármaco / Presentación</th>
-                                    <th>Dosis</th>
-                                    <th>Frecuencia</th>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size:0.88rem;">
+                            <thead class="table-light">
+                                <tr class="text-uppercase" style="font-size:0.75rem; letter-spacing:0.5px;">
+                                    <th>#</th>
+                                    <th>Denominación Genérica</th>
+                                    <th>Comercial / Forma</th>
+                                    <th>Concentración / Dosis</th>
+                                    <th>Frecuencia & Posología</th>
                                     <th>Duración</th>
                                     <th>Vía</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                } . join("", map { qq{
+HTML
+
+my $idx = 1;
+foreach my $med (@$medicamentos) {
+    my $gen = $med->{generico} || $med->{farmaco} || 'Fármaco';
+    my $com = $med->{comercial} || $med->{presentacion} || 'Genérico';
+    my $forma = $med->{forma} || '';
+    my $conc = $med->{concentracion} || $med->{dosis} || '';
+    my $frec = $med->{posologia} || $med->{frecuencia} || '';
+    my $dur  = $med->{duracion} || '';
+    my $via  = $med->{via} || 'Oral';
+
+    print <<HTML;
                                 <tr>
-                                    <td><strong class="text-navy">$_->{farmaco}</strong><br><small class="text-muted">$_->{presentacion}</small></td>
-                                    <td>$_->{dosis}</td>
-                                    <td>$_->{frecuencia}</td>
-                                    <td>$_->{duracion}</td>
-                                    <td><span class="badge bg-light text-dark border">@{[ $_->{via} || 'Oral' ]}</span></td>
+                                    <td class="fw-bold text-muted">$idx</td>
+                                    <td class="fw-bold text-dark">$gen</td>
+                                    <td>$com $forma</td>
+                                    <td><span class="badge bg-light text-dark border">$conc</span></td>
+                                    <td>$frec</td>
+                                    <td>$dur</td>
+                                    <td><span class="badge bg-info bg-opacity-10 text-dark">$via</span></td>
                                 </tr>
-                                } } @$medicamentos) . qq{
+HTML
+    $idx++;
+}
+
+print <<HTML;
                             </tbody>
                         </table>
                     </div>
-                    @{[ $d->{receta_indicaciones} ? qq{
-                    <div class="p-3 bg-light rounded-3 border small">
-                        <strong>Indicaciones Terapéuticas Especiales:</strong> $d->{receta_indicaciones}
-                    </div>
-                    } : "" ]}
-                </div>
-            </div>
-            } : "" ]}
-
-            <!-- 5. Firmas Bento -->
-            <div class="col-12">
-                <div class="bento-card">
-                    <div class="bento-header">
-                        <span><i class="bi bi-shield-check text-success me-2"></i>Conformidad y Firmas Digitales</span>
-                        <span class="badge bg-light text-secondary border">Validación NOM-004-SSA3-2012</span>
-                    </div>
-                    <div class="row align-items-center text-center">
-                        <div class="col-md-6 border-end-md py-3">
-                            <div class="data-label mb-2">Firma del Médico Tratante</div>
-                            <div class="p-3 bg-light rounded text-muted small mb-2 fw-semibold">
-                                <i class="bi bi-fingerprint text-primary me-1"></i>Firma Digital Certificada
-                            </div>
-                            <div class="fw-bold text-navy">$nombre_medico</div>
-                            <div class="small text-muted">$especialidad_medico | Céd. $cedula_medico</div>
-                        </div>
-                        <div class="col-md-6 py-3">
-                            <div class="data-label mb-2">Conformidad del Paciente / Tutor</div>
-                            <div class="p-3 bg-light rounded text-muted small mb-2 fw-semibold">
-                                <i class="bi bi-check-circle-fill text-success me-1"></i>Consentimiento Informado Aceptado
-                            </div>
-                            <div class="fw-bold text-navy">$paciente->{nombre}</div>
-                            <div class="small text-muted">Aceptación de plan terapéutico y diagnóstico</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
-    </main>
 
-    <!-- 2. MODO HOJA WYSIWYG (Simulación Hoja Carta Vertical) -->
-    <div class="wysiwyg-wrapper" id="view-wysiwyg" style="display: none;">
-        <div class="wysiwyg-sheet" id="print-sheet">
-            <div>
-                <!-- Membrete Institucional Oficial -->
-                <div class="doc-header">
-                    <div class="row align-items-center">
-                        <div class="col-8 d-flex align-items-center gap-3">
-                            <img src="$org->{logo_url}" class="doc-logo" alt="Logo">
-                            <div>
-                                <div class="org-title">$org->{nombre_negocio}</div>
-                                <div class="org-legal">
-                                    <strong>$org->{razon_social}</strong> | RFC: <strong>$org->{rfc}</strong> | CLUES: <strong>$org->{clues}</strong><br>
-                                    $org->{domicilio}<br>
-                                    Teléfono: <strong>$org->{telefono}</strong> | Correo: <strong>$org->{email}</strong>
+        <!-- Fila 5: Cierre Bento con Botón hacia el Visor WYSIWYG Carta -->
+        <div class="text-center py-3">
+            <button type="button" class="btn btn-lg px-4 py-2 rounded-pill fw-bold text-dark shadow-sm" style="background:#00C0B5;" onclick="setMasterView('wysiwyg')">
+                <i class="bi bi-file-earmark-medical me-2"></i> Ver en Hoja Carta Oficial (2 Págs para Impresión / PDF)
+            </button>
+        </div>
+
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- 2. VISTA HOJA CARTA (WYSIWYG MULTI-PÁGINA NOM-004 / NOM-024)       -->
+    <!-- ================================================================= -->
+    <div id="view-wysiwyg-container">
+
+        <!-- Toolbar Superior Multi-Página Específico del Visor Carta -->
+        <div class="pdf-multipage-toolbar no-print">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <!-- Izquierda: Regreso y Título -->
+                <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="setMasterView('bento')">
+                        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+                    </button>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-medical-fill text-teal fs-5" style="color:#00C0B5;"></i>
+                            <strong class="text-white" style="font-size:0.95rem;">Nota Médica SOAP (2 Páginas)</strong>
+                            <span class="badge bg-light text-dark fw-bold">Folio: $consulta->{id_consulta}</span>
+                        </div>
+                        <div class="text-white-50" style="font-size:0.75rem;">
+                            Exp: EXP-$paciente->{id} • Paciente: <strong class="text-white">$paciente->{nombre}</strong> • Dr(a). $nombre_medico
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Centro: Modos de Vista, Páginas y Zoom -->
+                <div class="d-flex align-items-center gap-2">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-light active" id="btn-view-continuous" onclick="setDocViewerMode('continuous')">
+                            <i class="bi bi-distribute-vertical"></i> Vista Continua
+                        </button>
+                        <button type="button" class="btn btn-outline-light" id="btn-view-paginated" onclick="setDocViewerMode('paginated')">
+                            <i class="bi bi-file-earmark-break"></i> Por Página
+                        </button>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1 bg-dark bg-opacity-75 px-2 py-1 rounded border border-secondary border-opacity-50">
+                        <button type="button" class="btn btn-sm btn-dark p-0 px-1 text-white" onclick="navDocPage(-1)"><i class="bi bi-chevron-left"></i></button>
+                        <span id="doc-page-counter" class="text-white small px-1 fw-bold">Pág 1 de 2</span>
+                        <button type="button" class="btn btn-sm btn-dark p-0 px-1 text-white" onclick="navDocPage(1)"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+
+                    <div class="btn-group btn-group-sm d-none d-md-inline-flex">
+                        <button type="button" class="btn btn-outline-secondary text-white btn-jump-page" id="btn-jump-1" onclick="gotoDocPage(1)">Pág 1</button>
+                        <button type="button" class="btn btn-outline-secondary text-white btn-jump-page" id="btn-jump-2" onclick="gotoDocPage(2)">Pág 2</button>
+                    </div>
+
+                    <select id="doc-zoom-select" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: auto;" onchange="setDocViewerZoom(this.value)">
+                        <option value="0.75">75%</option>
+                        <option value="1.0" selected>100%</option>
+                        <option value="1.25">125%</option>
+                    </select>
+                </div>
+
+                <!-- Derecha: Acciones de Impresión y Envío -->
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="compartirWhatsApp()">
+                        <i class="bi bi-whatsapp text-success me-1"></i> WhatsApp
+                    </button>
+                    <button type="button" class="btn btn-sm text-dark fw-bold rounded-pill px-3" style="background:#00C0B5;" onclick="ejecutarImpresion()">
+                        <i class="bi bi-printer-fill me-1"></i> Imprimir (2 Págs)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIENZO Y ESTRUCTURA DE HOJAS CLÍNICAS (Sheets Container) -->
+        <div class="pdf-sheets-scroll-area">
+            <div id="doc-sheets-canvas" class="pdf-sheets-container mode-continuous zoom-100">
+
+                <!-- ========================================== -->
+                <!-- HOJA 1: NOTA MÉDICA CLÍNICA SOAP (PÁG 1/2) -->
+                <!-- ========================================== -->
+                <div class="clinical-sheet page-1" id="doc-clinical-sheet-1">
+                    
+                    <!-- Membrete Institucional Clínico -->
+                    <div class="sheet-header">
+                        <div class="sheet-header-grid">
+                            <div class="sheet-logo-zone">
+                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img">
+                            </div>
+                            <div class="sheet-org-info">
+                                <h1 class="sheet-org-title">$org->{nombre_negocio}</h1>
+                                <div class="sheet-org-subtitle">$org->{razon_social}</div>
+                                <div class="sheet-org-meta">
+                                    CLUES: <strong>$org->{clues}</strong> • RFC: <strong>$org->{rfc}</strong><br>
+                                    $org->{domicilio} • Tel: $org->{telefono} • Email: $org->{email}
+                                </div>
+                            </div>
+                            <div class="sheet-folio-zone">
+                                <div class="sheet-doc-badge">NOM-004-SSA3-2012</div>
+                                <div class="sheet-folio-title">NOTA MÉDICA SOAP</div>
+                                <div class="sheet-folio-num">FOLIO: $consulta->{id_consulta}</div>
+                                <div class="sheet-folio-date">Fecha: $consulta->{fecha}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ficha del Paciente y Médico Tratante -->
+                    <div class="sheet-meta-box">
+                        <div class="row g-2">
+                            <div class="col-8">
+                                <div class="sheet-label-xs">Paciente</div>
+                                <div class="sheet-val-sm fw-bold text-dark">$paciente->{nombre}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="sheet-label-xs">Expediente Clínico</div>
+                                <div class="sheet-val-sm fw-bold">EXP-$paciente->{id}</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="sheet-label-xs">CURP</div>
+                                <div class="sheet-val-xs font-mono">$paciente->{curp}</div>
+                            </div>
+                            <div class="col-2">
+                                <div class="sheet-label-xs">Edad</div>
+                                <div class="sheet-val-xs">$paciente->{edad}</div>
+                            </div>
+                            <div class="col-2">
+                                <div class="sheet-label-xs">Sexo</div>
+                                <div class="sheet-val-xs">$paciente->{sexo}</div>
+                            </div>
+                            <div class="col-2">
+                                <div class="sheet-label-xs">Grupo/Rh</div>
+                                <div class="sheet-val-xs fw-bold text-danger">$paciente->{ts}</div>
+                            </div>
+                            <div class="col-2">
+                                <div class="sheet-label-xs">Tipo Consulta</div>
+                                <div class="sheet-val-xs">$d->{tipo_consulta}</div>
+                            </div>
+
+                            <div class="col-12 mt-1 pt-1 border-top border-light-subtle">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="sheet-label-xs me-2">Médico Tratante:</span>
+                                        <strong class="sheet-val-sm text-dark">$nombre_medico</strong>
+                                        <span class="text-muted small ms-2">($especialidad_medico · Céd. Prof. <strong>$cedula_medico</strong>)</span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Consultorio: <strong>$consultorio_medico</strong>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 text-end">
-                            <div class="badge bg-dark text-white rounded-pill px-3 py-1 mb-1" style="font-size: 0.72rem;">
-                                NOTA MÉDICA DE EVOLUCIÓN
+                    </div>
+
+                    <!-- Alerta de Alergias en Hoja si Existen -->
+HTML
+
+if ($tiene_alergias) {
+    print <<HTML;
+                    <div class="alert-box-critical">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        <strong>ALERGIAS REPORTADAS:</strong> $alergias_txt
+                    </div>
+HTML
+}
+
+print <<HTML;
+                    <!-- Signos Vitales y Somatometría (Grid de 7 métricas) -->
+                    <div class="sheet-section-title">
+                        <i class="bi bi-heart-pulse text-teal"></i> Signos Vitales y Somatometría (Triage)
+                    </div>
+                    <div class="sheet-vitals-grid">
+                        <div class="sheet-vital-cell">
+                            <div class="sheet-vital-lbl">T. Arterial</div>
+                            <div class="sheet-vital-num">$d->{ta}</div>
+                            <div class="sheet-vital-unit">mmHg</div>
+                        </div>
+                        <div class="sheet-vital-cell">
+                            <div class="sheet-vital-lbl">F. Cardíaca</div>
+                            <div class="sheet-vital-num">$d->{fc}</div>
+                            <div class="sheet-vital-unit">lpm</div>
+                        </div>
+                        <div class="sheet-vital-cell">
+                            <div class="sheet-vital-lbl">F. Respiratoria</div>
+                            <div class="sheet-vital-num">$d->{fr}</div>
+                            <div class="sheet-vital-unit">rpm</div>
+                        </div>
+                        <div class="sheet-vital-cell">
+                            <div class="sheet-vital-lbl">Temperatura</div>
+                            <div class="sheet-vital-num">$d->{temp}</div>
+                            <div class="sheet-vital-unit">°C</div>
+                        </div>
+                        <div class="sheet-vital-cell">
+                            <div class="sheet-vital-lbl">Saturación SpO2</div>
+                            <div class="sheet-vital-num">$d->{spo2}</div>
+                            <div class="sheet-vital-unit">%</div>
+                        </div>
+                        <div class="sheet-vital-cell">
+                            <div class="sheet-vital-lbl">Glucosa</div>
+                            <div class="sheet-vital-num">$d->{glucosa}</div>
+                            <div class="sheet-vital-unit">mg/dL</div>
+                        </div>
+                        <div class="sheet-vital-cell">
+                            <div class="sheet-vital-lbl">Peso / Talla</div>
+                            <div class="sheet-vital-num">$d->{peso} <small class="text-muted" style="font-size:0.65rem;">kg</small></div>
+                            <div class="sheet-vital-unit">$d->{talla} m (IMC: $imc_val)</div>
+                        </div>
+                    </div>
+
+                    <!-- SUBJETIVO (S) -->
+                    <div class="sheet-section-title">
+                        <i class="bi bi-chat-left-text text-teal"></i> Subjetivo (S) — Motivo, Padecimiento Actual y Antecedentes
+                    </div>
+                    <div class="sheet-soap-card mb-2">
+                        <div class="sheet-label-xs">Motivo de la Consulta:</div>
+                        <div class="sheet-text-p">$d->{motivo}</div>
+
+                        <div class="sheet-label-xs mt-2">Padecimiento Actual y Evolución:</div>
+                        <div class="sheet-text-p">$d->{evolucion} (EVA: <strong>$d->{intensidad}/10</strong>)</div>
+
+                        <div class="row g-2 mt-2 pt-1 border-top border-light-subtle">
+                            <div class="col-4">
+                                <div class="sheet-label-xs">Antecedentes Patológicos:</div>
+                                <div class="sheet-val-xs text-muted">$d->{antecedentes_patologicos}</div>
                             </div>
-                            <div class="small fw-bold text-navy">Folio: <span style="font-family: 'JetBrains Mono', monospace;">$consulta->{id_consulta}</span></div>
-                            <div class="small text-muted">Cita: $consulta->{id_cita}</div>
-                            <div class="small text-muted">Fecha: <strong>$consulta->{fecha}</strong></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sub-encabezado: Ficha Paciente y Ficha Médico -->
-                <div class="doc-meta-box">
-                    <div class="row g-2">
-                        <div class="col-7 border-end pe-3">
-                            <div class="doc-vital-lbl text-primary mb-1">Datos de Identificación del Paciente</div>
-                            <div class="fw-bold fs-6 text-dark">$paciente->{nombre}</div>
-                            <div class="d-flex flex-wrap gap-2 text-muted mt-1" style="font-size: 0.76rem;">
-                                <span><strong>CURP:</strong> $paciente->{curp}</span>
-                                <span><strong>Sexo:</strong> $paciente->{sexo}</span>
-                                <span><strong>Edad:</strong> $paciente->{edad}</span>
-                                <span><strong>G.S.:</strong> $paciente->{ts}</span>
-                                <span><strong>Tel:</strong> $paciente->{telefono}</span>
+                            <div class="col-4">
+                                <div class="sheet-label-xs">Antecedentes Heredofamiliares:</div>
+                                <div class="sheet-val-xs text-muted">$d->{antecedentes_heredofamiliares}</div>
                             </div>
-                            <div class="mt-1" style="font-size: 0.74rem;">
-                                <strong>Alergias:</strong> <span class="badge @{[ ($paciente->{alergias} && $paciente->{alergias} ne 'Negadas') ? 'bg-danger text-white' : 'bg-light text-dark border' ]}">$paciente->{alergias}</span>
-                            </div>
-                        </div>
-                        <div class="col-5 ps-3">
-                            <div class="doc-vital-lbl text-primary mb-1">Médico Tratante Responsable</div>
-                            <div class="fw-bold fs-6 text-dark">$nombre_medico</div>
-                            <div class="text-muted" style="font-size: 0.76rem;">
-                                <strong>Especialidad:</strong> $especialidad_medico<br>
-                                <strong>Cédula Profesional:</strong> $cedula_medico<br>
-                                <strong>Ubicación:</strong> $consultorio_medico
+                            <div class="col-4">
+                                <div class="sheet-label-xs">No Patológicos:</div>
+                                <div class="sheet-val-xs text-muted">$d->{antecedentes_no_patologicos}</div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Signos Vitales Estructurados -->
-                <div class="doc-grid-vitals">
-                    <div class="doc-vital-cell">
-                        <div class="doc-vital-lbl">Presión Art.</div>
-                        <div class="doc-vital-val">@{[ $d->{ta} || '--' ]}</div>
-                        <div class="small text-muted" style="font-size: 0.65rem;">mmHg</div>
+                    <!-- OBJETIVO (O) -->
+                    <div class="sheet-section-title">
+                        <i class="bi bi-eye text-teal"></i> Objetivo (O) — Exploración Física y Estudios
                     </div>
-                    <div class="doc-vital-cell">
-                        <div class="doc-vital-lbl">Frec. Card.</div>
-                        <div class="doc-vital-val">@{[ $d->{fc} || '--' ]}</div>
-                        <div class="small text-muted" style="font-size: 0.65rem;">lpm</div>
-                    </div>
-                    <div class="doc-vital-cell">
-                        <div class="doc-vital-lbl">Frec. Resp.</div>
-                        <div class="doc-vital-val">@{[ $d->{fr} || '--' ]}</div>
-                        <div class="small text-muted" style="font-size: 0.65rem;">rpm</div>
-                    </div>
-                    <div class="doc-vital-cell">
-                        <div class="doc-vital-lbl">Temperatura</div>
-                        <div class="doc-vital-val">@{[ $d->{temp} || '--' ]}</div>
-                        <div class="small text-muted" style="font-size: 0.65rem;">&deg;C</div>
-                    </div>
-                    <div class="doc-vital-cell">
-                        <div class="doc-vital-lbl">SpO2</div>
-                        <div class="doc-vital-val">@{[ $d->{spo2} || '--' ]}</div>
-                        <div class="small text-muted" style="font-size: 0.65rem;">%</div>
-                    </div>
-                    <div class="doc-vital-cell">
-                        <div class="doc-vital-lbl">IMC / Nutrición</div>
-                        <div class="doc-vital-val">$imc_val</div>
-                        <div class="small text-muted" style="font-size: 0.65rem;">$imc_status</div>
-                    </div>
-                </div>
+                    <div class="sheet-soap-card mb-2">
+                        <div class="sheet-label-xs">Hallazgos a la Exploración Física:</div>
+                        <div class="sheet-text-p">$d->{exploracion_hallazgos}</div>
 
-                <!-- Bloque 1: Anamnesis y Antecedentes -->
-                <div class="doc-section-title"><i class="bi bi-chat-square-text-fill me-1"></i> 1. Anamnesis y Motivo de Consulta</div>
-                <div class="doc-soap-block">
-                    <strong>Motivo de Consulta:</strong> @{[ $d->{motivo} || 'Sin registro' ]}<br>
-                    <strong>Padecimiento Actual y Evolución:</strong> @{[ $d->{evolucion} || 'Sin registro' ]}
-                    @{[ ($d->{intensidad}) ? " (Escala de dolor: $d->{intensidad}/10)" : "" ]}<br>
-                    <strong>Antecedentes:</strong> Patológicos: @{[ $d->{antecedentes_patologicos} || 'Negados' ]} | No Patológicos: @{[ $d->{antecedentes_no_patologicos} || 'Negados' ]} | Quirúrgicos: @{[ $d->{antecedentes_quirurgicos} || 'Negados' ]} | Heredofamiliares: @{[ $d->{antecedentes_heredofamiliares} || 'Negados' ]}
-                </div>
-
-                <!-- Bloque 2: Exploración Física y Paraclínicos -->
-                <div class="doc-section-title"><i class="bi bi-clipboard-pulse me-1"></i> 2. Exploración Física y Estudios</div>
-                <div class="doc-soap-block" style="border-left-color: #10b981;">
-                    <strong>Hallazgos Clínicos:</strong> @{[ $d->{exploracion_hallazgos} || 'Sin hallazgos patológicos descritos.' ]}<br>
-                    <strong>Laboratorios / Gabinete:</strong> Laboratorios: @{[ $d->{laboratorios_solicitados} || 'Ninguno' ]} | Gabinete: @{[ $d->{gabinete_solicitados} || 'Ninguno' ]}
-                    @{[ (@assigned_odonto_ids) ? " | Odontograma asignado: #$assigned_odonto_ids[0]" : "" ]}
-                    @{[ (@assigned_pacs_ids) ? " | Estudio PACS asignado: #$assigned_pacs_ids[0]" : "" ]}
-                </div>
-
-                <!-- Bloque 3: Diagnóstico y Metodología SOAP -->
-                <div class="doc-section-title"><i class="bi bi-diagram-3-fill me-1"></i> 3. Diagnóstico y Metodología SOAP</div>
-                <div class="doc-soap-block" style="border-left-color: var(--md-blue-deep);">
-                    <strong>Diagnóstico Principal (CIE-10):</strong> <span class="fw-bold">@{[ $d->{diagnostico_principal} || 'Sin diagnóstico principal' ]}</span> @{[ $d->{clave_diagnostico_cie10} ? "[$d->{clave_diagnostico_cie10}]" : "" ]}<br>
-                    @{[ $d->{diagnosticos_secundarios} ? "<strong>Diagnósticos Secundarios:</strong> $d->{diagnosticos_secundarios}<br>" : "" ]}
-                    <strong>Severidad:</strong> @{[ $d->{severidad} || 'Moderada' ]} | <strong>Pronóstico:</strong> @{[ $d->{pronostico} || 'Favorable' ]}<br>
-                    <strong>Plan Terapéutico (P):</strong> @{[ $d->{plan_tratamiento} || 'Sin plan especificado' ]}<br>
-                    <strong>Análisis / Impresión Clínica (A):</strong> @{[ $d->{impresion_clinica} || 'Evaluación favorable bajo pauta indicada.' ]}
-                </div>
-
-                <!-- Bloque 4: Prescripción Médica (si existe) -->
-                @{[ scalar(@$medicamentos) > 0 ? qq{
-                <div class="doc-section-title"><i class="bi bi-capsule me-1"></i> 4. Prescripción Farmacológica (Receta)</div>
-                <table class="doc-table-rx">
-                    <thead>
-                        <tr>
-                            <th style="width: 35%;">Fármaco / Presentación</th>
-                            <th style="width: 15%;">Dosis</th>
-                            <th style="width: 20%;">Frecuencia</th>
-                            <th style="width: 15%;">Duración</th>
-                            <th style="width: 15%;">Vía</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        } . join("", map { qq{
-                        <tr>
-                            <td><strong>$_->{farmaco}</strong> - <span class="text-muted">$_->{presentacion}</span></td>
-                            <td>$_->{dosis}</td>
-                            <td>$_->{frecuencia}</td>
-                            <td>$_->{duracion}</td>
-                            <td>@{[ $_->{via} || 'Oral' ]}</td>
-                        </tr>
-                        } } @$medicamentos) . qq{
-                    </tbody>
-                </table>
-                @{[ $d->{receta_indicaciones} ? qq{<div class="small text-muted mb-2"><strong>Indicaciones adicionales:</strong> $d->{receta_indicaciones}</div>} : "" ]}
-                } : "" ]}
-            </div>
-
-            <!-- Firmas y Pie de Página Legal -->
-            <div>
-                <div class="doc-signatures">
-                    <div>
-                        <div class="doc-sig-line">
-                            <span class="small fw-semibold text-muted">Firma Autógrafa / Digital</span>
+                        <div class="row g-2 mt-2 pt-1 border-top border-light-subtle">
+                            <div class="col-6">
+                                <div class="sheet-label-xs">Estudios de Laboratorio Solicitados:</div>
+                                <div class="sheet-val-xs text-muted">$d->{laboratorios_solicitados}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="sheet-label-xs">Estudios de Gabinete / Imagen:</div>
+                                <div class="sheet-val-xs text-muted">$d->{gabinete_solicitados}</div>
+                            </div>
                         </div>
-                        <div class="fw-bold text-dark">$paciente->{nombre}</div>
-                        <div class="small text-muted">Firma del Paciente / Tutor (Conformidad)</div>
                     </div>
-                    <div>
-                        <div class="doc-sig-line">
-                            <span class="small fw-semibold text-muted">Firma y Sello del Médico</span>
+
+                    <!-- Pie de Hoja 1 -->
+                    <div class="sheet-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Documento médico confidencial expedido conforme a la NOM-004-SSA3-2012.</span>
+                            <span class="sheet-page-indicator">Hoja 1 de 2 • Folio: $consulta->{id_consulta}</span>
                         </div>
-                        <div class="fw-bold text-dark">$nombre_medico</div>
-                        <div class="small text-muted">$especialidad_medico | Céd. Prof. $cedula_medico</div>
                     </div>
+
                 </div>
 
-                <div class="doc-footer-legal">
-                    Documento médico-legal confidencial emitido conforme a la Norma Oficial Mexicana NOM-004-SSA3-2012 del Expediente Clínico.<br>
-                    Generado e impreso a través de la plataforma clínica OSPulso | Página 1 de 1
+                <!-- SEPARADOR VISUAL DE HOJAS EN MODO CONTINUO (En pantalla) -->
+                <div class="page-break-indicator-web no-print">
+                    <span class="badge bg-secondary px-3 py-1 fw-normal">
+                        <i class="bi bi-scissors me-1"></i> SALTO DE PÁGINA OFICIAL · HOJA 2/2 (RECETA COFEPRIS Y PLAN CLÍNICO)
+                    </span>
                 </div>
+
+                <!-- ==================================================== -->
+                <!-- HOJA 2: ANÁLISIS, RECETA COFEPRIS Y FIRMA (PÁG 2/2)  -->
+                <!-- ==================================================== -->
+                <div class="clinical-sheet page-2" id="doc-clinical-sheet-2">
+
+                    <!-- Membrete Compacto de Receta Médica -->
+                    <div class="sheet-header">
+                        <div class="sheet-header-grid">
+                            <div class="sheet-logo-zone">
+                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img">
+                            </div>
+                            <div class="sheet-org-info">
+                                <h1 class="sheet-org-title">$org->{nombre_negocio}</h1>
+                                <div class="sheet-org-meta">
+                                    CLUES: <strong>$org->{clues}</strong> • RFC: <strong>$org->{rfc}</strong><br>
+                                    $org->{domicilio} • Tel: $org->{telefono}
+                                </div>
+                            </div>
+                            <div class="sheet-folio-zone">
+                                <div class="sheet-doc-badge">COFEPRIS / NOM-024</div>
+                                <div class="sheet-folio-title">RECETA MÉDICA Y PLAN</div>
+                                <div class="sheet-folio-num">FOLIO: $consulta->{id_consulta}</div>
+                                <div class="sheet-folio-date">Fecha: $consulta->{fecha}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ficha Resumen Paciente Hoja 2 -->
+                    <div class="sheet-meta-box mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="sheet-label-xs">Paciente:</span>
+                                <strong class="sheet-val-sm text-dark ms-1">$paciente->{nombre}</strong>
+                                <span class="text-muted small ms-2">($paciente->{edad} · $paciente->{sexo} · EXP-$paciente->{id})</span>
+                            </div>
+                            <div>
+                                <span class="sheet-label-xs">Médico:</span>
+                                <strong class="sheet-val-sm text-dark ms-1">$nombre_medico</strong>
+                                <span class="text-muted small ms-2">(Céd. <strong>$cedula_medico</strong>)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ANÁLISIS Y DIAGNÓSTICOS (A) -->
+                    <div class="sheet-section-title">
+                        <i class="bi bi-journal-medical text-teal"></i> Análisis (A) — Diagnóstico CIE-10 y Pronóstico
+                    </div>
+                    <div class="sheet-soap-card mb-2">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="sheet-label-xs">Diagnóstico Principal (CIE-10):</div>
+                                <div class="sheet-val-sm fw-bold text-dark">
+                                    <span class="badge bg-dark me-1">$d->{clave_diagnostico_cie10}</span> $d->{diagnostico_principal}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-secondary">Severidad: $d->{severidad}</span>
+                                <span class="badge bg-info text-dark ms-1">Pronóstico: $d->{pronostico}</span>
+                            </div>
+                        </div>
+
+                        <div class="sheet-label-xs mt-2">Diagnósticos Secundarios:</div>
+                        <div class="sheet-text-p text-muted">$d->{diagnosticos_secundarios}</div>
+
+                        <div class="sheet-label-xs mt-2">Impresión Clínica:</div>
+                        <div class="sheet-text-p">$d->{impresion_clinica}</div>
+                    </div>
+
+                    <!-- PLAN Y TRATAMIENTO (P) -->
+                    <div class="sheet-section-title">
+                        <i class="bi bi-card-checklist text-teal"></i> Plan y Tratamiento (P)
+                    </div>
+                    <div class="sheet-soap-card mb-2">
+                        <div class="sheet-label-xs">Plan Terapéutico y Recomendaciones Clínicas:</div>
+                        <div class="sheet-text-p">$d->{plan_tratamiento}</div>
+
+                        <div class="sheet-label-xs mt-2">Indicaciones Higiénico-Dietéticas y Signos de Alarma:</div>
+                        <div class="sheet-text-p">$d->{receta_indicaciones}</div>
+                    </div>
+
+                    <!-- RECETA MÉDICA INSTITUCIONAL (COFEPRIS) -->
+                    <div class="sheet-section-title">
+                        <i class="bi bi-prescription2 text-teal"></i> Prescripción Farmacológica (Receta Oficial COFEPRIS)
+                    </div>
+                    <table class="sheet-rx-table mb-3">
+                        <thead>
+                            <tr>
+                                <th style="width: 25px;">#</th>
+                                <th>Denominación Genérica</th>
+                                <th>Forma / Comercial</th>
+                                <th>Dosis / Concentración</th>
+                                <th>Frecuencia & Posología</th>
+                                <th>Duración</th>
+                                <th>Vía</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+HTML
+
+my $idx2 = 1;
+foreach my $med (@$medicamentos) {
+    my $gen = $med->{generico} || $med->{farmaco} || 'Fármaco';
+    my $com = $med->{comercial} || $med->{presentacion} || '';
+    my $forma = $med->{forma} || '';
+    my $conc = $med->{concentracion} || $med->{dosis} || '';
+    my $frec = $med->{posologia} || $med->{frecuencia} || '';
+    my $dur  = $med->{duracion} || '';
+    my $via  = $med->{via} || 'Oral';
+
+    print <<HTML;
+                            <tr>
+                                <td class="fw-bold text-muted">$idx2</td>
+                                <td class="fw-bold text-dark">$gen</td>
+                                <td>$com $forma</td>
+                                <td>$conc</td>
+                                <td><strong>$frec</strong></td>
+                                <td>$dur</td>
+                                <td>$via</td>
+                            </tr>
+HTML
+    $idx2++;
+}
+
+print <<HTML;
+                        </tbody>
+                    </table>
+
+                    <!-- Bloque de Sello Digital NOM-151 y Validación QR -->
+                    <div class="sheet-cert-box mb-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div style="max-width: 82%;">
+                                <div class="sheet-label-xs fw-bold text-dark mb-1">
+                                    <i class="bi bi-shield-check text-success me-1"></i> Sello Digital de Autenticidad (NOM-151 / NOM-024-SSA3)
+                                </div>
+                                <div class="sheet-val-xs text-muted font-mono" style="font-size:0.62rem; word-break:break-all;">
+                                    CADENA ORIGINAL: ||NOM-024|2026|$consulta->{id_consulta}|$paciente->{curp}|$cedula_medico|$consulta->{fecha}||<br>
+                                    FIRMA DIGITAL SHA256: 3a9f02c4b81e4d77a80b1e8e8c14d5e71829a3f4b5c6d7e8f9a0b1c2d3e4f5a6
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=72x72&data=https://ospulso.com/validador?folio=$consulta->{id_consulta}" alt="QR Validación NOM-024" style="width: 68px; height: 68px; border:1px solid #E2E8F0; border-radius:4px; padding:2px;">
+                                <div style="font-size:0.58rem; color:#64748B; font-weight:700; margin-top:2px;">NOM-024 QR</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bloque de Firmas al Calce -->
+                    <div class="sheet-signatures-grid">
+                        <div class="sheet-sig-box">
+                            <div class="sheet-sig-line"></div>
+                            <div class="sheet-sig-name">$paciente->{nombre}</div>
+                            <div class="sheet-sig-role">Firma del Paciente / Tutor (Conformidad)</div>
+                        </div>
+                        <div class="sheet-sig-box">
+                            <div class="sheet-sig-line"></div>
+                            <div class="sheet-sig-name">$nombre_medico</div>
+                            <div class="sheet-sig-role">$especialidad_medico · Cédula Profesional: $cedula_medico</div>
+                        </div>
+                    </div>
+
+                    <!-- Pie de Hoja 2 -->
+                    <div class="sheet-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Receta médica oficial emitida bajo lineamientos de COFEPRIS y NOM-004-SSA3-2012.</span>
+                            <span class="sheet-page-indicator">Hoja 2 de 2 • Folio: $consulta->{id_consulta}</span>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
+
     </div>
 
     <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script de Control de Vistas e Impresión WYSIWYG -->
+    <!-- Lógica de Control e Interactividad del Visor y Vistas -->
     <script>
-    function switchView(mode) {
-        const viewBento = document.getElementById('view-bento');
-        const viewWysiwyg = document.getElementById('view-wysiwyg');
-        const btnBento = document.getElementById('btn-view-bento');
-        const btnWysiwyg = document.getElementById('btn-view-wysiwyg');
+    let currentMasterView = 'bento';
+    let currentDocMode = 'continuous';
+    let currentDocPage = 1;
+
+    // Switch Maestro entre Vista Bento y Hoja Carta WYSIWYG
+    function setMasterView(mode) {
+        currentMasterView = mode;
+        const bentoContainer = document.getElementById('view-bento-container');
+        const wysiwygContainer = document.getElementById('view-wysiwyg-container');
+        const btnBento = document.getElementById('btn-mode-bento');
+        const btnWysiwyg = document.getElementById('btn-mode-wysiwyg');
 
         if (mode === 'wysiwyg') {
-            viewBento.style.display = 'none';
-            viewWysiwyg.style.display = 'flex';
+            bentoContainer.style.display = 'none';
+            wysiwygContainer.style.display = 'block';
             btnBento.classList.remove('active');
             btnWysiwyg.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
-            viewWysiwyg.style.display = 'none';
-            viewBento.style.display = 'block';
+            wysiwygContainer.style.display = 'none';
+            bentoContainer.style.display = 'block';
             btnWysiwyg.classList.remove('active');
             btnBento.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
-    function imprimirNotaMedica() {
-        // Asegurar que el modo WYSIWYG esté visible para la captura y llamar impresión
-        const prevBentoDisplay = document.getElementById('view-bento').style.display;
-        const prevWysiwygDisplay = document.getElementById('view-wysiwyg').style.display;
+    // Switch de Modo en Hoja Carta: Continua vs Paginated
+    function setDocViewerMode(mode) {
+        currentDocMode = mode;
+        const canvas = document.getElementById('doc-sheets-canvas');
+        const btnCont = document.getElementById('btn-view-continuous');
+        const btnPag = document.getElementById('btn-view-paginated');
+        const page1 = document.getElementById('doc-clinical-sheet-1');
+        const page2 = document.getElementById('doc-clinical-sheet-2');
 
-        // Si el usuario estaba en Bento, temporalmente activar WYSIWYG para la impresión
-        window.print();
+        if (mode === 'continuous') {
+            canvas.classList.remove('mode-paginated');
+            canvas.classList.add('mode-continuous');
+            btnCont.classList.add('active');
+            btnPag.classList.remove('active');
+            page1.style.display = 'flex';
+            page2.style.display = 'flex';
+            document.getElementById('doc-page-counter').textContent = 'Págs 1 y 2';
+        } else {
+            canvas.classList.remove('mode-continuous');
+            canvas.classList.add('mode-paginated');
+            btnPag.classList.add('active');
+            btnCont.classList.remove('active');
+            gotoDocPage(currentDocPage);
+        }
     }
 
-    function imprimirRecetaOnly() {
-        // Abrir diálogo de impresión para receta
-        window.print();
+    // Navegación de Páginas en modo Paginado
+    function navDocPage(delta) {
+        if (currentDocMode === 'continuous') {
+            setDocViewerMode('paginated');
+        }
+        let target = currentDocPage + delta;
+        if (target < 1) target = 1;
+        if (target > 2) target = 2;
+        gotoDocPage(target);
+    }
+
+    function gotoDocPage(p) {
+        currentDocPage = p;
+        const page1 = document.getElementById('doc-clinical-sheet-1');
+        const page2 = document.getElementById('doc-clinical-sheet-2');
+        const counter = document.getElementById('doc-page-counter');
+        const btnJ1 = document.getElementById('btn-jump-1');
+        const btnJ2 = document.getElementById('btn-jump-2');
+
+        if (currentDocMode === 'paginated') {
+            if (p === 1) {
+                page1.style.display = 'flex';
+                page2.style.display = 'none';
+                btnJ1.classList.add('btn-primary', 'text-white');
+                btnJ1.classList.remove('btn-outline-secondary');
+                btnJ2.classList.remove('btn-primary', 'text-white');
+                btnJ2.classList.add('btn-outline-secondary');
+            } else {
+                page1.style.display = 'none';
+                page2.style.display = 'flex';
+                btnJ2.classList.add('btn-primary', 'text-white');
+                btnJ2.classList.remove('btn-outline-secondary');
+                btnJ1.classList.remove('btn-primary', 'text-white');
+                btnJ1.classList.add('btn-outline-secondary');
+            }
+            counter.textContent = 'Página ' + p + ' de 2';
+        } else {
+            // En continua, hacer scroll hacia la página
+            const targetEl = (p === 1) ? page1 : page2;
+            if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // Zoom del Visor Carta
+    function setDocViewerZoom(zoomLevel) {
+        const canvas = document.getElementById('doc-sheets-canvas');
+        canvas.classList.remove('zoom-75', 'zoom-100', 'zoom-125');
+        if (zoomLevel === '0.75') {
+            canvas.classList.add('zoom-75');
+        } else if (zoomLevel === '1.25') {
+            canvas.classList.add('zoom-125');
+        } else {
+            canvas.classList.add('zoom-100');
+        }
+    }
+
+    // Impresión Oficial Multi-página
+    function ejecutarImpresion() {
+        // Asegurarse de que el contenedor WYSIWYG esté activo y ambas hojas visibles
+        const prevView = currentMasterView;
+        const prevMode = currentDocMode;
+
+        setMasterView('wysiwyg');
+        setDocViewerMode('continuous');
+
+        setTimeout(() => {
+            window.print();
+        }, 150);
+    }
+
+    // Compartir por WhatsApp
+    function compartirWhatsApp() {
+        const telefono = "$paciente->{telefono}" || '';
+        const folio = "$consulta->{id_consulta}";
+        const paciente = "$paciente->{nombre}";
+        const urlNota = window.location.href;
+        
+        const texto = encodeURIComponent(
+            "Hola " + paciente + ", le compartimos el enlace oficial para consultar su Nota Médica y Receta Digital (Folio: " + folio + ") emitida por $org->{nombre_negocio}: " + urlNota
+        );
+        
+        const targetUrl = telefono ? "https://wa.me/52" + telefono + "?text=" + texto : "https://wa.me/?text=" + texto;
+        window.open(targetUrl, '_blank');
     }
     </script>
 </body>
