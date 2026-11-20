@@ -1,3 +1,1 @@
 id_receta|tenant_id|id_cirugia|diagnostico_egreso_cie10|indicaciones_generales|medicamentos_json|fecha_emision|hash_firma_electronica|created_at|updated_at|created_by
-
-REC-QX-1795124248-110|723800|CIR-1795123853-248|apendicectomia|Reposo relativo, dieta blanda, curación diaria de herida quirúrgica.|[]|2026-11-19 15:37:34|NOM151-SHA256-B92625C9C09A8053E37415EF76FD2C17|2026-11-19 15:37:34|2026-11-19 15:37:34|Admon super

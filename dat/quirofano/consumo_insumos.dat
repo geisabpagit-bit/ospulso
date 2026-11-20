@@ -1,8 +1,1 @@
 id_consumo|tenant_id|id_cirugia|id_insumo|etapa_clinica|cantidad|precio_unitario_snapshot|subtotal|registrado_por|fecha_hora
-CNS-QX-1001|723800|CIR-SEED-PROG-01|INS-QX-015|PRE_OP|1|290.00|290.00|israel.garays@gmail.com|2026-11-19 14:15:00
-CNS-QX-1002|723800|CIR-SEED-PROG-01|INS-QX-009|PRE_OP|1|190.00|190.00|israel.garays@gmail.com|2026-11-19 14:16:00
-CNS-QX-1003|723800|CIR-SEED-URG-02|INS-QX-015|PRE_OP|2|290.00|580.00|israel.garays@gmail.com|2026-11-19 14:10:00
-CNS-QX-1004|723800|CIR-SEED-URG-02|INS-QX-009|PRE_OP|1|190.00|190.00|israel.garays@gmail.com|2026-11-19 14:12:00
-CNS-QX-1005|723800|CIR-SEED-URG-02|INS-QX-010|PRE_OP|1|95.00|95.00|israel.garays@gmail.com|2026-11-19 14:14:00
-
-CNS-QX-1795136700-863|723800|CIR-SEED-URG-02|INS-QX-002|RECUPERACION|2|450.00|900.00|Admon super|2026-11-19 19:05:00

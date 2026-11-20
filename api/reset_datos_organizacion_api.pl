@@ -39,15 +39,42 @@ unless ($role eq 'Administrador Organizacion') {
 my $action = $q->param('action') // $q->param('accion') // '';
 if ($action eq 'scan_orphans' || $action eq 'purge_orphans') {
     my $ejecutar = ($action eq 'purge_orphans') ? 1 : 0;
-    my $res_h = utils::quirofano_purge_utils::auditar_y_purgar_huerfanos_org($id_empresa, $ejecutar);
+
+    my @uids_list;
+    my $uids_raw = $q->param('uids') // '';
+    if ($uids_raw ne '') {
+        if ($uids_raw =~ /^\s*\[/) {
+            eval {
+                my $arr = decode_json($uids_raw);
+                @uids_list = @$arr if ref($arr) eq 'ARRAY';
+            };
+        } else {
+            @uids_list = grep { $_ ne '' } split(/\|\|/, $uids_raw);
+        }
+    }
+
+    my @modulos_list;
+    my $modulos_raw = $q->param('modulos') // '';
+    if ($modulos_raw ne '') {
+        @modulos_list = grep { $_ ne '' } split(/,/, $modulos_raw);
+    }
+
+    my $res_h = utils::quirofano_purge_utils::auditar_y_purgar_huerfanos_org(
+        $id_empresa,
+        $ejecutar,
+        scalar(@uids_list) ? \@uids_list : undef,
+        scalar(@modulos_list) ? \@modulos_list : undef
+    );
+    my $purgados = $res_h->{total_purgados} // $res_h->{total_huerfanos} // 0;
     print encode_json({
         success         => 1,
         ok              => 1,
         ejecutado       => $res_h->{ejecutado},
         total_huerfanos => $res_h->{total_huerfanos},
+        total_purgados  => $purgados,
         huerfanos       => $res_h->{huerfanos},
         msg             => $ejecutar
-            ? "Purga forense completada: se eliminaron $res_h->{total_huerfanos} registro(s)/archivo(s) huérfano(s) sin afectar datos activos."
+            ? "Purga forense completada: se eliminaron $purgados registro(s)/archivo(s) huérfano(s) sin afectar datos activos."
             : "Auditoría completada: se detectaron $res_h->{total_huerfanos} registro(s)/archivo(s) huérfano(s)."
     });
     exit;

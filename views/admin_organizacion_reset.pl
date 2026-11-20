@@ -214,7 +214,7 @@ print <<HTML;
         <div class="container-fluid container-mobile-flush px-2 px-md-4 pb-5">
             <div class="row g-3">
                 <div class="col-12">
-                    <!-- TARJETA 1: AUDITORÍA Y PURGA FORENSE DE DATOS / ARCHIVOS HUÉRFANOS (NO DESTRUCTIVA DE OPERACIÓN VIVA) -->
+                    <!-- TARJETA 1: AUDITORÍA Y PURGA FORENSE MULTI-MÓDULO DE DATOS / ARCHIVOS HUÉRFANOS -->
                     <div class="card card-medentia-aura card-mobile-flush border-0 shadow-sm rounded-4 mb-4" style="border-top: 4px solid #19B7A5 !important;">
                         <div class="card-body p-3 p-md-5">
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 pb-3 border-bottom">
@@ -224,28 +224,94 @@ print <<HTML;
                                     </div>
                                     <div>
                                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <h4 class="fw-black text-dark mb-0">Auditoría y Purga de Datos Huérfanos</h4>
-                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 small fw-bold">Quirófano • Espacios • Expedientes</span>
+                                            <h4 class="fw-black text-dark mb-0">Auditoría y Purga Multi-Módulo de Datos Huérfanos</h4>
+                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 small fw-bold">5 Módulos Transversales • Padre → Hijo</span>
                                         </div>
                                         <p class="small text-muted mb-0 mt-1">
-                                            Detecta y limpia exclusivamente registros o archivos sueltos sin relación padre válida (dossiers JSON sin cirugía, rentas <code>REN-QX-*</code> o citas <code>CITA-QX-*</code> sin evento padre, consumos 3NF huérfanos devolviendo su stock, firmas PNG sueltas y recibos/cargos de eventos ya eliminados). <strong>No afecta ninguna cirugía, renta, consulta, ingreso o egreso activo.</strong>
+                                            Escanea y limpia exclusivamente registros o archivos sin relación padre válida en toda la organización. Puedes filtrar por módulo, seleccionar qué registros depurar con checkboxes o eliminarlos 1 a 1 con el botón de basura de cada fila. <strong>Jamás afecta cirugías, rentas, consultas, Caja Rápida ni gastos activos.</strong>
                                         </p>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center gap-2 ms-auto">
                                     <button type="button" id="btnScanOrphans" onclick="escanearHuerfanosOrg()" class="btn btn-mobile-standard btn-outline-primary fw-bold px-3 py-2 rounded-3">
-                                        <i class="bi bi-search me-1.5"></i>Escanear Huérfanos
+                                        <i class="bi bi-search me-1.5"></i>Escanear Módulos
                                     </button>
-                                    <button type="button" id="btnPurgeOrphans" onclick="purgarHuerfanosOrg()" class="btn btn-mobile-standard btn-teal text-white fw-bold px-3.5 py-2 rounded-3 shadow-sm d-none" style="background-color: #19B7A5;">
-                                        <i class="bi bi-stars me-1.5"></i>Purgar Huérfanos Detectados (<span id="lblCountPurgeBtn">0</span>)
+                                    <button type="button" id="btnPurgeOrphans" onclick="purgarHuerfanosSeleccionados()" class="btn btn-mobile-standard btn-teal text-white fw-bold px-3.5 py-2 rounded-3 shadow-sm d-none" style="background-color: #19B7A5;">
+                                        <i class="bi bi-trash3-fill me-1.5"></i>Purgar Seleccionados (<span id="lblCountPurgeBtn">0</span>)
                                     </button>
+                                </div>
+                            </div>
+
+                            <!-- PÍLDORAS / CHECKBOXES DE LOS 5 MÓDULOS A AUDITAR -->
+                            <div class="p-3 rounded-4 bg-white border mb-3 shadow-2xs">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                    <span class="small fw-bold text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.4px;">
+                                        <i class="bi bi-layers-fill text-teal me-1"></i>Módulos Incluidos en la Auditoría Relacional:
+                                    </span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style="font-size: 0.75rem; color: #19B7A5;" onclick="marcarTodosModulosHuerfanos(true)">Marcar todos</button>
+                                        <span class="text-muted">•</span>
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-secondary" style="font-size: 0.75rem;" onclick="marcarTodosModulosHuerfanos(false)">Desmarcar</button>
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light cursor-pointer w-100">
+                                            <span class="d-flex align-items-center gap-2 small fw-bold text-dark">
+                                                <input type="checkbox" class="form-check-input mt-0 chk-modulo-huerfano" value="qx_espacios" checked onchange="escanearHuerfanosOrg()">
+                                                <i class="bi bi-heart-pulse-fill text-danger"></i>
+                                                <span>1. Quirófano &amp; Agenda Espacios</span>
+                                            </span>
+                                            <span class="badge bg-white text-dark border rounded-pill" id="cnt_mod_qx_espacios">0</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light cursor-pointer w-100">
+                                            <span class="d-flex align-items-center gap-2 small fw-bold text-dark">
+                                                <input type="checkbox" class="form-check-input mt-0 chk-modulo-huerfano" value="clinico_soap" checked onchange="escanearHuerfanosOrg()">
+                                                <i class="bi bi-file-earmark-medical-fill text-primary"></i>
+                                                <span>2. Consultas SOAP, Borradores &amp; Recetas</span>
+                                            </span>
+                                            <span class="badge bg-white text-dark border rounded-pill" id="cnt_mod_clinico_soap">0</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-4">
+                                        <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light cursor-pointer w-100">
+                                            <span class="d-flex align-items-center gap-2 small fw-bold text-dark">
+                                                <input type="checkbox" class="form-check-input mt-0 chk-modulo-huerfano" value="dental_cotizaciones" checked onchange="escanearHuerfanosOrg()">
+                                                <i class="bi bi-receipt-cutoff text-warning"></i>
+                                                <span>3. Cotizaciones, Tratamientos &amp; Odonto</span>
+                                            </span>
+                                            <span class="badge bg-white text-dark border rounded-pill" id="cnt_mod_dental_cotizaciones">0</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-xl-6">
+                                        <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light cursor-pointer w-100">
+                                            <span class="d-flex align-items-center gap-2 small fw-bold text-dark">
+                                                <input type="checkbox" class="form-check-input mt-0 chk-modulo-huerfano" value="boveda_archivos" checked onchange="escanearHuerfanosOrg()">
+                                                <i class="bi bi-folder2-open text-info"></i>
+                                                <span>4. Bóveda PACS, Estudios &amp; Firmas PNG en Disco</span>
+                                            </span>
+                                            <span class="badge bg-white text-dark border rounded-pill" id="cnt_mod_boveda_archivos">0</span>
+                                        </label>
+                                    </div>
+                                    <div class="col-12 col-sm-12 col-xl-6">
+                                        <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light cursor-pointer w-100">
+                                            <span class="d-flex align-items-center gap-2 small fw-bold text-dark">
+                                                <input type="checkbox" class="form-check-input mt-0 chk-modulo-huerfano" value="config_edo_cta" checked onchange="escanearHuerfanosOrg()">
+                                                <i class="bi bi-sliders text-success"></i>
+                                                <span>5. Configuraciones de Usuarios Eliminados &amp; Estado de Cuenta</span>
+                                            </span>
+                                            <span class="badge bg-white text-dark border rounded-pill" id="cnt_mod_config_edo_cta">0</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
                             <div id="boxOrphansResult" class="p-3 rounded-4 bg-light border">
                                 <div class="text-center py-3 text-muted small">
                                     <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>
-                                    Analizando integridad relacional de archivos <code>.dat</code> y <code>.json</code>...
+                                    Analizando integridad relacional de archivos <code>.dat</code>, <code>.json</code> y <code>uploads/</code>...
                                 </div>
                             </div>
                         </div>
@@ -312,23 +378,75 @@ HTML
 print <<'JS';
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
+            let huerfanosDetectadosCache = [];
+
             document.addEventListener('DOMContentLoaded', function() {
                 escanearHuerfanosOrg();
             });
+
+            function obtenerModulosSeleccionados() {
+                const mods = [];
+                document.querySelectorAll('.chk-modulo-huerfano:checked').forEach(chk => {
+                    mods.push(chk.value);
+                });
+                return mods;
+            }
+
+            function marcarTodosModulosHuerfanos(marcar) {
+                document.querySelectorAll('.chk-modulo-huerfano').forEach(chk => {
+                    chk.checked = !!marcar;
+                });
+                escanearHuerfanosOrg();
+            }
+
+            function actualizarContadorSeleccionHuerfanos() {
+                const chks = document.querySelectorAll('.chk-orphan-item:checked');
+                const btnPurge = document.getElementById('btnPurgeOrphans');
+                const lblCnt = document.getElementById('lblCountPurgeBtn');
+                if (lblCnt) lblCnt.textContent = chks.length;
+                if (btnPurge) {
+                    if (chks.length > 0) {
+                        btnPurge.classList.remove('d-none');
+                    } else {
+                        btnPurge.classList.add('d-none');
+                    }
+                }
+            }
+
+            function toggleSeleccionTodosHuerfanos(masterChk) {
+                const checked = !!(masterChk && masterChk.checked);
+                document.querySelectorAll('.chk-orphan-item').forEach(chk => {
+                    chk.checked = checked;
+                });
+                actualizarContadorSeleccionHuerfanos();
+            }
 
             async function escanearHuerfanosOrg() {
                 const box = document.getElementById('boxOrphansResult');
                 const btnScan = document.getElementById('btnScanOrphans');
                 const btnPurge = document.getElementById('btnPurgeOrphans');
-                const lblCnt = document.getElementById('lblCountPurgeBtn');
+
+                const mods = obtenerModulosSeleccionados();
+                if (mods.length === 0) {
+                    if (btnPurge) btnPurge.classList.add('d-none');
+                    if (box) {
+                        box.innerHTML = '<div class="text-center py-3 text-muted small"><i class="bi bi-info-circle me-1"></i>Seleccione al menos un módulo arriba para ejecutar la auditoría de registros huérfanos.</div>';
+                    }
+                    ['qx_espacios', 'clinico_soap', 'dental_cotizaciones', 'boveda_archivos', 'config_edo_cta'].forEach(k => {
+                        const el = document.getElementById('cnt_mod_' + k);
+                        if (el) el.textContent = '0';
+                    });
+                    return;
+                }
 
                 if (btnScan) btnScan.disabled = true;
                 if (box) {
-                    box.innerHTML = '<div class="text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm text-primary me-2"></span>Escaneando relaciones padre-hijo en Quirófano, Agenda de Espacios, Citas, Consentimientos y Caja...</div>';
+                    box.innerHTML = '<div class="text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm text-primary me-2"></span>Escaneando relaciones padre-hijo en los módulos seleccionados...</div>';
                 }
 
                 try {
-                    const res = await fetch('../api/reset_datos_organizacion_api.pl?action=scan_orphans');
+                    const url = '../api/reset_datos_organizacion_api.pl?action=scan_orphans&modulos=' + encodeURIComponent(mods.join(','));
+                    const res = await fetch(url);
                     const data = await res.json();
 
                     if (btnScan) btnScan.disabled = false;
@@ -339,6 +457,30 @@ print <<'JS';
                     }
 
                     const lista = Array.isArray(data.huerfanos) ? data.huerfanos : [];
+                    huerfanosDetectadosCache = lista;
+
+                    const conteoPorMod = {
+                        qx_espacios: 0,
+                        clinico_soap: 0,
+                        dental_cotizaciones: 0,
+                        boveda_archivos: 0,
+                        config_edo_cta: 0
+                    };
+                    lista.forEach(h => {
+                        if (h.modulo && conteoPorMod[h.modulo] !== undefined) {
+                            conteoPorMod[h.modulo]++;
+                        }
+                    });
+                    Object.keys(conteoPorMod).forEach(k => {
+                        const el = document.getElementById('cnt_mod_' + k);
+                        if (el) {
+                            el.textContent = conteoPorMod[k];
+                            el.className = conteoPorMod[k] > 0
+                                ? 'badge bg-warning text-dark border border-warning rounded-pill fw-bold'
+                                : 'badge bg-white text-muted border rounded-pill';
+                        }
+                    });
+
                     if (lista.length === 0) {
                         if (btnPurge) btnPurge.classList.add('d-none');
                         box.innerHTML = `
@@ -346,26 +488,33 @@ print <<'JS';
                                 <div class="d-flex align-items-center gap-2.5 text-success">
                                     <i class="bi bi-check-circle-fill fs-4"></i>
                                     <div>
-                                        <div class="fw-bold">0 Registros o Archivos Huérfanos Detectados</div>
-                                        <div class="small text-muted">La integridad relacional entre Agenda de Espacios, Tablero Quirófano, Inventario 3NF, Expedientes y Caja está al 100%.</div>
+                                        <div class="fw-bold">0 Registros o Archivos Huérfanos Detectados en los Módulos Seleccionados</div>
+                                        <div class="small text-muted">La integridad relacional entre Quirófano, Agenda de Espacios, Consultas SOAP, Cotizaciones, Odontogramas, Bóveda PACS y Caja está al 100%.</div>
                                     </div>
                                 </div>
                                 <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill fw-bold">Base Limpia</span>
                             </div>
                         `;
                     } else {
-                        if (lblCnt) lblCnt.textContent = lista.length;
-                        if (btnPurge) btnPurge.classList.remove('d-none');
-
                         let rows = '';
                         lista.forEach((h, idx) => {
+                            const safeUid = (h.uid || '').replace(/"/g, '&quot;');
                             rows += `
                                 <tr>
-                                    <td class="fw-bold text-secondary">${idx + 1}</td>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input chk-orphan-item" value="${safeUid}" checked onchange="actualizarContadorSeleccionHuerfanos()">
+                                    </td>
+                                    <td class="fw-bold text-secondary small">${idx + 1}</td>
+                                    <td><span class="badge bg-light text-dark border small">${h.modulo_nombre || h.modulo || ''}</span></td>
                                     <td><span class="badge bg-warning-subtle text-dark border border-warning-subtle">${h.categoria || 'Huérfano'}</span></td>
                                     <td><code class="small text-primary">${h.archivo || ''}</code></td>
                                     <td class="fw-bold font-monospace small">${h.id || ''}</td>
                                     <td class="small text-muted">${h.detalle || ''}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-2" data-uid="${safeUid}" onclick="purgarHuerfanoIndividual(this.getAttribute('data-uid'))" title="Purgar únicamente este registro/archivo huérfano">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             `;
                         });
@@ -379,21 +528,27 @@ print <<'JS';
                                     <i class="bi bi-shield-lock-fill me-1"></i>0 afectación a ingresos, gastos o consultas activas
                                 </span>
                             </div>
-                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                            <div class="table-responsive" style="max-height: 340px; overflow-y: auto;">
                                 <table class="table table-sm table-hover align-middle bg-white rounded-3 overflow-hidden mb-0">
                                     <thead class="table-light small text-uppercase">
                                         <tr>
+                                            <th class="text-center" style="width: 36px;">
+                                                <input type="checkbox" class="form-check-input" checked onchange="toggleSeleccionTodosHuerfanos(this)" title="Seleccionar / Desmarcar todos">
+                                            </th>
                                             <th>#</th>
+                                            <th>Módulo</th>
                                             <th>Categoría</th>
                                             <th>Archivo / Tabla</th>
                                             <th>Folio / ID</th>
                                             <th>Diagnóstico Relacional</th>
+                                            <th class="text-end">1-a-1</th>
                                         </tr>
                                     </thead>
                                     <tbody>${rows}</tbody>
                                 </table>
                             </div>
                         `;
+                        actualizarContadorSeleccionHuerfanos();
                     }
                 } catch (err) {
                     if (btnScan) btnScan.disabled = false;
@@ -401,26 +556,70 @@ print <<'JS';
                 }
             }
 
-            async function purgarHuerfanosOrg() {
+            async function purgarHuerfanoIndividual(uid) {
+                if (!uid) return;
+                const item = huerfanosDetectadosCache.find(x => x.uid === uid) || { id: uid };
                 const confirmResult = await Swal.fire({
-                    title: '¿Purgar Registros y Archivos Huérfanos?',
-                    html: 'Se eliminarán <strong>únicamente</strong> los archivos y filas huérfanas listadas en el diagnóstico (y se devolverá al stock cualquier consumo 3NF huérfano).<br><br><span class="text-success fw-bold">Las cirugías activas, rentas vigentes, consultas clínicas, ingresos y gastos permanecerán 100% intactos.</span>',
+                    title: '¿Purgar Registro Huérfano 1-a-1?',
+                    html: `
+                        <div class="text-start small p-2">
+                            <div class="p-2 rounded-3 bg-light border mb-2">
+                                <div><strong>Módulo:</strong> ${item.modulo_nombre || ''}</div>
+                                <div><strong>Categoría:</strong> ${item.categoria || ''}</div>
+                                <div><strong>Archivo:</strong> <code>${item.archivo || ''}</code></div>
+                                <div><strong>Folio / ID:</strong> <code>${item.id || ''}</code></div>
+                            </div>
+                            <div class="text-secondary">${item.detalle || ''}</div>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="bi bi-trash3-fill me-1"></i> Sí, Eliminar este Huérfano',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!confirmResult.isConfirmed) return;
+                await ejecutarPurgaHuerfanosBackend([uid]);
+            }
+
+            async function purgarHuerfanosSeleccionados() {
+                const uids = [];
+                document.querySelectorAll('.chk-orphan-item:checked').forEach(chk => {
+                    if (chk.value) uids.push(chk.value);
+                });
+                if (uids.length === 0) {
+                    Swal.fire('Atención', 'Seleccione al menos un registro huérfano en la tabla.', 'info');
+                    return;
+                }
+
+                const confirmResult = await Swal.fire({
+                    title: `¿Purgar ${uids.length} Huérfano(s) Seleccionado(s)?`,
+                    html: `Se eliminarán <strong>únicamente</strong> los <strong>${uids.length}</strong> registros/archivos huérfanos marcados (y se devolverá al stock cualquier consumo 3NF huérfano seleccionado).<br><br><span class="text-success fw-bold">Las cirugías activas, rentas vigentes, consultas clínicas, ingresos y gastos permanecerán 100% intactos.</span>`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#19B7A5',
                     cancelButtonColor: '#64748b',
-                    confirmButtonText: '<i class="bi bi-stars me-1"></i> Sí, Purgar Huérfanos',
+                    confirmButtonText: '<i class="bi bi-trash3-fill me-1"></i> Sí, Purgar Seleccionados',
                     cancelButtonText: 'Cancelar'
                 });
 
                 if (!confirmResult.isConfirmed) return;
+                await ejecutarPurgaHuerfanosBackend(uids);
+            }
 
+            async function ejecutarPurgaHuerfanosBackend(uidsArray) {
                 const btnPurge = document.getElementById('btnPurgeOrphans');
                 if (btnPurge) btnPurge.disabled = true;
 
                 try {
+                    const mods = obtenerModulosSeleccionados();
                     const fd = new URLSearchParams();
                     fd.append('action', 'purge_orphans');
+                    fd.append('modulos', mods.join(','));
+                    if (Array.isArray(uidsArray) && uidsArray.length > 0) {
+                        fd.append('uids', JSON.stringify(uidsArray));
+                    }
 
                     const res = await fetch('../api/reset_datos_organizacion_api.pl', {
                         method: 'POST',
@@ -434,7 +633,7 @@ print <<'JS';
                     if (data && data.success) {
                         await Swal.fire({
                             icon: 'success',
-                            title: '¡Huérfanos Purgados!',
+                            title: '¡Purga Forense Completada!',
                             text: data.msg,
                             confirmButtonColor: '#0A2A66'
                         });
