@@ -352,7 +352,86 @@ if ($requiere_consentimiento eq '1') {
     }
 }
 
-# 1. Guardar la consulta
+# 1. Estructurar Contrato de Datos JSON SOAP Canónico (Regla de Oro #1) + Sello NOM-151
+use Digest::SHA qw(sha256_hex);
+my $eva_val = $payload{eva_dolor} || $payload{intensidad} || 1;
+$payload{eva_dolor}  = $eva_val;
+$payload{intensidad} = $eva_val;
+
+my $es_nkda_val = $payload{es_nkda} || (($payload{alergias} // '') =~ /^(Sin alergias|NKDA|Negadas)$/i ? 1 : 0);
+$payload{es_nkda} = $es_nkda_val;
+
+my $pron_vida = $payload{pronostico_vida} || 'BUENO';
+my $pron_func = $payload{pronostico_funcion} || 'BUENO';
+$payload{pronostico_vida}    = $pron_vida;
+$payload{pronostico_funcion} = $pron_func;
+
+if (!$payload{hash_nom151}) {
+    my $cad_nom = "||NOM-004|NOM-151|$id_consulta|$id_paciente|$id_medico|$hoy_fecha|$hoy_hora|" . ($payload{motivo} // '') . "|" . ($payload{impresion_clinica} // '') . "||";
+    $payload{hash_nom151} = uc(sha256_hex(encode_utf8($cad_nom)));
+}
+$payload{estatus_clinico} ||= 'FIRMADA_NOM151';
+
+my $esp_data_hash = {};
+if ($payload{especialidad_data_json}) {
+    eval { $esp_data_hash = decode_json(encode_utf8($payload{especialidad_data_json})); };
+}
+$esp_data_hash = {} unless ref($esp_data_hash) eq 'HASH';
+$esp_data_hash->{odonto_estudios_seleccionados} = $payload{odonto_estudios_seleccionados} if $payload{odonto_estudios_seleccionados};
+$esp_data_hash->{odonto_alias_seleccionado}     = $payload{odonto_alias_seleccionado} if $payload{odonto_alias_seleccionado};
+
+$payload{soap} = {
+    subjective => {
+        motivo                  => $payload{motivo} // '',
+        inicio_sintomas         => $payload{inicio_sintomas} // '',
+        eva_dolor               => $eva_val,
+        intensidad              => $eva_val,
+        evolucion               => $payload{evolucion} // '',
+        notas_patologicos       => $payload{antecedentes_patologicos} // '',
+        notas_alergias          => $payload{alergias} // '',
+        es_nkda                 => $es_nkda_val ? 1 : 0,
+        requiere_consentimiento => $payload{requiere_consentimiento} // '0'
+    },
+    objective => {
+        ta                           => $payload{ta} // '',
+        fc                           => $payload{fc} // '',
+        fr                           => $payload{fr} // '',
+        temp                         => $payload{temp} // '',
+        spo2                         => $payload{spo2} // '',
+        glucosa                      => $payload{glucosa} // '',
+        glucosa_tipo                 => $payload{glucosa_tipo} // 'AYUNO',
+        peso                         => $payload{peso} // '',
+        talla                        => $payload{talla} // '',
+        imc                          => $payload{imc} // '',
+        inspeccion_general           => $payload{inspeccion_general} // '',
+        exploracion_cefalocaudal     => $payload{exploracion_cefalocaudal_json} // '{}',
+        hallazgos_clinicos           => $payload{exploracion_hallazgos} // '',
+        observaciones_estudios       => $payload{resultados_estudios} // '',
+        pacs_estudios_seleccionados  => $payload{pacs_estudios_seleccionados} // '',
+        especialidad_data            => $esp_data_hash
+    },
+    assessment => {
+        impresion_clinica         => $payload{impresion_clinica} // '',
+        clave_diagnostico_cie10   => $payload{clave_diagnostico_cie10} // '',
+        diagnostico_principal     => $payload{diagnostico_principal} // '',
+        diagnosticos_secundarios  => $payload{diagnosticos_secundarios_json} // '[]',
+        severidad                 => $payload{severidad} // 'Leve',
+        pronostico_vida           => $pron_vida,
+        pronostico_funcion        => $pron_func
+    },
+    plan => {
+        plan_tratamiento          => $payload{plan_tratamiento} // '',
+        indicaciones_higienico    => $payload{indicaciones_higienico} // '',
+        datos_alarma              => $payload{datos_alarma} // '',
+        ordenes_lab               => $payload{laboratorios_solicitados} // '',
+        ordenes_gabinete          => $payload{gabinete_solicitados} // '',
+        requiere_receta           => $payload{requiere_receta} // '0',
+        receta_folio              => $payload{receta_folio} // '',
+        medicamentos              => $payload{medicamentos} // []
+    }
+};
+
+# Guardar la consulta
 unless (-e $consultas_file) {
     open my $fh_new, '>:encoding(UTF-8)', $consultas_file;
     print $fh_new "id_consulta|id_paciente|id_cita|id_medico|timestamp|payload_json\n";

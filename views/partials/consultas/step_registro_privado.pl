@@ -4,244 +4,405 @@ use utf8;
 
 sub render_step_registro_privado {
     my ($paciente) = @_;
+    $paciente ||= {};
     my $motivo_precargado = $paciente->{motivo_precargado} || '';
-    
-    # Cargar cotizaciones pendientes del paciente
     my $id_p = $paciente->{id_paciente} || '';
-    
-    # A. Buscar si tiene tratamiento abierto
+
+    # 1. Antecedentes y Tutor del Expediente
+    my $tutor = $paciente->{tutor} // '';
+    my $ant   = $paciente->{antecedentes} // {};
+    my $hf    = $ant->{heredofamiliares} // {};
+    my $pp    = $ant->{personales_patologicos} // {};
+    my $pnp   = $ant->{personales_no_patologicos} // {};
+
+    my $num_emp = $ant->{num_empleado_estado} || $paciente->{num_empleado_estado} || '';
+    my $dep_emp = $ant->{dependencia} || $paciente->{dependencia} || '';
+    my $es_municipio = ($num_emp ne '' || $dep_emp ne '') ? 1 : 0;
+
+    my $badge_tipo_paciente = $es_municipio
+        ? qq{<span class="badge bg-info text-dark fw-bold rounded-pill px-2.5 py-1"><i class="bi bi-building-check me-1"></i>EMPLEADO MUNICIPIO #$num_emp ($dep_emp)</span>}
+        : qq{<span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold rounded-pill px-2.5 py-1"><i class="bi bi-person-vcard me-1"></i>PACIENTE PARTICULAR</span>};
+
+    my $_fmt_badge = sub {
+        my ($label, $val, $spec) = @_;
+        my $is_si = ($val && $val =~ /S[ií]/i);
+        my $cls   = $is_si ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-light text-muted border';
+        my $ic    = $is_si ? '<i class="bi bi-exclamation-triangle-fill me-1"></i>' : '<i class="bi bi-check-circle me-1"></i>';
+        my $txt   = "$ic<strong>$label:</strong> " . ($val || 'No');
+        $txt .= " <em>($spec)</em>" if ($is_si && $spec);
+        return qq{<span class="badge $cls px-2 py-1 fw-medium text-wrap text-start me-1 mb-1" style="font-size:0.7rem;">$txt</span>};
+    };
+
+    my $hf_html = '';
+    $hf_html .= $_fmt_badge->("HTA", $hf->{hipertension});
+    $hf_html .= $_fmt_badge->("Diabetes", $hf->{diabetes});
+    $hf_html .= $_fmt_badge->("Cardiopatías", $hf->{cardiopatias});
+    $hf_html .= $_fmt_badge->("Cáncer", $hf->{cancer}, $hf->{cancer_tipo});
+    $hf_html .= $_fmt_badge->("Hereditarias", $hf->{enfermedades}, $hf->{enfermedades_especificar});
+
+    my $pp_html = '';
+    $pp_html .= $_fmt_badge->("Crónicas", $pp->{cronicas}, $pp->{cronicas_especificar});
+    $pp_html .= $_fmt_badge->("Cirugías", $pp->{cirugias}, $pp->{cirugias_especificar});
+    $pp_html .= $_fmt_badge->("Hospitalizaciones", $pp->{hospitalizaciones}, $pp->{hospitalizaciones_especificar});
+    $pp_html .= $_fmt_badge->("Alergias", $pp->{alergias}, $pp->{alergias_especificar});
+    $pp_html .= $_fmt_badge->("Tratamientos", $pp->{tratamientos}, $pp->{tratamientos_especificar});
+
+    my $pnp_html = '';
+    $pnp_html .= $_fmt_badge->("Tabaco", $pnp->{tabaquismo}, $pnp->{tabaquismo_cantidad});
+    $pnp_html .= $_fmt_badge->("Alcohol", $pnp->{alcohol}, $pnp->{alcohol_frecuencia});
+    $pnp_html .= $_fmt_badge->("Act. Física", $pnp->{actividad_fisica}, $pnp->{actividad_fisica_tipo});
+
+    my $patologicos_val = $pp->{cronicas_especificar} || ($pp->{cronicas} && $pp->{cronicas} =~ /S[ií]/i ? 'Enfermedad crónica referida en expediente' : '');
+    my $alergias_val    = $pp->{alergias_especificar} || ($pp->{alergias} && $pp->{alergias} =~ /S[ií]/i ? 'Alergia registrada en expediente' : '');
+
+    # 2. Tratamiento Activo y Cotizaciones
     my $trat_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'tratamientos.dat');
     my $tiene_tratamiento = 0;
     my $id_tratamiento_activo = '';
     my $id_cotizacion_activa = '';
     my $fecha_inicio_activa = '';
-    my $total_activo = 0;
-    
+
     if (-e $trat_file && open(my $fh_t, '<:encoding(UTF-8)', $trat_file)) {
-        my $header = <$fh_t>;
+        <$fh_t>;
         while (my $line = <$fh_t>) {
             chomp $line;
             next if $line =~ /^\s*$/;
             my @c = split /\|/, $line, -1;
-            next unless @c >= 4;
-            if ($c[1] eq $id_p && $c[3] eq 'Abierto') {
+            if (@c >= 4 && $c[1] eq $id_p && $c[3] eq 'Abierto') {
                 $tiene_tratamiento = 1;
                 $id_tratamiento_activo = $c[0];
-                $id_cotizacion_activa = $c[2];
-                $fecha_inicio_activa = $c[4] // '';
-                $total_activo = $c[7] // 0;
+                $id_cotizacion_activa  = $c[2];
+                $fecha_inicio_activa   = $c[4] // '';
                 last;
             }
         }
         close($fh_t);
     }
-    
+
     my $nombre_cotizacion_activa = '';
-    my $fecha_cotizacion_activa = '';
-    
     my $cot_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'cotizaciones.dat');
     my @cots = ();
     if (-e $cot_file && open(my $fh, '<:encoding(UTF-8)', $cot_file)) {
-        my $header = <$fh>;
+        <$fh>;
         while (my $line = <$fh>) {
             chomp $line;
             next if $line =~ /^\s*$/;
             my @c = split /\|/, $line, -1;
             next unless @c >= 6;
-            my $cot_id = $c[0];
-            my $cot_pac = $c[1] // '';
-            my $estado = $c[6] // 'Pendiente';
-            
-            if ($tiene_tratamiento && $cot_id eq $id_cotizacion_activa) {
+            if ($tiene_tratamiento && $c[0] eq $id_cotizacion_activa) {
                 $nombre_cotizacion_activa = $c[2];
-                $fecha_cotizacion_activa = $c[4];
             }
-            
-            if ($cot_pac eq $id_p && $estado ne 'Convertida') {
-                push @cots, {
-                    id_cot => $c[0],
-                    nombre => $c[2],
-                    total  => $c[3] // 0,
-                    fecha  => $c[4]
-                };
+            if (($c[1] // '') eq $id_p && ($c[6] // 'Pendiente') ne 'Convertida') {
+                push @cots, { id_cot => $c[0], nombre => $c[2], total => $c[3] // 0, fecha => $c[4] };
             }
         }
         close($fh);
     }
-    
-    my $cot_options = qq{<option value="">Ninguna...</option>};
+
+    my $cot_options = qq{<option value="">Ninguna cotización vinculada...</option>};
     foreach my $c (@cots) {
         $cot_options .= qq{<option value="$c->{id_cot}" data-total="$c->{total}">$c->{nombre} ($c->{fecha}) - \$$c->{total}</option>};
     }
 
-    my $cot_section = '';
-    my $conversion_section = '';
-    my $tipo_consulta_options = '';
-    
+    my ($cot_section, $conversion_section, $tipo_consulta_options);
     if ($tiene_tratamiento) {
-        $cot_section = <<HTML;
-        <label class="wizard-label"><i class="bi bi-shield-fill-check me-1 text-success"></i>Tratamiento Activo</label>
-        <div class="alert alert-info border-info d-flex align-items-center rounded-3 p-3 mb-0" style="height: 50px;">
-            <i class="bi bi-info-circle-fill me-2 fs-5 text-info"></i>
-            <div class="text-truncate">
-                <span class="fw-bold text-dark small">Plan: $nombre_cotizacion_activa (Iniciado el $fecha_inicio_activa)</span>
+        $cot_section = qq{
+            <label class="wizard-label"><i class="bi bi-shield-fill-check me-1 text-success"></i>Tratamiento Activo</label>
+            <div class="p-2 px-3 rounded-3 border border-info bg-info-subtle text-dark small fw-bold d-flex align-items-center">
+                <i class="bi bi-info-circle-fill text-info me-2"></i>Plan: $nombre_cotizacion_activa (Iniciado: $fecha_inicio_activa)
             </div>
-        </div>
-        <input type="hidden" name="id_cotizacion" id="f_id_cotizacion" value="$id_cotizacion_activa">
-        <input type="hidden" name="id_tratamiento" value="$id_tratamiento_activo">
-HTML
-        
-        $conversion_section = <<HTML;
-        <div class="alert alert-success border-success d-flex align-items-center rounded-3 p-3 w-100 mb-0" style="height: 50px;">
-            <i class="bi bi-check-circle-fill me-2 fs-5 text-success"></i>
-            <div>
-                <span class="fw-bold text-dark small">Seguimiento de Tratamiento Activo</span>
+            <input type="hidden" name="id_cotizacion" id="f_id_cotizacion" value="$id_cotizacion_activa">
+            <input type="hidden" name="id_tratamiento" value="$id_tratamiento_activo">
+        };
+        $conversion_section = qq{
+            <div class="p-2 px-3 rounded-3 border border-success bg-success-subtle text-success small fw-bold w-100 d-flex align-items-center">
+                <i class="bi bi-check-circle-fill me-2"></i>Seguimiento de Tratamiento Activo (Tarifa Consulta \$0.00)
             </div>
-        </div>
-HTML
-
-        $tipo_consulta_options = <<HTML;
-        <option value="Seguimiento" selected>Seguimiento (Autom&aacute;tico)</option>
-HTML
+        };
+        $tipo_consulta_options = qq{
+            <option value="Seguimiento" selected>Seguimiento (Automático)</option>
+            <option value="Primera Vez">Primera Vez</option>
+            <option value="Urgencia">Urgencia</option>
+        };
     } else {
-        $cot_section = <<HTML;
-        <label class="wizard-label"><i class="bi bi-receipt me-1"></i>Cotizaci&oacute;n del Paciente</label>
-        <select name="id_cotizacion" id="f_id_cotizacion" class="wizard-input" onchange="toggleConversionCheckbox()">
-            $cot_options
-        </select>
-HTML
-
-        $conversion_section = <<HTML;
-        <div class="form-check form-switch p-3 border rounded-3 w-100 bg-light" id="conversion_wrapper" style="display: none; height: 50px; align-items: center; justify-content: start;">
-            <input class="form-check-input ms-0 me-3" type="checkbox" name="convertir_tratamiento" id="f_convertir_tratamiento" value="1" onchange="toggleConversionStyle()">
-            <label class="form-check-label fw-bold text-navy" for="f_convertir_tratamiento">¿Convertir en Tratamiento Activo?</label>
-        </div>
-HTML
-
-        $tipo_consulta_options = <<HTML;
-        <option value="">Seleccione...</option>
-        <option value="Primera Vez">Primera Vez</option>
-        <option value="Seguimiento">Seguimiento</option>
-        <option value="Urgencia">Urgencia</option>
-HTML
+        $cot_section = qq{
+            <label class="wizard-label"><i class="bi bi-receipt me-1 text-teal"></i>Cotización del Paciente</label>
+            <select name="id_cotizacion" id="f_id_cotizacion" class="wizard-input" onchange="toggleConversionCheckbox()">
+                $cot_options
+            </select>
+        };
+        $conversion_section = qq{
+            <div class="form-check form-switch p-2 px-3 border rounded-3 w-100 bg-light" id="conversion_wrapper" style="display: none; align-items: center;">
+                <input class="form-check-input ms-0 me-2" type="checkbox" name="convertir_tratamiento" id="f_convertir_tratamiento" value="1" onchange="toggleConversionStyle()">
+                <label class="form-check-label fw-bold text-navy small" for="f_convertir_tratamiento">¿Convertir en Tratamiento Activo?</label>
+            </div>
+        };
+        $tipo_consulta_options = qq{
+            <option value="Primera Vez" selected>Primera Vez</option>
+            <option value="Seguimiento">Seguimiento / Control</option>
+            <option value="Urgencia">Urgencia Médica</option>
+        };
     }
 
+    my $hoy_str = sprintf('%04d-%02d-%02d', (localtime)[5]+1900, (localtime)[4]+1, (localtime)[3]);
+
     return qq{
-        <div class="wizard-panel active" id="step-panel-0">
-            <h3 class="mb-4" style="color: var(--md-blue-deep); font-weight: 800;">
-                <i class="bi bi-person-badge me-2" style="color: var(--md-teal-clinical);"></i>Recepci&oacute;n y Registro (Privado)
-            </h3>
-            
-            <div class="row g-4">
-                <!-- Fila 1: Datos Personales (4 columnas en md/lg, 1 en mobile) -->
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">Paciente</label>
-                    <input type="text" id="f_paciente_nombre" name="paciente_nombre_display" class="wizard-input bg-light fw-bold text-dark" value="$paciente->{nombre}" readonly data-preserve="true">
+        <div class="wizard-panel active" id="step-panel-0" data-step-index="0">
+            <!-- Encabezado de Paso Estilo Quirófano -->
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2.5 mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold text-navy mb-0">
+                        <i class="bi bi-person-vcard-fill me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Paso 1: Subjetivo (S), Registro e Interrogatorio
+                    </h5>
+                    <p class="text-muted small mb-0">Motivo de consulta, escala EVA de dolor, evolución del padecimiento actual, alergias/NKDA y consentimiento anticipado.</p>
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">CURP</label>
-                    <input type="text" id="f_paciente_curp" name="paciente_curp_display" class="wizard-input bg-light fw-semibold" value="$paciente->{curp}" readonly data-preserve="true">
+                <div class="d-flex align-items-center gap-2">
+                    $badge_tipo_paciente
+                    <span class="badge bg-primary-subtle text-primary fw-bold">Paso 1 de 6</span>
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">Sexo</label>
-                    <input type="text" id="f_paciente_sexo" name="paciente_sexo_display" class="wizard-input bg-light fw-semibold" value="$paciente->{sexo}" readonly data-preserve="true">
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">Edad</label>
-                    <input type="text" id="f_paciente_edad" name="paciente_edad_display" class="wizard-input bg-light fw-semibold" value="$paciente->{edad}" readonly data-preserve="true">
-                </div>
+            </div>
 
-                <!-- Fila 2: Tiempos y Clasificación de Consulta (4 columnas en md/lg, 1 en mobile) -->
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">Fecha de Consulta</label>
-                    <input type="date" name="fecha_consulta" class="wizard-input bg-light" value="$paciente->{fecha_consulta}" readonly>
+            <!-- Subcard 1: Ficha Rápida de Identificación y Clasificación -->
+            <div class="qx-subcard mb-3">
+                <div class="qx-subcard-title d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-person-check-fill text-teal me-1.5"></i>1. Datos de Admisión y Modalidad</span>
+                    <span class="small text-muted fw-semibold">Expediente #$id_p</span>
                 </div>
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">Hora de Inicio</label>
-                    <input type="text" name="hora_consulta" class="wizard-input bg-light" value="$paciente->{hora_consulta}" readonly>
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">Tipo de Consulta <span class="req-star">*</span></label>
-                    <select name="tipo_consulta" class="wizard-input" required>
-                        $tipo_consulta_options
-                    </select>
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="wizard-label">Especialidad (Inamovible)</label>
-                    <input type="text" id="f_paciente_espe" class="wizard-input bg-light fw-bold text-primary" value="$paciente->{espe_nombre_medico}" readonly data-preserve="true">
-                    <input type="hidden" name="especialidad" value="$paciente->{espe_nombre_medico}">
-                    <input type="hidden" name="id_espe" value="$paciente->{id_espe_medico}">
-                </div>
-
-                <!-- Fila 3: Cotización / Tratamiento Activo (2 bloques de 2-columnas en md/lg) -->
-                <div class="col-12 col-md-6">
-                    $cot_section
-                </div>
-                <div class="col-12 col-md-6 d-flex align-items-end">
-                    $conversion_section
-                </div>
-                
-                <!-- Fila 4: Motivo Principal (Ancho Completo) -->
-                <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
-                        <label class="wizard-label mb-0">Motivo Principal de Consulta <span class="req-star">*</span></label>
-                        <div class="d-flex align-items-center gap-1">
-                            <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-3 py-1 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=motivo]', this)" title="Dictar motivo de consulta por voz con micrófono">
-                                <i class="bi bi-mic-fill me-1"></i>
-                                <span class="btn-dictado-text fw-bold">Dictar</span>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-1 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=motivo]')" title="Limpiar motivo de consulta">
-                                <i class="bi bi-eraser-fill me-1"></i>
-                                <span class="small fw-semibold">Limpiar</span>
-                            </button>
-                        </div>
+                <div class="row g-2.5">
+                    <div class="col-12 col-md-4">
+                        <label class="wizard-label">Paciente Titular</label>
+                        <input type="text" id="f_paciente_nombre" name="paciente_nombre_display" class="wizard-input bg-light fw-bold" value="$paciente->{nombre}" readonly data-preserve="true">
                     </div>
-                    <div class="position-relative">
-                        <textarea name="motivo" class="wizard-input" rows="4" placeholder="Describa el motivo por el cual asiste el paciente o dicte usando el micr&oacute;fono..." required>$motivo_precargado</textarea>
-                        <div class="dictado-live-badge text-danger fw-bold mt-2 d-none align-items-center gap-2">
-                            <span class="spinner-grow spinner-grow-sm text-danger" role="status" aria-hidden="true"></span>
-                            <span>Escuchando... Hable claramente al micr&oacute;fono de su dispositivo (haga clic en 'Detener Dictado' para pausar).</span>
-                        </div>
+                    <div class="col-6 col-md-3">
+                        <label class="wizard-label">CURP</label>
+                        <input type="text" id="f_paciente_curp" name="paciente_curp_display" class="wizard-input bg-light font-monospace" value="$paciente->{curp}" readonly data-preserve="true">
+                    </div>
+                    <div class="col-3 col-md-2">
+                        <label class="wizard-label">Sexo</label>
+                        <input type="text" id="f_paciente_sexo" name="paciente_sexo_display" class="wizard-input bg-light" value="$paciente->{sexo}" readonly data-preserve="true">
+                    </div>
+                    <div class="col-3 col-md-1.5">
+                        <label class="wizard-label">Edad</label>
+                        <input type="text" id="f_paciente_edad" name="paciente_edad_display" class="wizard-input bg-light" value="$paciente->{edad}" readonly data-preserve="true">
+                    </div>
+                    <div class="col-6 col-md-1.5">
+                        <label class="wizard-label">Hora</label>
+                        <input type="text" name="hora_consulta" class="wizard-input bg-light text-center" value="$paciente->{hora_consulta}" readonly data-preserve="true">
+                        <input type="hidden" name="fecha_consulta" value="$paciente->{fecha_consulta}" data-preserve="true">
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="wizard-label">Tipo de Consulta <span class="req-star">*</span></label>
+                        <select name="tipo_consulta" id="f_tipo_consulta" class="wizard-input" required onchange="SOAPReactiveEngine.syncAll()">
+                            $tipo_consulta_options
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="wizard-label">Especialidad (Inamovible)</label>
+                        <input type="text" id="f_paciente_espe" class="wizard-input bg-light fw-bold text-primary" value="$paciente->{espe_nombre_medico}" readonly data-preserve="true">
+                        <input type="hidden" name="especialidad" value="$paciente->{espe_nombre_medico}" data-preserve="true">
+                        <input type="hidden" name="id_espe" value="$paciente->{id_espe_medico}" data-preserve="true">
+                    </div>
+                    <div class="col-12 col-md-3">
+                        $cot_section
+                    </div>
+                    <div class="col-12 col-md-3 d-flex align-items-end">
+                        $conversion_section
                     </div>
                 </div>
+            </div>
 
-                <!-- Fila 5: Interruptor de Consentimientos & Documentación Legal -->
-                <div class="col-12 mt-2">
-                    <div class="card border-0 shadow-xs rounded-3 p-3 bg-white" style="border-left: 4px solid var(--md-blue-deep) !important; background: #f8fafc;">
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="p-2 bg-primary-subtle text-primary rounded-3">
-                                    <i class="bi bi-file-earmark-check fs-5"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-0 text-navy">
-                                        ¿Requiere Consentimientos & Docs Legales para esta consulta?
-                                    </h6>
-                                    <p class="text-muted small mb-0">Active esta opción si el paciente será sometido a procedimientos, cirugía menor o requiere consentimiento informado firmado. Si decide que no, la sección legal se inhabilita para agilizar la consulta.</p>
-                                </div>
+            <!-- Subcard 2: Padecimiento Actual (Subjetivo - S) + Chips Aceleradores + Escala EVA -->
+            <div class="qx-subcard mb-3">
+                <div class="qx-subcard-title d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span><i class="bi bi-chat-left-text-fill text-teal me-1.5"></i>2. Padecimiento Actual (Subjetivo - S)</span>
+                    <span class="small text-muted">Toque un chip para insertar motivo rápido en 1 clic</span>
+                </div>
+
+                <div class="row g-2.5">
+                    <!-- Motivo de Consulta -->
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                            <label class="wizard-label mb-0">Motivo Principal de Consulta <span class="req-star">*</span></label>
+                            <div class="d-flex align-items-center gap-1">
+                                <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2.5 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=motivo]', this)">
+                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-bold">Dictar</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=motivo]'); SOAPReactiveEngine.syncAll();">
+                                    <i class="bi bi-eraser-fill me-1"></i><span class="small fw-semibold">Limpiar</span>
+                                </button>
                             </div>
-                            <div class="form-check form-switch fs-4 mb-0">
-                                <input class="form-check-input" type="checkbox" role="switch" id="check_requiere_consentimiento_registro" name="requiere_consentimiento_registro" value="1" onchange="sincronizarConsentimientoDesdeRegistro(this.checked)">
+                        </div>
+                        <textarea name="motivo" id="f_motivo_consulta" class="wizard-input" rows="2" placeholder="Describa el motivo por el cual acude el paciente..." required oninput="SOAPReactiveEngine.syncAll()">$motivo_precargado</textarea>
+                        <div class="dictado-live-badge text-danger fw-bold mt-1 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger"></span><span>Escuchando dictado...</span>
+                        </div>
+                        <div class="chip-bar">
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_motivo_consulta', 'Valoración general y control clínico')">⚡ Valoración general</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_motivo_consulta', 'Odinofagia, fiebre y ataque al estado general')">⚡ Odinofagia / Fiebre</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_motivo_consulta', 'Dolor epigástrico urente y dispepsia')">⚡ Dolor epigástrico</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_motivo_consulta', 'Control y seguimiento de Hipertensión Arterial / Diabetes')">⚡ Control Crónico</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_motivo_consulta', 'Lumbalgia mecánica aguda post-esfuerzo')">⚡ Lumbalgia</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_motivo_consulta', 'Odontalgia aguda y revisión dental')">⚡ Odontalgia / Dental</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_motivo_consulta', 'Seguimiento y revisión de estudios previos')">⚡ Revisión de estudios</span>
+                        </div>
+                    </div>
+
+                    <!-- Inicio de síntomas y Escala EVA 1-10 -->
+                    <div class="col-12 col-md-4">
+                        <label class="wizard-label">Inicio de Síntomas</label>
+                        <input type="date" name="inicio_sintomas" id="f_inicio_sintomas" class="wizard-input" value="$hoy_str" onchange="SOAPReactiveEngine.syncAll()">
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="wizard-label mb-0">Escala Visual Analógica del Dolor (EVA 1–10)</label>
+                            <span id="lbl-eva-badge" class="badge bg-success rounded-pill">EVA 1/10 · Sin Dolor / Leve</span>
+                        </div>
+                        <input type="hidden" name="intensidad" id="f_intensidad_eva" value="1">
+                        <input type="hidden" name="eva_dolor" id="f_eva_dolor" value="1">
+                        <div class="eva-scale-bar" id="eva-buttons-container">
+                            <button type="button" class="eva-btn active-eva-low" data-eva="1" onclick="SOAPReactiveEngine.setEva(1)">1</button>
+                            <button type="button" class="eva-btn" data-eva="2" onclick="SOAPReactiveEngine.setEva(2)">2</button>
+                            <button type="button" class="eva-btn" data-eva="3" onclick="SOAPReactiveEngine.setEva(3)">3</button>
+                            <button type="button" class="eva-btn" data-eva="4" onclick="SOAPReactiveEngine.setEva(4)">4</button>
+                            <button type="button" class="eva-btn" data-eva="5" onclick="SOAPReactiveEngine.setEva(5)">5</button>
+                            <button type="button" class="eva-btn" data-eva="6" onclick="SOAPReactiveEngine.setEva(6)">6</button>
+                            <button type="button" class="eva-btn" data-eva="7" onclick="SOAPReactiveEngine.setEva(7)">7</button>
+                            <button type="button" class="eva-btn" data-eva="8" onclick="SOAPReactiveEngine.setEva(8)">8</button>
+                            <button type="button" class="eva-btn" data-eva="9" onclick="SOAPReactiveEngine.setEva(9)">9</button>
+                            <button type="button" class="eva-btn" data-eva="10" onclick="SOAPReactiveEngine.setEva(10)">10</button>
+                        </div>
+                    </div>
+
+                    <!-- Evolución y semiología -->
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                            <label class="wizard-label mb-0">Evolución y Semiología del Cuadro Clínico <span class="req-star">*</span></label>
+                            <div class="d-flex align-items-center gap-1">
+                                <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2.5 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="toggleDictadoVoz('textarea[name=evolucion]', this)">
+                                    <i class="bi bi-mic-fill me-1"></i><span class="btn-dictado-text fw-bold">Dictar</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0.5 shadow-xs d-inline-flex align-items-center" onclick="limpiarCampoTexto('textarea[name=evolucion]'); SOAPReactiveEngine.syncAll();">
+                                    <i class="bi bi-eraser-fill me-1"></i><span class="small fw-semibold">Limpiar</span>
+                                </button>
                             </div>
+                        </div>
+                        <textarea name="evolucion" id="f_evolucion" class="wizard-input" rows="2" placeholder="Cronología, factores desencadenantes, síntomas acompañantes y medicamentos previos..." required oninput="SOAPReactiveEngine.syncAll()"></textarea>
+                        <div class="dictado-live-badge text-danger fw-bold mt-1 d-none align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-danger"></span><span>Escuchando dictado...</span>
+                        </div>
+                        <div class="chip-bar">
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_evolucion', 'Inicia hace 48 horas con sintomatología progresiva, sin automedicación previa.')">⚡ Inicio 48h sin automedicación</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_evolucion', 'Niega fiebre, disnea, dolor torácico o pérdida ponderal.')">⚡ Niega datos de alarma sistémicos</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_evolucion', 'Acude a control subsecuente con adecuada adherencia terapéutica y mejoría clínica.')">⚡ Evolución favorable en control</span>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="d-flex justify-content-end mt-5">
-                <button type="button" class="wizard-btn-next" onclick="WizardController.nextStep()">Continuar a Historial M&eacute;dico <i class="bi bi-arrow-right ms-2"></i></button>
+
+            <!-- Subcard 3: Alergias (Motor Farmacológico + NKDA 1 Clic) y Antecedentes -->
+            <div class="qx-subcard mb-3">
+                <div class="qx-subcard-title d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span><i class="bi bi-shield-exclamation text-danger me-1.5"></i>3. Alergias Farmacológicas (Cruce COFEPRIS) y Antecedentes</span>
+                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-0.5 fw-bold shadow-xs btn-accelerator-action" onclick="SOAPReactiveEngine.marcarNKDA()">
+                        <i class="bi bi-check2-all me-1"></i>✓ Sin Alergias Conocidas (NKDA)
+                    </button>
+                </div>
+
+                <input type="hidden" name="es_nkda" id="f_es_nkda" value="0">
+
+                <div class="row g-2.5">
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="wizard-label mb-0 text-danger"><i class="bi bi-capsule me-1"></i>Alergias a Medicamentos / Alimentos</label>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-0" onclick="toggleDictadoVoz('textarea[name=alergias]', this)"><i class="bi bi-mic-fill"></i></button>
+                                <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0" onclick="limpiarCampoTexto('textarea[name=alergias]'); SOAPReactiveEngine.onAlergiasInput();"><i class="bi bi-eraser-fill"></i></button>
+                            </div>
+                        </div>
+                        <textarea name="alergias" id="f_alergias" class="wizard-input border-danger-subtle" rows="2" placeholder="Ej. Penicilina, Betalactámicos, AINEs, Sulfas... o presione ✓ Sin Alergias (NKDA)" oninput="SOAPReactiveEngine.onAlergiasInput()">$alergias_val</textarea>
+                        <div class="chip-bar">
+                            <span class="chip-accelerator text-danger border-danger-subtle bg-danger-subtle" onclick="SOAPReactiveEngine.setAlergiaRapida('Penicilina / Betalactámicos')">⚠️ Alergia Penicilina</span>
+                            <span class="chip-accelerator text-danger border-danger-subtle bg-danger-subtle" onclick="SOAPReactiveEngine.setAlergiaRapida('AINEs (Ibuprofeno / Ketorolaco / Naproxeno)')">⚠️ Alergia AINEs</span>
+                            <span class="chip-accelerator text-danger border-danger-subtle bg-danger-subtle" onclick="SOAPReactiveEngine.setAlergiaRapida('Sulfonamidas / Trimetoprima')">⚠️ Alergia Sulfas</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.marcarNKDA()">✓ Negadas (NKDA)</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="wizard-label mb-0">Antecedentes Personales Patológicos (Notas)</label>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-dictado-voz rounded-pill px-2 py-0" onclick="toggleDictadoVoz('textarea[name=antecedentes_patologicos]', this)"><i class="bi bi-mic-fill"></i></button>
+                                <button type="button" class="btn btn-sm btn-limpiar-campo rounded-pill px-2 py-0" onclick="limpiarCampoTexto('textarea[name=antecedentes_patologicos]'); SOAPReactiveEngine.syncAll();"><i class="bi bi-eraser-fill"></i></button>
+                            </div>
+                        </div>
+                        <textarea name="antecedentes_patologicos" id="f_antecedentes_patologicos" class="wizard-input" rows="2" placeholder="Crónico-degenerativos, quirúrgicos, hospitalizaciones..." oninput="SOAPReactiveEngine.syncAll()">$patologicos_val</textarea>
+                        <div class="chip-bar">
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_antecedentes_patologicos', 'Niega crónico-degenerativos, quirúrgicos y transfusionales.')">⚡ Crónicos y Qx Negados</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_antecedentes_patologicos', 'Hipertensión Arterial Sistémica en tratamiento.')">⚡ HTA en control</span>
+                            <span class="chip-accelerator" onclick="SOAPReactiveEngine.appendChip('f_antecedentes_patologicos', 'Diabetes Mellitus Tipo 2 en control.')">⚡ DM2 en control</span>
+                        </div>
+                    </div>
+
+                    <!-- Resumen Compacto de Antecedentes del Expediente -->
+                    <div class="col-12 mt-2">
+                        <div class="p-2.5 rounded-3 bg-light border d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="d-flex flex-wrap gap-1 align-items-center">
+                                <span class="small fw-bold text-navy me-1"><i class="bi bi-journal-medical text-teal me-1"></i>Expediente:</span>
+                                $hf_html $pp_html $pnp_html
+                            </div>
+                            <a href="crud_paciente.pl?accion=U&edit_id=$id_p&from=expediente" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-bold" style="font-size:0.7rem;">
+                                <i class="bi bi-pencil-square me-1"></i>Editar Ficha
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subcard 4: Bifurcación Legal — Consentimiento Informado Anticipado -->
+            <div class="qx-subcard mb-3" style="border-left: 4px solid #0A2A66 !important;">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2.5">
+                        <div class="p-2 bg-primary-subtle text-primary rounded-3">
+                            <i class="bi bi-file-earmark-lock2-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0 text-navy small">
+                                ¿Requiere Procedimiento Invasivo Menor o Consentimiento Informado en esta Consulta? (NOM-004)
+                            </h6>
+                            <p class="text-muted mb-0" style="font-size:0.72rem;">
+                                Si se activa, puede recabar la firma de Consentimiento Informado de forma anticipada antes de pasar a la Exploración (Paso 2) o vincularlo en el Paso 4.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" id="btn-consentimiento-anticipado-p1" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold shadow-xs d-none" onclick="if(window.abrirModalNuevoConsentimientoWizard) window.abrirModalNuevoConsentimientoWizard();">
+                            <i class="bi bi-pen-fill me-1"></i>Firmar Consentimiento Anticipado Ahora
+                        </button>
+                        <div class="form-check form-switch fs-5 mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="check_requiere_consentimiento_registro" name="requiere_consentimiento_registro" value="1" onchange="SOAPReactiveEngine.toggleConsentimientoAnticipado(this.checked)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3 pt-2 border-top">
+                <button type="button" class="wizard-btn-next" onclick="WizardController.nextStep()">
+                    Continuar a Paso 2: Objetivo (O) y Estudios Previos <i class="bi bi-arrow-right ms-1"></i>
+                </button>
             </div>
         </div>
-        
+
         <script>
         function toggleConversionCheckbox() {
             const cotSelect = document.getElementById('f_id_cotizacion');
             const wrapper = document.getElementById('conversion_wrapper');
             const check = document.getElementById('f_convertir_tratamiento');
-            
+            if (!wrapper || !check) return;
             if (cotSelect && cotSelect.value) {
                 wrapper.style.display = 'flex';
-                check.checked = true; // Seleccionado por defecto al elegir cotización
+                check.checked = true;
                 toggleConversionStyle();
             } else {
                 wrapper.style.display = 'none';
@@ -249,10 +410,10 @@ HTML
                 toggleConversionStyle();
             }
         }
-        
         function toggleConversionStyle() {
             const check = document.getElementById('f_convertir_tratamiento');
             const wrapper = document.getElementById('conversion_wrapper');
+            if (!wrapper) return;
             if (check && check.checked) {
                 wrapper.style.borderColor = 'var(--md-teal-clinical)';
                 wrapper.style.background = '#f0fdfa';

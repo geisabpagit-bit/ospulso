@@ -15,15 +15,13 @@ require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_sidebar.pl');
 use utils::db_manager qw(leer_tabla);
 
-# Cargar Componentes (Partials)
+# Cargar Componentes (Partials Compactados en 6 Pasos SOAP)
 require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_registro_privado.pl');
-require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_anamnesis.pl');
 require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_exploracion.pl');
-require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_estudios.pl');
 require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_soap.pl');
 require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_comunicacion.pl');
-require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_caja_privado.pl');
 require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_cierre_privado.pl');
+require File::Spec->catfile($FindBin::Bin, 'partials', 'consultas', 'step_caja_privado.pl');
 
 my $q = CGI->new;
 my $session_data = check_session($q);
@@ -155,15 +153,21 @@ if (!$id_negocio && defined $usuario && $usuario ne '') {
 $id_negocio ||= '0';
 
 my $tipo_organizacion = 'Clínica';
+my $has_pacientes_estado = 0;
+my $found_pacientes_estado = 0;
 my $archivo_config = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'negocios_config.dat');
 if (-e $archivo_config && open my $fh_cfg, '<:encoding(UTF-8)', $archivo_config) {
     while (my $line = <$fh_cfg>) {
         $line =~ s/\R//g;
         next if $line =~ /^#|^\s*$/;
         my @f = split(/\|/, $line);
-        if ($f[0] eq $id_negocio && $f[1] eq 'TIPO_ORGANIZACION') {
-            $tipo_organizacion = $f[2] // 'Clínica';
-            last;
+        if ($f[0] eq $id_negocio) {
+            if ($f[1] eq 'TIPO_ORGANIZACION') {
+                $tipo_organizacion = $f[2] // 'Clínica';
+            } elsif ($f[1] eq 'PACIENTES_ESTADO') {
+                $has_pacientes_estado = (($f[2] // '') eq '1') ? 1 : 0;
+                $found_pacientes_estado = 1;
+            }
         }
     }
     close $fh_cfg;
@@ -200,6 +204,54 @@ if (-e $neg_file && open my $fhn, '<:encoding(UTF-8)', $neg_file) {
         }
     }
     close $fhn;
+}
+
+if (!$found_pacientes_estado && ($id_negocio eq '0' || $id_negocio eq '') && length($org_clues)) {
+    $has_pacientes_estado = 1;
+}
+
+# Cargar antecedentes para clasificar pacientes de pacientes.dat en Particulares vs Municipio (PACIENTES_ESTADO)
+my %ant_por_pac = ();
+my $ant_file_all = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes_antecedentes.dat');
+if (-e $ant_file_all && open(my $fh_aa, '<:encoding(UTF-8)', $ant_file_all)) {
+    while (my $al = <$fh_aa>) {
+        chomp $al;
+        next if $al =~ /^\s*$/ || $al =~ /^ID_PACIENTE/i;
+        my @av = split(/\|/, $al, -1);
+        if (@av >= 3) {
+            my $parsed_a = eval { decode_json($av[2]) } || {};
+            $ant_por_pac{$av[0]} = $parsed_a if ref($parsed_a) eq 'HASH';
+        }
+    }
+    close($fh_aa);
+}
+
+# Construir opciones del Selector de Pacientes tomando como base principal dat/pacientes.dat (@pacientes.pl)
+my $html_selector_pacientes = '';
+my $pac_table_all = eval { leer_tabla(File::Spec->catfile($FindBin::Bin, '..', 'dat', 'pacientes.dat'), '\|') } || [];
+foreach my $pr (@$pac_table_all) {
+    next if !$pr->[0] || $pr->[0] =~ /^ID_PACIENTE$/i;
+    my $p_id  = $pr->[0];
+    my $p_nom = $pr->[2] // '';
+    next unless $p_nom;
+    my $p_ten = $pr->[13] // '';
+    my ($p_org) = split(/:/, $p_ten);
+
+    # Filtrar por tenant de la organización activa
+    next if ($p_org && $id_negocio ne '0' && $p_org ne $id_negocio);
+
+    my $a_ref   = $ant_por_pac{$p_id} || {};
+    my $num_emp = $a_ref->{num_empleado_estado} || '';
+    my $dep_emp = $a_ref->{dependencia} || '';
+    my $es_mun  = ($num_emp ne '' || $dep_emp ne '') ? 1 : 0;
+
+    # Si la organización NO tiene seleccionado PACIENTES_ESTADO, mostrar solo particulares;
+    # Si SÍ tiene seleccionado PACIENTES_ESTADO, agregar tanto Particulares como de Municipio registrados en pacientes.dat
+    next if (!$has_pacientes_estado && $es_mun);
+
+    my $tag_origen = $es_mun ? "[MUNICIPIO #$num_emp]" : "[PARTICULAR]";
+    my $sel_attr   = ($p_id eq $id_paciente) ? 'selected' : '';
+    $html_selector_pacientes .= qq(<option value="$p_id" $sel_attr>$p_nom $tag_origen (Exp #$p_id)</option>\n);
 }
 
 # Heurística canónica: si no tiene CLUE institucional o el nombre indica consultorio:
@@ -505,89 +557,466 @@ if ($id_paciente && $id_cita) {
     print qq{<script>if (window.history && window.history.replaceState && !window.location.search.includes('id_cita=')) { window.history.replaceState(null, '', 'render_consultas_privado.pl?id=$id_paciente&id_cita=$id_cita'); }</script>\n};
 }
 
+my $cedula_med_hdr = $paciente->{cedula_medico} // '';
+my $tiene_cedula_hdr = ($cedula_med_hdr && $cedula_med_hdr ne '0' && $cedula_med_hdr !~ /^\s*$/) ? 1 : 0;
+my $badge_cedula_hdr = $tiene_cedula_hdr
+    ? qq{<span id="hdr-cedula-badge" class="qx-tier1-date-pill" title="Cédula Profesional validada para recetas COFEPRIS"><i class="bi bi-patch-check-fill text-teal"></i><span>Céd. Prof: $cedula_med_hdr</span></span>}
+    : qq{<button type="button" id="hdr-cedula-badge" class="btn btn-xs btn-danger rounded-pill px-2.5 py-0.5 fw-bold" onclick="SOAPReactiveEngine.validarCedulaExpress()" title="Validar Cédula Profesional COFEPRIS"><i class="bi bi-exclamation-triangle-fill me-1"></i>Validar Cédula COFEPRIS</button>};
+
+my $btn_import_municipio_hdr = $has_pacientes_estado
+    ? qq{<button type="button" class="qx-filter-pill-box fw-bold text-navy" onclick="abrirModalImportarEmpleadoWizard()" title="Importar Empleado de Municipio / Estado desde el padrón CLUE"><i class="bi bi-building-down text-teal"></i><span class="small">+ Importar Municipio</span></button>}
+    : '';
+
 print <<HTML;
+<link rel="stylesheet" href="../css/sdm_mobile_standards.css">
+<link rel="stylesheet" href="../css/quirofano_wizard.css">
 <link rel="stylesheet" href="../css/consulta_flow.css">
 <!-- DataTables CSS/JS para Estudios PACS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
-<div class="wizard-container animate__animated animate__fadeIn p-1 p-md-3">
-    <!-- ENCABEZADO CLÍNICO DE ALTO IMPACTO (ESTÁNDAR GLOBAL CORPORATIVO) -->
-    <header class="wizard-hero-header">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 hero-content-row">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <div class="hero-icon-box">
-                    <i class="bi bi-heart-pulse-fill text-white fs-4"></i>
+<div class="wizard-container container-mobile-flush animate__animated animate__fadeIn p-1 p-md-2">
+
+    <!-- CABECERA EJECUTIVA NORMATIVA DE 2 NIVELES (HOMOLOGADA CON TABLERO QUIRÓFANO TEAL RAISED) -->
+    <header class="qx-executive-three-tier">
+        <!-- FILA 1: CABECERA NAVY CONTEXTUAL + RELOJ + CRONÓMETRO + CÉDULA + BÓVEDA (Alt+B) -->
+        <div class="qx-tier1-navy">
+            <div class="qx-tier1-brand flex-wrap">
+                <span class="qx-tier1-icon">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </span>
+                <span>Wizard Consulta SOAP</span>
+                <span class="qx-tier1-date-pill">
+                    <i class="bi bi-shield-lock-fill text-teal"></i>
+                    <span>NOM-004 &middot; NOM-024 &middot; TLS 1.3</span>
+                </span>
+                <span class="qx-tier1-date-pill">
+                    <i class="bi bi-person-vcard"></i>
+                    <span>Exp #$id_paciente &middot; $paciente->{nombre} ($paciente->{edad}, $paciente->{sexo})</span>
+                </span>
+                $badge_cedula_hdr
+            </div>
+
+            <div class="d-flex align-items-center flex-wrap gap-1.5 ms-auto">
+                <span class="qx-tier1-date-pill" title="Reloj del Sistema">
+                    <i class="bi bi-clock text-teal"></i>
+                    <span id="hdr-reloj-live">--:--:--</span>
+                </span>
+                <span class="qx-tier1-date-pill" title="Cronómetro de Consulta en Vivo (Se congela al sellar NOM-151)">
+                    <span class="pulse-live"></span>
+                    <span>Duración:</span>
+                    <strong id="hdr-cronometro-live" class="font-monospace">00:00</strong>
+                </span>
+                <button type="button" class="btn-qx-tier1-ghost" onclick="SOAPReactiveEngine.toggleCommandPalette()" title="Paleta de Comandos y Atajos (Alt+K)">
+                    <i class="bi bi-command text-teal"></i>
+                    <span class="d-none d-xl-inline">Atajos (Alt+K)</span>
+                </button>
+                <button type="button" class="btn-qx-tier1-ghost" onclick="if(typeof AutosaveService!=='undefined') AutosaveService.triggerSave(true);" title="Guardar Borrador Ahora (Alt+S)">
+                    <i class="bi bi-cloud-arrow-up-fill text-teal"></i>
+                    <span class="d-none d-md-inline">Borrador (Alt+S)</span>
+                </button>
+                <button type="button" class="btn-qx-tier1-action" onclick="BovedaService.openDrawer('ALL')" title="Abrir Bóveda Contextual del Paciente (Alt+B)">
+                    <i class="bi bi-safe2-fill"></i>
+                    <span>Bóveda (<span id="hdr-boveda-count">0</span>)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- FILA 2: 5 SEMÁFOROS DE MÓDULOS EXTERNOS + SELECTOR DE PACIENTE (PARTICULAR / MUNICIPIO) + PROGRESO -->
+        <div class="qx-tier2-controls">
+            <div class="d-flex align-items-center flex-wrap gap-1.5">
+                <span class="small fw-bold text-navy me-1"><i class="bi bi-stoplights-fill text-teal me-1"></i>Módulos:</span>
+                <span class="kpi-chip" onclick="WizardController.jumpToStep(0)" style="cursor:pointer;" title="Estado Expediente Clínico NOM-004">
+                    <span id="mod-dot-expediente" class="qx-traffic-dot dot-ambar"></span> Expediente NOM-004
+                </span>
+                <span class="kpi-chip" onclick="WizardController.jumpToStep(3)" style="cursor:pointer;" title="Estado Consentimiento y Acuerdos Legales">
+                    <span id="mod-dot-legal" class="qx-traffic-dot dot-ambar"></span> Legal
+                </span>
+                <span class="kpi-chip" onclick="WizardController.jumpToStep(2)" style="cursor:pointer;" title="Estado Recetario Oficial COFEPRIS">
+                    <span id="mod-dot-receta" class="qx-traffic-dot dot-gris"></span> Receta COFEPRIS
+                </span>
+                <span class="kpi-chip" onclick="WizardController.jumpToStep(5)" style="cursor:pointer;" title="Estado Caja y Finanzas">
+                    <span id="mod-dot-caja" class="qx-traffic-dot dot-ambar"></span> Caja
+                </span>
+                <span class="kpi-chip" onclick="WizardController.jumpToStep(5)" style="cursor:pointer;" title="Estado Agenda del Paciente">
+                    <span id="mod-dot-agenda" class="qx-traffic-dot dot-verde"></span> Agenda
+                </span>
+            </div>
+
+            <div class="d-flex align-items-center flex-wrap gap-2 ms-auto">
+                <!-- Selector de Paciente Registrado en CRUD pacientes.pl (Particulares + Municipio si PACIENTES_ESTADO=1) -->
+                <div class="qx-filter-pill-box" title="Cambiar paciente activo (Base: pacientes.dat)">
+                    <i class="bi bi-people-fill text-teal"></i>
+                    <select id="hdr-selector-paciente" class="qx-filter-select-clean" onchange="if(this.value) window.location.href='render_consultas_privado.pl?id='+encodeURIComponent(this.value);">
+                        $html_selector_pacientes
+                    </select>
                 </div>
-                <div>
-                    <h3 class="hero-title">Consulta M&eacute;dica</h3>
-                    <div class="hero-meta">
-                        <span class="hero-meta-pill"><i class="bi bi-person-fill"></i><strong>Paciente:</strong> $paciente->{nombre}</span>
-                        <span class="hero-meta-pill"><i class="bi bi-hash"></i><strong>Folio:</strong> $id_paciente</span>
+                $btn_import_municipio_hdr
+
+                <div class="d-flex align-items-center gap-2 bg-light px-2.5 py-1 rounded-pill border">
+                    <span id="hdr-step-progress-lbl" class="small fw-bold text-navy">Paso 1 de 6</span>
+                    <div style="width: 75px; height: 7px; background: #cbd5e1; border-radius: 10px; overflow: hidden;">
+                        <div id="wizard-progress-fill" style="height: 100%; width: 16%; background: linear-gradient(90deg, #19B7A5, #0A2A66); transition: width 0.3s;"></div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Stepper y Progress Bar (8 pasos) -->
-    <div class="wizard-stepper">
-        <div class="wizard-step active" onclick="WizardController.jumpToStep(0)">
-            <div class="wizard-step-icon"><i class="bi bi-person-lines-fill"></i></div>
-            <div class="wizard-step-label">Registro</div>
-        </div>
-        <div class="wizard-step" onclick="WizardController.jumpToStep(1)">
-            <div class="wizard-step-icon"><i class="bi bi-clock-history"></i></div>
-            <div class="wizard-step-label">Historial M&eacute;dico</div>
-        </div>
-        <div class="wizard-step" onclick="WizardController.jumpToStep(2)">
-            <div class="wizard-step-icon"><i class="bi bi-activity"></i></div>
-            <div class="wizard-step-label">Exploraci&oacute;n</div>
-        </div>
-        <div class="wizard-step" onclick="WizardController.jumpToStep(3)">
-            <div class="wizard-step-icon"><i class="bi bi-file-medical"></i></div>
-            <div class="wizard-step-label">Estudios</div>
-        </div>
-        <div class="wizard-step" onclick="WizardController.jumpToStep(4)">
-            <div class="wizard-step-icon"><i class="bi bi-diagram-3"></i></div>
-            <div class="wizard-step-label">S.O.A.P.</div>
-        </div>
-        <div class="wizard-step" onclick="WizardController.jumpToStep(5)">
-            <div class="wizard-step-icon"><i class="bi bi-chat-heart"></i></div>
-            <div class="wizard-step-label">Acuerdos</div>
-        </div>
-        <div class="wizard-step" onclick="WizardController.jumpToStep(6)">
-            <div class="wizard-step-icon"><i class="bi bi-wallet2"></i></div>
-            <div class="wizard-step-label">Caja</div>
-        </div>
-        <div class="wizard-step" onclick="WizardController.jumpToStep(7)">
-            <div class="wizard-step-icon"><i class="bi bi-check-circle"></i></div>
-            <div class="wizard-step-label">Cierre</div>
-        </div>
+    <!-- LAYOUT PERSISTENTE DE 3 COLUMNAS (COL IZQUIERDA NAV 6 PASOS | COL CENTRAL FORMULARIO | COL DERECHA STICKY CONTEXTO) -->
+    <div class="soap-wizard-3col-layout">
+
+        <!-- =========================================================
+             COLUMNA IZQUIERDA: NAVEGACIÓN SEMAFORIZADA DE 6 PASOS SOAP
+             ========================================================= -->
+        <aside class="soap-left-nav-col">
+            <div class="soap-nav-header">
+                <span class="small fw-bold text-uppercase"><i class="bi bi-list-check me-1 text-teal"></i>6 Pasos S.O.A.P.</span>
+                <span class="badge bg-teal text-white" style="background:#19B7A5;font-size:0.65rem;">Alt+1..6</span>
+            </div>
+            <div class="soap-nav-steps-list">
+                <button type="button" class="soap-nav-step-item active" data-step="0" onclick="WizardController.jumpToStep(0)">
+                    <span class="soap-step-badge-num">1</span>
+                    <div class="soap-step-text-wrap">
+                        <span class="soap-step-title">Subjetivo (S)</span>
+                        <span class="soap-step-sub">Motivo &middot; EVA &middot; Alergias</span>
+                    </div>
+                    <span id="nav-dot-step-0" class="qx-traffic-dot dot-ambar"></span>
+                </button>
+
+                <button type="button" class="soap-nav-step-item" data-step="1" onclick="WizardController.jumpToStep(1)">
+                    <span class="soap-step-badge-num">2</span>
+                    <div class="soap-step-text-wrap">
+                        <span class="soap-step-title">Objetivo (O)</span>
+                        <span class="soap-step-sub">Triage &middot; Exploración &middot; PACS</span>
+                    </div>
+                    <span id="nav-dot-step-1" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-nav-step-item" data-step="2" onclick="WizardController.jumpToStep(2)">
+                    <span class="soap-step-badge-num">3</span>
+                    <div class="soap-step-text-wrap">
+                        <span class="soap-step-title">Análisis y Plan</span>
+                        <span class="soap-step-sub">CIE-10 &middot; Pronóstico &middot; Receta</span>
+                    </div>
+                    <span id="nav-dot-step-2" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-nav-step-item" data-step="3" onclick="WizardController.jumpToStep(3)">
+                    <span class="soap-step-badge-num">4</span>
+                    <div class="soap-step-text-wrap">
+                        <span class="soap-step-title">Acuerdos y Legal</span>
+                        <span class="soap-step-sub">Comprensión &middot; Consentim.</span>
+                    </div>
+                    <span id="nav-dot-step-3" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-nav-step-item" data-step="4" onclick="WizardController.jumpToStep(4)">
+                    <span class="soap-step-badge-num">5</span>
+                    <div class="soap-step-text-wrap">
+                        <span class="soap-step-title">Firma NOM-151</span>
+                        <span class="soap-step-sub">e.firma &middot; QR &middot; Enviar Caja</span>
+                    </div>
+                    <span id="nav-dot-step-4" class="qx-traffic-dot dot-gris"></span>
+                </button>
+
+                <button type="button" class="soap-nav-step-item" data-step="5" onclick="WizardController.jumpToStep(5)">
+                    <span class="soap-step-badge-num">6</span>
+                    <div class="soap-step-text-wrap">
+                        <span class="soap-step-title">Caja y Agenda</span>
+                        <span class="soap-step-sub">Cobro 3NF &middot; Próxima Cita</span>
+                    </div>
+                    <span id="nav-dot-step-5" class="qx-traffic-dot dot-gris"></span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- =========================================================
+             COLUMNA CENTRAL: FORMULARIO ACTIVO DE LOS 6 PASOS SOAP
+             ========================================================= -->
+        <section class="soap-center-form-col min-w-0">
+            <!-- Banner Verde de Bloqueo Inmutable cuando se sella bajo NOM-151 en el Paso 5 -->
+            <div id="banner-nota-sellada-nom151" class="alert alert-success border-success py-2 px-3 mb-2.5 d-none d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-lock-fill me-1.5"></i>
+                    <strong>Nota Clínica Sellada bajo NOM-151-SCFI-2016:</strong> Los Pasos 1 al 4 se encuentran bloqueados contra edición para garantizar inmutabilidad médico-legal (NOM-004).
+                </div>
+                <span class="badge bg-success">INMUTABLE</span>
+            </div>
+
+            <form id="wizard-form" autocomplete="off">
+                <input type="hidden" name="id_cita" value="$id_cita">
+                <input type="hidden" name="id_paciente" value="$id_paciente">
+                <input type="hidden" name="id_medico" value="$id_medico">
+
+                @{[ render_step_registro_privado($paciente) ]}
+                @{[ render_step_exploracion($paciente) ]}
+                @{[ render_step_soap($paciente, $id_negocio) ]}
+                @{[ render_step_comunicacion($paciente) ]}
+                @{[ render_step_cierre_privado($paciente) ]}
+                @{[ render_step_caja_privado($paciente, $id_cita) ]}
+            </form>
+        </section>
+
+        <!-- =========================================================
+             COLUMNA DERECHA STICKY: CONTEXTO CLÍNICO EN VIVO + S.O.A.P.
+             ========================================================= -->
+        <aside class="soap-right-context-col">
+            <div class="qx-monitor-header d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="small fw-bold text-uppercase d-block" style="font-size:0.72rem;letter-spacing:0.4px;">Contexto Clínico en Vivo</span>
+                    <span class="text-white-50" style="font-size:0.68rem;">Médico: $med_nombre</span>
+                </div>
+                <span id="ctx-firma-status" class="badge bg-warning text-dark" style="font-size:0.65rem;">BORRADOR</span>
+            </div>
+
+            <!-- 1. Banner Rojo de Alergias o Badge Verde NKDA -->
+            <div id="ctx-allergy-banner" class="context-allergy-banner-green">
+                <i class="bi bi-shield-check-fill text-success fs-6"></i>
+                <span>✓ SIN ALERGIAS CONOCIDAS (NKDA)</span>
+            </div>
+
+            <!-- 2. Banner Ámbar de Alertas Fisiológicas -->
+            <div id="ctx-physio-banner" class="context-physio-banner-amber d-none"></div>
+
+            <!-- 3. Tabla Comparativa: Triage Actual vs. Signos Basales Previos -->
+            <div class="p-2.5 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="qx-label mb-0 text-navy"><i class="bi bi-activity text-teal me-1"></i>Triage Actual vs. Basal</span>
+                    <span class="text-muted" style="font-size:0.65rem;">Prev: <strong id="ctx-basal-fecha">--</strong></span>
+                </div>
+                <table class="table table-sm table-bordered mb-0 triage-compare-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Signo</th>
+                            <th class="text-center">Hoy</th>
+                            <th class="text-center text-muted">Basal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">T.A.</td>
+                            <td class="text-center fw-bold text-navy" id="ctx-now-ta">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-ta">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">F.C.</td>
+                            <td class="text-center fw-bold text-navy" id="ctx-now-fc">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-fc">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Temp</td>
+                            <td class="text-center fw-bold text-navy" id="ctx-now-temp">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-temp">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">SpO₂</td>
+                            <td class="text-center fw-bold text-navy" id="ctx-now-spo2">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-spo2">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Peso</td>
+                            <td class="text-center fw-bold text-navy" id="ctx-now-peso">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-peso">--</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">IMC</td>
+                            <td class="text-center fw-bold text-navy" id="ctx-now-imc">--</td>
+                            <td class="text-center text-muted" id="ctx-basal-imc">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 4. Consolidado S.O.A.P. en Vivo -->
+            <div class="p-2.5 border-bottom soap-live-summary-box">
+                <div class="qx-label mb-1.5 text-navy"><i class="bi bi-file-earmark-medical text-teal me-1"></i>Consolidado S.O.A.P. en Vivo</div>
+                <div class="d-flex gap-2 mb-1.5 align-items-start">
+                    <span class="soap-live-letter">S</span>
+                    <div class="text-muted text-break" id="ctx-soap-s">Sin motivo capturado...</div>
+                </div>
+                <div class="d-flex gap-2 mb-1.5 align-items-start">
+                    <span class="soap-live-letter" style="background:#19B7A5;">O</span>
+                    <div class="text-muted text-break" id="ctx-soap-o">Sin exploración capturada...</div>
+                </div>
+                <div class="d-flex gap-2 mb-1.5 align-items-start">
+                    <span class="soap-live-letter" style="background:#0284c7;">A</span>
+                    <div class="text-muted text-break" id="ctx-soap-a">Sin diagnóstico/impresión...</div>
+                </div>
+                <div class="d-flex gap-2 align-items-start">
+                    <span class="soap-live-letter" style="background:#059669;">P</span>
+                    <div class="text-muted text-break" id="ctx-soap-p">Sin plan terapéutico...</div>
+                </div>
+            </div>
+
+            <!-- 5. Estado Financiero y Accesos Rápidos -->
+            <div class="p-2.5 bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                    <span class="small fw-bold text-secondary">Total Caja / Orden:</span>
+                    <span id="ctx-caja-total" class="fw-black text-success fs-6">\$0.00</span>
+                </div>
+                <div class="d-grid gap-1">
+                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill fw-bold py-1" onclick="BovedaService.openDrawer('ALL')">
+                        <i class="bi bi-safe2 me-1"></i>Abrir Bóveda del Paciente (Alt+B)
+                    </button>
+                </div>
+            </div>
+        </aside>
+
     </div>
-    
-    <div class="wizard-progress-bar">
-        <div class="wizard-progress-fill" id="wizard-progress-fill"></div>
+</div>
+
+<!-- =====================================================================
+     DRAWER DESLIZABLE: BÓVEDA DEL PACIENTE (2 NIVELES + TIMELINE)
+     ===================================================================== -->
+<div id="boveda-drawer-backdrop" class="boveda-drawer-backdrop" onclick="BovedaService.closeDrawer()"></div>
+<aside id="boveda-drawer-panel" class="boveda-drawer-panel">
+    <div class="qx-monitor-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-safe2-fill text-teal fs-5"></i>
+            <div>
+                <h6 class="fw-bold text-white mb-0">Bóveda Clínica del Paciente</h6>
+                <small class="text-white-50" style="font-size:0.7rem;">Índice Virtual Cero Duplicidad &middot; $paciente->{nombre}</small>
+            </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" onclick="BovedaService.closeDrawer()"></button>
     </div>
 
-    <!-- Contenedor Principal (Form) -->
-    <form id="wizard-form" autocomplete="off">
-        <!-- Campos ocultos necesarios -->
-        <input type="hidden" name="id_cita" value="$id_cita">
-        <input type="hidden" name="id_paciente" value="$id_paciente">
-        <input type="hidden" name="id_medico" value="$id_medico">
-        
-        @{[ render_step_registro_privado($paciente) ]}
-        @{[ render_step_anamnesis($paciente) ]}
-        @{[ render_step_exploracion($paciente) ]}
-        @{[ render_step_estudios($paciente) ]}
-        @{[ render_step_soap($paciente) ]}
-        @{[ render_step_comunicacion($paciente) ]}
-        @{[ render_step_caja_privado($paciente, $id_cita) ]}
-        @{[ render_step_cierre_privado() ]}
-    </form>
+    <div class="p-2.5 bg-white border-bottom">
+        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light"><i class="bi bi-search text-teal"></i></span>
+                <input type="text" id="boveda-search-input" class="form-control" placeholder="Buscar por título, folio, fármaco o fecha..." oninput="BovedaService.renderDocs()">
+            </div>
+            <div class="btn-group btn-group-sm flex-shrink-0">
+                <button type="button" id="btn-boveda-mode-cat" class="btn btn-outline-primary active fw-bold" style="font-size:0.7rem;" onclick="BovedaService.toggleViewMode('CATEGORIES')" title="Vista 2 Niveles por Categoría">2 Niveles</button>
+                <button type="button" id="btn-boveda-mode-time" class="btn btn-outline-primary fw-bold" style="font-size:0.7rem;" onclick="BovedaService.toggleViewMode('TIMELINE')" title="Vista Línea de Tiempo">Timeline</button>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-1">
+            <button type="button" class="btn btn-xs btn-primary rounded-pill px-2.5 py-0.5 fw-bold boveda-filter-chip" data-filter="ALL" onclick="BovedaService.setFilter('ALL')">Todos</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="PACS" onclick="BovedaService.setFilter('PACS')">PACS</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="LAB" onclick="BovedaService.setFilter('LAB')">Labs</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="RECETA" onclick="BovedaService.setFilter('RECETA')">Recetas</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="ODONTO" onclick="BovedaService.setFilter('ODONTO')">Odonto</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="LEGAL" onclick="BovedaService.setFilter('LEGAL')">Legal</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-0.5 fw-semibold boveda-filter-chip" data-filter="SOAP" onclick="BovedaService.setFilter('SOAP')">SOAP</button>
+        </div>
+    </div>
+
+    <div id="boveda-docs-container" class="p-2.5 flex-grow-1 overflow-auto"></div>
+</aside>
+
+<!-- MODAL LIGHTBOX DE DOCUMENTO DE LA BÓVEDA -->
+<div class="modal fade modal-qx-compact" id="modalBovedaLightbox" tabindex="-1" aria-hidden="true" style="z-index: 105600 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-qx-header">
+                <h6 class="modal-title fw-bold text-white mb-0" id="modal-boveda-lightbox-title">Visor Rápido Lightbox — Bóveda del Paciente</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body modal-qx-body" id="modal-boveda-lightbox-body"></div>
+        </div>
+    </div>
 </div>
+
+<!-- MODAL VISTA IMPRIMIBLE PDF + QR NOM-024 -->
+<div class="modal fade modal-qx-compact" id="modalPDFNotaClinicaQR" tabindex="-1" aria-hidden="true" style="z-index: 105600 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header modal-qx-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-qr-code-scan text-warning fs-5"></i>
+                    <h6 class="modal-title fw-bold text-white mb-0">Nota Clínica SOAP &amp; Receta COFEPRIS — Validación QR NOM-024</h6>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body modal-qx-body" id="modal-pdf-nota-qr-body"></div>
+            <div class="modal-footer bg-white border-top px-3 py-2 d-flex justify-content-between">
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold" onclick="SOAPReactiveEngine.enviarNotaCifradaTLS()">
+                    <i class="bi bi-shield-lock-fill me-1"></i>Envío Cifrado TLS 1.3 al Paciente
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold" onclick="window.print()">
+                        <i class="bi bi-printer-fill me-1"></i>Imprimir / Guardar PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PALETA DE COMANDOS Y ATAJOS (Alt+K) -->
+<div class="modal fade modal-qx-compact" id="modalCommandPaletteAltK" tabindex="-1" aria-hidden="true" style="z-index: 105650 !important;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-qx-header">
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="bi bi-command me-2 text-warning"></i>Paleta de Comandos y Aceleradores (Alt+K)</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body modal-qx-body">
+                <div class="d-grid gap-1.5 small">
+                    <button type="button" class="btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center fw-bold" onclick="SOAPReactiveEngine.aplicarTodoNormal()" data-bs-dismiss="modal">
+                        <span><i class="bi bi-lightning-charge-fill text-success me-2"></i>⚡ Aplicar Exploración "Todo Normal" (Paso 2)</span>
+                        <kbd class="bg-dark text-white">1 Clic</kbd>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center fw-bold" onclick="SOAPReactiveEngine.marcarNKDA()" data-bs-dismiss="modal">
+                        <span><i class="bi bi-shield-check text-success me-2"></i>✓ Marcar Sin Alergias Conocidas (NKDA)</span>
+                        <kbd class="bg-dark text-white">1 Clic</kbd>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center fw-bold" onclick="SOAPReactiveEngine.copiarSignosBasales()" data-bs-dismiss="modal">
+                        <span><i class="bi bi-clock-history text-primary me-2"></i>Importar Signos Basales Previos</span>
+                        <kbd class="bg-dark text-white">1 Clic</kbd>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center fw-bold" onclick="BovedaService.openDrawer('ALL')" data-bs-dismiss="modal">
+                        <span><i class="bi bi-safe2-fill text-teal me-2"></i>Abrir Bóveda del Paciente</span>
+                        <kbd class="bg-dark text-white">Alt + B</kbd>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light border text-start d-flex justify-content-between align-items-center fw-bold" onclick="if(typeof AutosaveService!=='undefined') AutosaveService.triggerSave(true);" data-bs-dismiss="modal">
+                        <span><i class="bi bi-cloud-check-fill text-primary me-2"></i>Guardar Borrador Manualmente</span>
+                        <kbd class="bg-dark text-white">Alt + S</kbd>
+                    </button>
+                    <div class="p-2 rounded bg-white border text-muted mt-1">
+                        <div><strong>Navegación Rápida por Teclado:</strong></div>
+                        <div>&bull; <kbd>Alt + 1..6</kbd> Saltar directamente al Paso 1..6</div>
+                        <div>&bull; <kbd>Alt + &rarr;</kbd> / <kbd>Alt + &larr;</kbd> Avanzar o retroceder de paso</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL IMPORTACIÓN DE EMPLEADO DE MUNICIPIO / ESTADO EN WIZARD (CAPACIDAD SAAS PACIENTES_ESTADO) -->
+<div class="modal fade modal-qx-compact" id="modalImportarEmpleadoWizard" tabindex="-1" aria-hidden="true" style="z-index: 105650 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header modal-qx-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-building-down text-warning fs-5"></i>
+                    <div>
+                        <h6 class="modal-title fw-bold text-white mb-0">Importar / Atender Empleado de Municipio (Padrón CLUE)</h6>
+                        <small class="text-white-50" style="font-size:0.72rem;">Registra o localiza al empleado municipal en <code>pacientes.dat</code> y lo carga en el Wizard</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body modal-qx-body">
+                <div class="input-group input-group-sm mb-2.5">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-teal"></i></span>
+                    <input type="text" id="iptBuscarEmpleadoWizard" class="form-control fw-bold" placeholder="Escriba No. de empleado o nombre/apellidos (mín. 2 caracteres)..." oninput="debounceBuscarEmpleadoWizard(this.value)">
+                    <button type="button" class="btn btn-primary fw-bold px-3" onclick="ejecutarBusquedaEmpleadoWizard()">Buscar en Padrón</button>
+                </div>
+                <div id="resEmpleadoWizardCont" class="p-2 bg-white rounded-3 border" style="min-height: 180px; max-height: 320px; overflow-y: auto;">
+                    <div class="text-center py-4 text-muted small">Ingrese número de empleado o nombre para consultar el padrón municipal.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- MODAL GESTIÓN DE CITAS -->
 <div class="modal fade modal-diamond" id="modalCita" tabindex="-1" aria-hidden="true" style="z-index: 105150 !important;">
@@ -718,10 +1147,12 @@ print <<HTML;
     data-org-domicilio="$org_domicilio" 
     data-org-telefono="$org_telefono" 
     data-org-rfc="$org_rfc" 
+    data-org-clues="$org_clues" 
     data-org-logo="$org_logo" 
     data-tipo-organizacion="$tipo_organizacion" 
     data-es-consultorio="$es_consultorio" 
     data-es-consultorio-ind="$es_consultorio_ind" 
+    data-has-pacientes-estado="$has_pacientes_estado" 
     data-hoy-fecha="$hoy_fecha" 
     data-hoy-hora="$hoy_hora" 
     style="display:none;"></div>
@@ -867,12 +1298,135 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof toggleSeccionConsentimiento === 'function') toggleSeccionConsentimiento(false);
     }
     
-    // 3. Inicializar Autosave
+    // 3. Inicializar Autosave, Motor Reactivo SOAP y Bóveda del Paciente
     AutosaveService.init(idPaciente, idCita, idMedico);
+    if (typeof SOAPReactiveEngine !== 'undefined') {
+        SOAPReactiveEngine.init();
+    }
+    if (typeof BovedaService !== 'undefined') {
+        BovedaService.init(idPaciente);
+    }
 });
 
-async function finalizarConsulta() {
-    if (!WizardController.validateCurrentStep()) return;
+let debounceTimerEmpWiz = null;
+function abrirModalImportarEmpleadoWizard() {
+    const el = document.getElementById('modalImportarEmpleadoWizard');
+    if (!el || !window.bootstrap) return;
+    bootstrap.Modal.getOrCreateInstance(el).show();
+    setTimeout(() => {
+        const inp = document.getElementById('iptBuscarEmpleadoWizard');
+        if (inp) inp.focus();
+    }, 300);
+}
+
+function debounceBuscarEmpleadoWizard(val) {
+    clearTimeout(debounceTimerEmpWiz);
+    if (!val || val.trim().length < 2) return;
+    debounceTimerEmpWiz = setTimeout(() => {
+        ejecutarBusquedaEmpleadoWizard();
+    }, 350);
+}
+
+function ejecutarBusquedaEmpleadoWizard() {
+    const inp = document.getElementById('iptBuscarEmpleadoWizard');
+    const cont = document.getElementById('resEmpleadoWizardCont');
+    const cfg = document.getElementById('js-config');
+    const clues = cfg ? (cfg.getAttribute('data-org-clues') || '') : '';
+    if (!inp || !cont) return;
+    const qStr = inp.value.trim();
+    if (qStr.length < 2) return;
+
+    cont.innerHTML = '<div class="text-center py-4 text-muted small"><span class="spinner-border spinner-border-sm text-primary me-2"></span>Consultando padrón municipal...</div>';
+
+    fetch('../api/buscar_empleadosmun.pl', {
+        method: 'POST',
+        body: new URLSearchParams({ q: qStr, clues: clues })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+            cont.innerHTML = '<div class="text-center py-4 text-muted small">No se encontraron empleados en el padrón con ese criterio.</div>';
+            return;
+        }
+        let html = '<div class="list-group list-group-flush gap-1.5">';
+        data.forEach((emp, idx) => {
+            const safeNom = SOAPReactiveEngine.escapeHtml(emp.nombre || '');
+            const safeRel = SOAPReactiveEngine.escapeHtml(emp.relacion || 'Empleado');
+            const safeNum = SOAPReactiveEngine.escapeHtml(emp.num_empleado || '');
+            const safeDep = SOAPReactiveEngine.escapeHtml(emp.dependencia || '');
+            const empPayload = encodeURIComponent(JSON.stringify(emp));
+            html += `
+                <div class="list-group-item bg-light rounded-3 p-2 border d-flex justify-content-between align-items-center gap-2">
+                    <div class="small">
+                        <div class="fw-bold text-navy">${safeNom} <span class="badge bg-info text-dark ms-1">${safeRel}</span> <span class="badge bg-secondary ms-1">#${safeNum}</span></div>
+                        <div class="text-muted" style="font-size:0.72rem;"><i class="bi bi-building me-1"></i>${safeDep}</div>
+                    </div>
+                    <button type="button" class="btn btn-xs btn-primary rounded-pill px-3 py-1 fw-bold" style="background:#19B7A5;border-color:#19B7A5;" onclick="importarYAtenderEmpleadoWizard('${empPayload}')">
+                        <i class="bi bi-person-check-fill me-1"></i>Inscribir y Atender
+                    </button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        cont.innerHTML = html;
+    })
+    .catch(err => {
+        cont.innerHTML = '<div class="alert alert-danger py-2 small">Error al consultar el padrón municipal.</div>';
+    });
+}
+
+async function importarYAtenderEmpleadoWizard(encodedEmp) {
+    try {
+        const emp = JSON.parse(decodeURIComponent(encodedEmp));
+        if (!emp || !emp.nombre) return;
+        const normNom = String(emp.nombre).replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '').replace(/\s+/g, ' ').trim();
+        const cleanTel = String(emp.telefono || '5500000000').replace(/[^0-9\+]/g, '') || '5500000000';
+
+        // Verificar primero si ya existe en el selector de pacientes.dat
+        const selPac = document.getElementById('hdr-selector-paciente');
+        if (selPac) {
+            for (const opt of selPac.options) {
+                if (opt.text.toLowerCase().includes(normNom.toLowerCase())) {
+                    window.location.href = 'render_consultas_privado.pl?id=' + encodeURIComponent(opt.value);
+                    return;
+                }
+            }
+        }
+
+        // Si no existe en pacientes.dat, crearlo vía api/pacientes_crud_api.pl igual que en @pacientes.pl / crud_paciente.pl
+        const res = await fetch('../api/pacientes_crud_api.pl', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+            body: JSON.stringify({
+                accion: 'crear',
+                nombre: normNom,
+                telefono: cleanTel,
+                correo: emp.correo || '',
+                nacionalidad: 'Mexicana',
+                ocupacion: 'Servidor Público Municipal',
+                dependencia: emp.dependencia || '',
+                num_empleado_estado: emp.num_empleado || '',
+                antecedentes: {
+                    dependencia: emp.dependencia || '',
+                    num_empleado_estado: emp.num_empleado || ''
+                }
+            })
+        });
+        const data = await res.json();
+        if (data.ok && data.id_paciente) {
+            window.location.href = 'render_consultas_privado.pl?id=' + encodeURIComponent(data.id_paciente);
+        } else {
+            // Si ya existía por nombre idéntico, redirigir a crud_paciente.pl con sessionStorage
+            sessionStorage.setItem('sdm_import_empleado', JSON.stringify(emp));
+            window.location.href = 'crud_paciente.pl?origen=municipio';
+        }
+    } catch (e) {
+        console.error('Error importando empleado en wizard:', e);
+    }
+}
+
+async function finalizarConsulta(skipStepValidation = false) {
+    if (!skipStepValidation && !WizardController.validateCurrentStep()) return;
     
     // Serializar todo el formulario del wizard
     const formEl = document.getElementById('wizard-form');

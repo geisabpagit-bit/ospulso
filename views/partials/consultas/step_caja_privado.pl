@@ -252,13 +252,19 @@ sub render_step_caja_privado {
     }
 
     return qq{
-        <div class="wizard-panel" id="step-panel-6">
+        <div class="wizard-panel" id="step-panel-5" data-step-index="5">
             <input type="hidden" name="caja_items_json" id="f_caja_items_json" value="[]">
             <input type="hidden" name="odonto_alias_seleccionado" id="f_odonto_alias_seleccionado" value="">
             
-            <h3 class="mb-4" style="color: var(--md-blue-deep); font-weight: 800;">
-                <i class="bi bi-wallet2 me-2" style="color: var(--md-teal-clinical);"></i>Caja y Registro de Pago
-            </h3>
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2.5 mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold text-navy mb-0">
+                        <i class="bi bi-wallet2 me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Paso 6: Caja, Liquidación de Conceptos 3NF y Próxima Cita
+                    </h5>
+                    <p class="text-muted small mb-0">Cobro directo en consultorio, recibo oficial y programación de cita de seguimiento en Agenda.</p>
+                </div>
+                <span class="badge bg-success text-white fw-bold">Paso 6 de 6</span>
+            </div>
             
             $banner_odonto_caja_html
             
@@ -365,9 +371,18 @@ sub render_step_caja_privado {
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between mt-5 pt-4 border-top">
-                <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()"><i class="bi bi-arrow-left me-2"></i> Anterior</button>
-                <button type="button" class="wizard-btn-next" onclick="validarPasoCajaYContinuar()">Continuar a Cierre <i class="bi bi-arrow-right ms-2"></i></button>
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top flex-wrap gap-2">
+                <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()">
+                    <i class="bi bi-arrow-left me-1"></i> Paso 5: Firma NOM-151
+                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="verReciboPrevio()">
+                        <i class="bi bi-receipt me-1"></i>Ver Recibo Previo
+                    </button>
+                    <button type="button" class="wizard-btn-next" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);" onclick="finalizarConsulta()">
+                        <i class="bi bi-check2-circle me-1"></i>Confirmar Cobro, Emitir Recibo y Finalizar Consulta
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -874,11 +889,14 @@ sub render_step_caja_privado {
                     </tr>
                 `;
                 
-                // Guardar JSON en input oculto
+                    // Guardar JSON en input oculto
                 document.getElementById('f_caja_items_json').value = JSON.stringify(carritoConsulta);
                 
                 // Actualizar inputs de caja
                 actualizarMontoPago();
+                if (typeof SOAPReactiveEngine !== 'undefined' && SOAPReactiveEngine.syncAll) {
+                    SOAPReactiveEngine.syncAll();
+                }
             } else {
                 noCotCard.style.display = 'block';
                 workflowCont.style.display = 'none';

@@ -7,10 +7,21 @@ sub render_step_comunicacion {
     my $id_p = $paciente ? ($paciente->{id_paciente} || '') : '';
 
     my $html = qq{
-        <div class="wizard-panel" id="step-panel-5" data-id-paciente="$id_p">
-            <h3 class="mb-4" style="color: var(--md-blue-deep); font-weight: 800;">
-                <i class="bi bi-chat-heart me-2" style="color: var(--md-teal-clinical);"></i>Comunicaci&oacute;n del Plan
-            </h3>
+        <div class="wizard-panel" id="step-panel-3" data-step-index="3" data-id-paciente="$id_p">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2.5 mb-3 flex-wrap gap-2">
+                <div>
+                    <h5 class="fw-bold text-navy mb-0">
+                        <i class="bi bi-chat-heart-fill me-2" style="color: var(--md-teal-clinical, #19B7A5);"></i>Paso 4: Acuerdos Médico-Paciente y Blindaje Legal (NOM-004)
+                    </h5>
+                    <p class="text-muted small mb-0">Verificación de comprensión del tratamiento y vinculación o emisión de Cartas de Consentimiento Informado.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-xs btn-success rounded-pill px-3 py-1 fw-bold btn-accelerator-action" onclick="SOAPReactiveEngine.marcarAcuerdosCompletos()">
+                        <i class="bi bi-check2-all me-1"></i>⚡ Marcar 3 Acuerdos NOM-004 (1 Clic)
+                    </button>
+                    <span class="badge bg-primary-subtle text-primary fw-bold">Paso 4 de 6</span>
+                </div>
+            </div>
             
             <div class="row g-4">
                 <div class="col-12">
@@ -131,9 +142,13 @@ sub render_step_comunicacion {
                 </div>
             </div>
             
-            <div class="d-flex justify-content-between mt-5">
-                <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()"><i class="bi bi-arrow-left me-2"></i> Anterior</button>
-                <button type="button" class="wizard-btn-next" onclick="WizardController.nextStep()">Continuar a Caja <i class="bi bi-arrow-right ms-2"></i></button>
+            <div class="d-flex justify-content-between mt-3 pt-2 border-top">
+                <button type="button" class="wizard-btn-prev" onclick="WizardController.prevStep()">
+                    <i class="bi bi-arrow-left me-1"></i> Paso 3: Análisis y Receta
+                </button>
+                <button type="button" class="wizard-btn-next" onclick="WizardController.nextStep()">
+                    Continuar a Paso 5: Firma Clínica e.firma / NOM-151 <i class="bi bi-arrow-right ms-1"></i>
+                </button>
             </div>
 
             <!-- MODAL COMPACTO: EMISIÓN RÁPIDA DE CONSENTIMIENTO EN WIZARD -->
@@ -225,7 +240,7 @@ sub render_step_comunicacion {
         function obtenerIdPacienteWizard() {
             const inp = document.querySelector('input[name="id_paciente"]');
             if (inp && inp.value) return inp.value;
-            const panel = document.getElementById('step-panel-5');
+            const panel = document.getElementById('step-panel-3') || document.getElementById('step-panel-5');
             return panel ? (panel.getAttribute('data-id-paciente') || '') : '';
         }
 

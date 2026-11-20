@@ -1,149 +1,237 @@
-/* css/consulta_flow.css */
-/* Estilos para el Wizard Clínico SDM Diamond */
+/* ==========================================================================
+   css/consulta_flow.css
+   OSPULSO - WIZARD DE CONSULTA MÉDICA SOAP (6 PASOS) + BÓVEDA DEL PACIENTE
+   Homologado con Tablero y Wizard Quirúrgico (Medentia Aura & Teal Raised)
+   ========================================================================== */
 
 .wizard-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding-bottom: 100px;
-}
-
-/* Barra Superior de Progreso */
-.wizard-progress-bar {
-    background: #e2e8f0;
-    border-radius: 20px;
-    height: 12px;
     width: 100%;
-    margin-bottom: 2rem;
+    max-width: 100%;
+    margin: 0 auto;
+    padding-bottom: 65px;
+}
+
+/* ==========================================================================
+   1. LAYOUT REACTIVO DE 3 COLUMNAS (MOBILE-FIRST & LAPTOP FRIENDLY)
+   ========================================================================== */
+.soap-wizard-3col-layout {
+    display: grid;
+    grid-template-columns: 225px minmax(0, 1fr) 310px;
+    gap: 0.9rem;
+    align-items: start;
+    width: 100%;
+}
+
+@media (max-width: 1279.98px) {
+    .soap-wizard-3col-layout {
+        grid-template-columns: minmax(0, 1fr) 295px;
+    }
+    .soap-left-nav-col {
+        grid-column: 1 / -1;
+    }
+    .soap-nav-steps-list {
+        display: grid !important;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.45rem !important;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .soap-wizard-3col-layout {
+        grid-template-columns: 1fr;
+    }
+    .soap-nav-steps-list {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 4px;
+    }
+    .soap-nav-step-item {
+        min-width: 155px;
+        scroll-snap-align: start;
+    }
+}
+
+/* ==========================================================================
+   2. COLUMNA IZQUIERDA: NAVEGACIÓN SEMAFORIZADA DE 6 PASOS SOAP
+   ========================================================================== */
+.soap-left-nav-col {
+    background: #ffffff;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5);
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(10, 42, 102, 0.06);
+    position: sticky;
+    top: 78px;
     overflow: hidden;
-    position: relative;
 }
 
-.wizard-progress-fill {
-    background: linear-gradient(90deg, var(--md-blue-light) 0%, var(--md-blue-deep) 100%);
-    height: 100%;
-    width: 0%;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 20px;
+@media (max-width: 1279.98px) {
+    .soap-left-nav-col {
+        position: static;
+    }
 }
 
-/* Navegación Lateral / Stepper Horizontal */
-.wizard-stepper {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 2.5rem;
-    position: relative;
-    padding: 0 10px;
-}
-
-.wizard-step {
-    flex: 1;
-    text-align: center;
-    position: relative;
-    z-index: 2;
-    cursor: not-allowed;
-    opacity: 0.5;
-    transition: all 0.3s;
-}
-
-.wizard-step.active {
-    opacity: 1;
-    cursor: pointer;
-}
-
-.wizard-step.completed {
-    opacity: 1;
-    cursor: pointer;
-}
-
-.wizard-step-icon {
-    width: 40px;
-    height: 40px;
-    background: #f1f5f9;
-    color: #64748b;
-    border-radius: 50%;
+.soap-nav-header {
+    background: linear-gradient(135deg, #0A2A66 0%, #124A9E 100%);
+    color: #ffffff;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 2px solid #19B7A5;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+}
+
+.soap-nav-steps-list {
+    padding: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.soap-nav-step-item {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 11px;
+    padding: 0.55rem 0.65rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    text-align: left;
+    width: 100%;
+}
+
+.soap-nav-step-item:hover {
+    border-color: #19B7A5;
+    background: #f0fdfa;
+    transform: translateY(-1px);
+}
+
+.soap-nav-step-item.active {
+    background: linear-gradient(135deg, #0A2A66 0%, #153e85 100%);
+    border-color: #0A2A66;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.22);
+}
+
+.soap-nav-step-item.completed:not(.active) {
+    background: #f0fdf4;
+    border-color: #86efac;
+}
+
+.soap-nav-step-item.alert-step:not(.active) {
+    background: #fff5f5;
+    border-color: #fca5a5;
+}
+
+.soap-step-badge-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: #e2e8f0;
+    color: #0A2A66;
+    font-weight: 800;
+    font-size: 0.76rem;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    margin: 0 auto 0.5rem auto;
-    font-size: 1.2rem;
-    border: 2px solid #e2e8f0;
-    transition: all 0.3s;
+    flex-shrink: 0;
 }
 
-.wizard-step.active .wizard-step-icon {
-    background: var(--md-teal-clinical);
-    color: white;
-    border-color: var(--md-teal-clinical);
-    box-shadow: 0 0 0 4px rgba(25, 183, 165, 0.1);
+.soap-nav-step-item.active .soap-step-badge-num {
+    background: #19B7A5;
+    color: #ffffff;
 }
 
-.wizard-step.completed .wizard-step-icon {
+.soap-nav-step-item.completed:not(.active) .soap-step-badge-num {
     background: #10b981;
-    color: white;
-    border-color: #10b981;
+    color: #ffffff;
 }
 
-.wizard-step-label {
+.soap-step-text-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.soap-step-title {
     font-size: 0.75rem;
     font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
+    line-height: 1.15;
+    display: block;
+    color: inherit;
 }
 
-.wizard-step.active .wizard-step-label {
-    color: var(--md-teal-clinical);
+.soap-step-sub {
+    font-size: 0.65rem;
+    opacity: 0.78;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.wizard-step.completed .wizard-step-label {
-    color: #10b981;
-}
-
-/* Formularios Modulares (MedentIA Diamond Armor) */
+/* ==========================================================================
+   3. COLUMNA CENTRAL: PANELES DEL WIZARD, ACELERADORES Y CHIPS DE 1 CLIC
+   ========================================================================== */
 .wizard-panel {
     background: #ffffff;
-    border-radius: 1.5rem;
-    padding: 2.5rem;
-    box-shadow: 0 10px 30px rgba(10, 42, 102, 0.05);
-    border: 2px solid var(--md-teal-clinical);
+    border-radius: 14px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 6px 20px rgba(10, 42, 102, 0.06);
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5);
     display: none;
-    animation: fadeIn 0.4s ease;
-    backdrop-filter: blur(10px);
+    animation: fadeIn 0.25s ease;
 }
 
 .wizard-panel.active {
     display: block;
 }
 
-@keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(15px); } 
-    to { opacity: 1; transform: translateY(0); } 
+.wizard-panel.locked-nom151 input:not([type="hidden"]),
+.wizard-panel.locked-nom151 textarea,
+.wizard-panel.locked-nom151 select,
+.wizard-panel.locked-nom151 .chip-accelerator,
+.wizard-panel.locked-nom151 .btn-accelerator-action {
+    pointer-events: none !important;
+    opacity: 0.72 !important;
+    background-color: #f1f5f9 !important;
 }
 
-/* Elementos de Formulario Diamond */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .wizard-label {
-    font-size: 0.8rem;
+    font-size: 0.74rem;
     font-weight: 800;
-    color: var(--md-blue-deep);
-    margin-bottom: 0.5rem;
+    color: var(--md-blue-deep, #0A2A66);
+    margin-bottom: 0.3rem;
     display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .wizard-input {
     background: #f8fafc;
-    border: 2px solid #e2e8f0;
-    border-radius: 1rem;
-    padding: 0.8rem 1.2rem;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 9px;
+    padding: 0.5rem 0.75rem;
     width: 100%;
-    transition: all 0.3s;
+    transition: all 0.2s;
     font-weight: 600;
-    color: var(--md-blue-deep);
+    font-size: 0.85rem;
+    color: #0f172a;
 }
 
 .wizard-input:focus {
     outline: none;
-    border-color: var(--md-teal-clinical);
-    box-shadow: 0 0 0 4px rgba(25, 183, 165, 0.15);
-    background: white;
+    border-color: var(--md-teal-clinical, #19B7A5);
+    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.16);
+    background: #ffffff;
 }
 
 .wizard-input.is-invalid {
@@ -152,55 +240,303 @@
 }
 
 .wizard-btn-next {
-    background: var(--md-blue-deep);
-    color: white;
-    border: none;
-    padding: 0.8rem 2rem;
-    border-radius: 2rem;
+    background: linear-gradient(135deg, #0A2A66 0%, #124A9E 100%);
+    color: #ffffff;
+    border: 1px solid #19B7A5;
+    padding: 0.55rem 1.35rem;
+    border-radius: 50px;
     font-weight: 800;
-    transition: all 0.3s;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .wizard-btn-next:hover {
-    background: var(--md-blue-light);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(45, 96, 219, 0.2);
+    background: #19B7A5;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(25, 183, 165, 0.3);
 }
 
 .wizard-btn-prev {
     background: #f1f5f9;
-    color: #64748b;
-    border: none;
-    padding: 0.8rem 2rem;
-    border-radius: 2rem;
-    font-weight: 800;
-    transition: all 0.3s;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 0.55rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
 .wizard-btn-prev:hover {
     background: #e2e8f0;
-    color: var(--md-blue-deep);
+    color: #0A2A66;
 }
 
-/* Indicador de Autosave */
-.autosave-indicator {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--md-navy);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
+/* Chips Aceleradores de 1 Clic */
+.chip-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+}
+
+.chip-accelerator {
+    background: #f0fdfa;
+    color: #0f766e;
+    border: 1px solid #99f6e4;
+    border-radius: 50px;
+    padding: 0.18rem 0.65rem;
+    font-size: 0.71rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    user-select: none;
+}
+
+.chip-accelerator:hover {
+    background: #19B7A5;
+    color: #ffffff;
+    border-color: #19B7A5;
+    transform: translateY(-1px);
+}
+
+.chip-macro-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%);
+    border: 1.5px solid rgba(25, 183, 165, 0.45);
+    border-radius: 10px;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #0A2A66;
+}
+
+.chip-macro-card:hover {
+    background: #0A2A66;
+    color: #ffffff;
+    border-color: #19B7A5;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.18);
+}
+
+/* Tarjetas de Signos Vitales Semaforizados (Triage Paso 2) */
+.vital-sign-card {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.5rem 0.65rem;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.vital-sign-card.vital-ok {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.vital-sign-card.vital-warn {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.vital-sign-card.vital-alert {
+    border-color: #ef4444;
+    background: #fef2f2;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+}
+
+.vital-status-pill {
+    font-size: 0.64rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 50px;
+    text-transform: uppercase;
+}
+
+/* Escala EVA 1-10 Interactiva */
+.eva-scale-bar {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+}
+
+.eva-btn {
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    border-radius: 7px;
+    padding: 0.3rem 0;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.eva-btn.active-eva-low { background: #10b981; color: #fff; border-color: #059669; }
+.eva-btn.active-eva-mid { background: #f59e0b; color: #fff; border-color: #d97706; }
+.eva-btn.active-eva-high { background: #ef4444; color: #fff; border-color: #dc2626; }
+
+/* ==========================================================================
+   4. COLUMNA DERECHA STICKY: CONTEXTO CLÍNICO EN VIVO + CONSOLIDADO SOAP
+   ========================================================================== */
+.soap-right-context-col {
+    background: #ffffff;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5);
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(10, 42, 102, 0.07);
+    position: sticky;
+    top: 78px;
+    overflow: hidden;
+}
+
+.context-allergy-banner-red {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    color: #ffffff;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.76rem;
+    font-weight: 800;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.5rem;
+}
+
+.context-allergy-banner-green {
+    background: #ecfdf5;
+    color: #065f46;
+    border-bottom: 1px solid #a7f3d0;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.74rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.context-physio-banner-amber {
+    background: #fffbeb;
+    color: #92400e;
+    border-bottom: 1px solid #fde68a;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.73rem;
+    font-weight: 700;
+}
+
+.triage-compare-table th,
+.triage-compare-table td {
+    padding: 0.26rem 0.4rem !important;
+    font-size: 0.72rem !important;
+}
+
+.soap-live-summary-box {
+    max-height: 250px;
+    overflow-y: auto;
+    font-size: 0.73rem;
+}
+
+.soap-live-letter {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: #0A2A66;
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 0.68rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   5. DRAWER DESLIZABLE: BÓVEDA DEL PACIENTE (2 NIVELES + LIGHTBOX)
+   ========================================================================== */
+.boveda-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 42, 102, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 105500;
+    display: none;
+}
+
+.boveda-drawer-backdrop.open {
+    display: block;
+}
+
+.boveda-drawer-panel {
+    position: fixed;
+    top: 0;
+    right: -540px;
+    width: 100%;
+    max-width: 520px;
+    height: 100vh;
+    background: #f8fafc;
+    border-left: 2.5px solid #19B7A5;
+    box-shadow: -12px 0 35px rgba(10, 42, 102, 0.25);
+    z-index: 105510;
+    transition: right 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.boveda-drawer-panel.open {
+    right: 0;
+}
+
+.boveda-doc-card {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-left: 4px solid #19B7A5;
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.16s ease;
+}
+
+.boveda-doc-card:hover {
+    border-color: #19B7A5;
+    box-shadow: 0 4px 12px rgba(10, 42, 102, 0.08);
+}
+
+/* Filas de Receta con Alerta de Alergia Cruzada */
+.receta-row-allergy-conflict {
+    background-color: #fef2f2 !important;
+    border: 2px solid #ef4444 !important;
+}
+
+/* Indicador de Autosave y Controles de Voz */
+.autosave-indicator {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    background: #0A2A66;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.4s;
-    z-index: 1000;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    transition: all 0.3s;
+    z-index: 105000;
+    border: 1px solid #19B7A5;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
 .autosave-indicator.show {
@@ -208,185 +544,52 @@
     transform: translateY(0);
 }
 
-/* Campos requeridos asterisco */
 .req-star {
     color: #ef4444;
-    margin-left: 3px;
+    margin-left: 2px;
 }
 
-/* Dictado por Voz (Speech-to-Text) */
 .btn-dictado-voz {
-    transition: all 0.25s ease-in-out;
-    border-color: rgba(25, 183, 165, 0.4);
+    transition: all 0.2s ease-in-out;
+    border-color: rgba(25, 183, 165, 0.45);
     color: var(--md-teal-clinical, #19B7A5);
-    background: transparent;
-    font-size: 0.8rem;
+    background: #ffffff;
+    font-size: 0.74rem;
 }
+
 .btn-dictado-voz:hover {
     background-color: var(--md-teal-clinical, #19B7A5);
     border-color: var(--md-teal-clinical, #19B7A5);
     color: #ffffff;
 }
+
 @keyframes pulseDictado {
     0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
     70% { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
 }
+
 .pulsing-mic {
     animation: pulseDictado 1.5s infinite;
 }
+
 .dictado-live-badge {
     background: #fef2f2;
     border: 1px solid #fecaca;
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
 }
 
-/* Botón Limpiar Campo de Texto */
 .btn-limpiar-campo {
-    transition: all 0.2s ease-in-out;
     border-color: #cbd5e1;
     color: #64748b;
-    background: transparent;
-    font-size: 0.8rem;
+    background: #ffffff;
+    font-size: 0.74rem;
 }
+
 .btn-limpiar-campo:hover {
-    background-color: #f1f5f9;
-    border-color: #94a3b8;
+    background-color: #fee2e2;
+    border-color: #fca5a5;
     color: #dc2626;
 }
-
-/* =========================================================================
-   WIZARD HERO HEADER (NON-INVASIVE PREMIUM MOBILE APP-BAR)
-   ========================================================================= */
-.wizard-hero-header {
-    background: linear-gradient(135deg, #0A2A66 0%, #124A9E 100%) !important;
-    border-radius: 1.25rem !important;
-    padding: 1.15rem 1.5rem !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 15px rgba(10, 42, 102, 0.12) !important;
-    border: 1px solid rgba(25, 183, 165, 0.2) !important;
-    position: relative !important;
-    overflow: hidden !important;
-    margin-bottom: 1.5rem !important;
-}
-
-.wizard-hero-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(25, 183, 165, 0.15) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.wizard-hero-header .hero-icon-box {
-    width: 48px !important;
-    height: 48px !important;
-    min-width: 48px !important;
-    max-width: 48px !important;
-    background: rgba(255, 255, 255, 0.12) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
-}
-
-.wizard-hero-header .hero-title {
-    font-size: 1.4rem !important;
-    font-weight: 800 !important;
-    color: #ffffff !important;
-    margin: 0 !important;
-    letter-spacing: -0.5px !important;
-}
-
-.wizard-hero-header .hero-meta {
-    color: rgba(255, 255, 255, 0.85) !important;
-    font-size: 0.82rem !important;
-    margin-top: 0.25rem !important;
-    display: flex !important;
-    align-items: center !important;
-    flex-wrap: wrap !important;
-    gap: 0.6rem !important;
-}
-
-.wizard-hero-header .hero-meta-pill {
-    background: rgba(255, 255, 255, 0.12) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    padding: 2px 8px !important;
-    border-radius: 12px !important;
-    font-size: 0.75rem !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-}
-
-@media (max-width: 767.98px) {
-    .wizard-container {
-        margin: 0.25rem auto !important;
-        padding: 0.5rem !important;
-    }
-    .wizard-hero-header {
-        padding: 0.65rem 0.85rem !important;
-        border-radius: 0.85rem !important;
-        margin-bottom: 0.75rem !important;
-    }
-    .wizard-hero-header .hero-content-row {
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        gap: 0.5rem !important;
-    }
-    .wizard-hero-header .hero-icon-box {
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px !important;
-        max-width: 36px !important;
-    }
-    .wizard-hero-header .hero-icon-box i {
-        font-size: 1.15rem !important;
-    }
-    .wizard-hero-header .hero-title {
-        font-size: 1.05rem !important;
-        line-height: 1.2 !important;
-    }
-    .wizard-hero-header .hero-meta {
-        font-size: 0.72rem !important;
-        gap: 0.4rem !important;
-        margin-top: 2px !important;
-    }
-    .wizard-hero-header .hero-meta-pill {
-        padding: 1px 6px !important;
-        font-size: 0.7rem !important;
-    }
-    /* Compact Stepper for Mobile */
-    .wizard-stepper {
-        margin-bottom: 1rem !important;
-        padding: 0 2px !important;
-    }
-    .wizard-step-icon {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 0.95rem !important;
-        margin-bottom: 0.25rem !important;
-    }
-    .wizard-step-label {
-        font-size: 0.65rem !important;
-        letter-spacing: -0.2px !important;
-    }
-    .wizard-progress-bar {
-        height: 6px !important;
-        margin-bottom: 1rem !important;
-    }
-    .wizard-panel {
-        padding: 1.25rem !important;
-        border-radius: 1.2rem !important;
-    }
-}
-
-

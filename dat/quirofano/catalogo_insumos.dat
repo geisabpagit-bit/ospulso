@@ -1,6 +1,6 @@
 id_insumo|tenant_id|codigo_sku|nombre|id_categoria|id_unidad|precio_unitario|stock_actual|activo|created_at|updated_at|created_by
 INS-QX-001|ALL|SKU-PER-001|Enfermera Instrumentista Quirúrgica (Turno/Evento)|CAT-QX-01|UNI-06|1800.00|999|1|2026-11-19 14:30:00|2026-11-19 14:30:00|system
-INS-QX-002|ALL|SKU-PER-002|Enfermera Circulante de Sala (Hora)|CAT-QX-01|UNI-03|450.00|999|1|2026-11-19 14:30:00|2026-11-19 14:30:00|system
+INS-QX-002|ALL|SKU-PER-002|Enfermera Circulante de Sala (Hora)|CAT-QX-01|UNI-03|450.00|997|1|2026-11-19 14:30:00|2026-11-19 14:30:00|system
 INS-QX-003|ALL|SKU-PER-003|Asistencia Médica Primer Ayudante|CAT-QX-01|UNI-06|2500.00|999|1|2026-11-19 14:30:00|2026-11-19 14:30:00|system
 INS-QX-004|ALL|SKU-INS-001|Charola de Cirugía Mayor Estéril|CAT-QX-02|UNI-04|1200.00|25|1|2026-11-19 14:30:00|2026-11-19 14:30:00|system
 INS-QX-005|ALL|SKU-INS-002|Set de Laparoscopía Avanzada y Trócares|CAT-QX-02|UNI-04|2800.00|12|1|2026-11-19 14:30:00|2026-11-19 14:30:00|system

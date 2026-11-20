@@ -242,7 +242,7 @@ if ($input->{accion} eq 'crear') {
     # ===============================================
 
     print "Content-Type: application/json; charset=UTF-8\n\n";
-    print JSON::PP->new->utf8(0)->encode({ok => 1, msg => "La Ficha Clínica de $nombre ha sido generada correctamente."});
+    print JSON::PP->new->utf8(0)->encode({ok => 1, id_paciente => $id_paciente, msg => "La Ficha Clínica de $nombre ha sido generada correctamente."});
     exit;
 } elsif ($input->{accion} eq 'actualizar') {
     my $id_target = $input->{id};

@@ -233,6 +233,26 @@
    - Columna izquierda: Datos del paciente/arrendatario con búsqueda predictiva, fecha, motivo/especialidad, profesional, sede, consultorio, estado, prioridad y color de cita.
    - Columna derecha: Sección de duración con badge superior interactivo (`#lbl_slider_duracion_badge`), slider táctil continuo (`#slider_duracion_renta`), píldoras segmentadas rápidas (`#btn-group-duracion`), tarjeta amarilla avena de bloqueo (`#bloqueo-horario-avena`) con candado e intervalo, y contenedor de horarios disponibles anticolisión sincronizado con pacientes y espacios físicos.
 
+---
+
+## 17. Wizard de Consulta Médica SOAP (6 Pasos) + Bóveda del Paciente y Desacoplamiento de Caja
+
+1. **Arquitectura Reactiva de 3 Columnas y 6 Pasos S.O.A.P. (`views/render_consultas_privado.pl`)**:
+   - **Header Normativo Two-Tier (`.qx-executive-three-tier`)**: Incluye reloj en tiempo real, cronómetro de consulta que se congela al firmar, validador COFEPRIS de Cédula Profesional, paleta de comandos (`Alt+K`), autoguardado (`Alt+S`), botón de Bóveda (`Alt+B`), 5 semáforos de módulos externos (`Expediente NOM-004`, `Legal`, `Receta COFEPRIS`, `Caja`, `Agenda`) y selector de paciente activo.
+   - **Columna Izquierda**: Navegación vertical semaforizada de los 6 pasos (`.qx-traffic-dot`: `dot-verde`, `dot-ambar`, `dot-rojo` pulsante, `dot-gris`).
+   - **Columna Central**: Formulario de 6 pasos compactados (`Paso 1: Subjetivo y Registro`, `Paso 2: Objetivo, Triage y Estudios Previos`, `Paso 3: Análisis, Plan, Pronóstico Dual y Receta COFEPRIS`, `Paso 4: Acuerdos y Blindaje Legal`, `Paso 5: Firma e.firma / NOM-151 y Bifurcación Operativa`, `Paso 6: Caja 3NF y Agenda`).
+   - **Columna Derecha Sticky**: Banner rojo de alergias o badge verde `NKDA`, banner ámbar de alertas fisiológicas, tabla comparativa Triage Actual vs. Signos Basales Previos y Consolidado S.O.A.P. en vivo.
+2. **Motor de Triage (6 Signos Vitales + IMC OMS) y Aceleradores de 1 Clic (`js/consulta_flow_privado.js`)**:
+   - Evalúa en tiempo real `T.A.`, `F.C.`, `F.R.`, `Temp`, `SpO2`, `Glucosa Capilar` (`Ayuno` vs `Posprandial`) e `IMC OMS`.
+   - Aceleradores: `⚡ Todo Normal` (Charting by Exception), `Copiar Basales`, `✓ Sin Alergias (NKDA)`, Macros Clínicas Completas por patología y Pronóstico Dual Rápido (`Bueno / Bueno`).
+3. **Motor de Seguridad Farmacológica (Alergia Cruzada) y Bóveda del Paciente (`api/boveda_paciente_api.pl`)**:
+   - Cruza cada fármaco agregado o clonado contra `alergias` por familias farmacológicas (*Betalactámicos/Penicilinas*, *AINEs*, *Sulfas*, *Macrólidos*, *Quinolonas*), resaltando conflictos en rojo.
+   - La Bóveda del Paciente unifica en un índice virtual de 2 niveles (o vista Timeline) sin duplicidad física: `PACS` (`estudios.dat`), `Odontogramas`, `Recetas COFEPRIS` (clonables), `Consentimientos Legales` y `Notas SOAP Previas`, con Lightbox y acción `Citar en Nota Actual`.
+4. **Desacoplamiento Clínico vs. Caja y Capacidad SaaS `PACIENTES_ESTADO`**:
+   - En el **Paso 5**, al sellar la nota bajo NOM-151 (`sha256_hex`), se bloquea la edición de los pasos 1–4 y el médico puede elegir entre: (A) Enviar orden de cobro a Recepción/Caja (`Cobro por recepción`) finalizando su acto médico en 1 clic, o (B) Avanzar al **Paso 6** para cobrar como Médico Independiente y agendar seguimiento.
+   - El selector de pacientes toma como base `dat/pacientes.dat` (`views/pacientes.pl`), incluyendo pacientes Particulares y, cuando la organización tiene activa la capacidad SaaS `PACIENTES_ESTADO = 1`, agregando también a los Empleados de Municipio/Estado con soporte de importación directa desde el padrón CLUE (`api/buscar_empleadosmun.pl`).
+
+
 
 
 
