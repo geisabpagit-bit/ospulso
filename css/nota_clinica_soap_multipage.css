@@ -61,19 +61,50 @@
 /* --------------------------------------------------------------------------
    2. TOOLBAR SUPERIOR DEL VISOR MULTI-PÁGINA
    -------------------------------------------------------------------------- */
-.clinical-multipage-toolbar {
-    background: #0D2238;
-    color: #FFFFFF;
-    padding: 0.65rem 1.15rem;
-    border-bottom: 2px solid var(--clinical-teal);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+.clinical-multipage-toolbar,
+.pdf-multipage-toolbar {
+    background: #0D2238 !important;
+    background-color: #0D2238 !important;
+    color: #FFFFFF !important;
+    padding: 0.65rem 1.15rem !important;
+    border-bottom: 2px solid var(--clinical-teal) !important;
+    box-shadow: 0 4px 12px rgba(13, 34, 56, 0.35) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1040 !important;
+}
+
+.pdf-multipage-toolbar .text-white,
+.pdf-multipage-toolbar strong {
+    color: #FFFFFF !important;
+}
+
+.pdf-multipage-toolbar .text-white-50 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.pdf-multipage-toolbar .btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    color: #FFFFFF !important;
+    background: transparent !important;
+}
+
+.pdf-multipage-toolbar .btn-outline-light:hover,
+.pdf-multipage-toolbar .btn-outline-light.active {
+    background: #00C0B5 !important;
+    border-color: #00C0B5 !important;
+    color: #0D2238 !important;
+    font-weight: 700 !important;
+}
+
+.pdf-multipage-toolbar .btn-jump-page {
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.pdf-multipage-toolbar .btn-jump-page:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #FFFFFF !important;
 }
 
 .clinical-toolbar-section {

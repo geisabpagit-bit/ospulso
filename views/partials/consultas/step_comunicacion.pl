@@ -167,7 +167,7 @@ sub render_step_comunicacion {
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-3 p-md-4 bg-light">
-                            <form id="formNuevoConsentimientoWizard" onsubmit="guardarNuevoConsentimientoWizard(event)">
+                            <div id="formNuevoConsentimientoWizard">
                                 <input type="hidden" name="id_paciente" id="wiz_cons_id_paciente" value="$id_p">
                                 <input type="hidden" name="ambito_uso" value="USO_CONSULTA">
                                 <input type="hidden" name="tipo_consentimiento" value="CONSULTA_PROCEDIMIENTO">
@@ -230,11 +230,11 @@ sub render_step_comunicacion {
 
                                 <div class="d-flex justify-content-end gap-2 mt-3 pt-2.5 border-top">
                                     <button type="button" class="btn btn-sm btn-light rounded-pill px-3 fw-semibold border" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-sm btn-navy rounded-pill px-4 fw-semibold shadow-sm">
+                                    <button type="button" onclick="guardarNuevoConsentimientoWizard(event)" class="btn btn-sm btn-navy rounded-pill px-4 fw-semibold shadow-sm">
                                         <i class="bi bi-shield-check me-1"></i> Sellar y Vincular Documento
                                     </button>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -471,9 +471,14 @@ sub render_step_comunicacion {
         }
 
         async function guardarNuevoConsentimientoWizard(e) {
-            e.preventDefault();
-            const form = document.getElementById('formNuevoConsentimientoWizard');
-            const formData = new FormData(form);
+            if (e && e.preventDefault) e.preventDefault();
+            const container = document.getElementById('formNuevoConsentimientoWizard');
+            const formData = new FormData();
+            if (container) {
+                container.querySelectorAll('input, textarea, select').forEach(el => {
+                    if (el.name) formData.append(el.name, el.value);
+                });
+            }
             formData.append('accion', 'save');
             const searchParams = new URLSearchParams(formData);
 

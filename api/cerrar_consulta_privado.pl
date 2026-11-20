@@ -524,11 +524,14 @@ if (-e $citas_file && open my $fh_in, '<:encoding(UTF-8)', $citas_file) {
 }
 
 # 3. Flujo Clínico-Financiero Privado (Cotizaciones -> Tratamientos -> Caja -> Citas)
-my $id_cotizacion = $q->param('id_cotizacion') || '';
-my $convertir_tratamiento = $q->param('convertir_tratamiento') || '0';
-my $id_tratamiento_param = $q->param('id_tratamiento') || '';
-my $caja_items_json = $q->param('caja_items_json') || '[]';
-my $caja_monto_abono = $q->param('caja_monto_abono') // 0;
+my $id_cotizacion = $q->param('id_cotizacion') || $payload{id_cotizacion} || '';
+my $convertir_tratamiento = $q->param('convertir_tratamiento') || $payload{convertir_tratamiento} || '0';
+my $id_tratamiento_param = $q->param('id_tratamiento') || $payload{id_tratamiento} || '';
+my $caja_items_json = $q->param('caja_items_json') || $payload{caja_items_json} || '[]';
+my $caja_monto_abono = (defined $q->param('caja_monto_abono') && $q->param('caja_monto_abono') ne '') 
+    ? ($q->param('caja_monto_abono') + 0) 
+    : ((defined $payload{caja_monto_abono} && $payload{caja_monto_abono} ne '') ? ($payload{caja_monto_abono} + 0) : 0);
+my $caja_tipo_pago = $q->param('caja_tipo_pago') || $payload{caja_tipo_pago} || 'Liquidar';
 
 my $id_neg = (defined $session_data->{id_empresa} && $session_data->{id_empresa} ne '') ? $session_data->{id_empresa} : '0';
 my $id_suc = (defined $session_data->{id_sucursal} && $session_data->{id_sucursal} ne '') ? $session_data->{id_sucursal} : '0';
@@ -679,7 +682,7 @@ if ($tiene_cargos_directos) {
     }
 }
 
-my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // 'Abierto';
+my $caja_estado_tratamiento = $q->param('caja_estado_tratamiento') // $payload{caja_estado_tratamiento} // 'Cerrado';
 my $es_cobro_recepcion = ($caja_estado_tratamiento =~ /Cobro/i) ? 1 : 0;
 if ($es_cobro_recepcion) {
     $caja_monto_abono = 0; # El cobro se delega a recepción
@@ -796,9 +799,9 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
     
     if ($id_tratamiento) {
         # A. ACTUALIZAR TRATAMIENTO EXISTENTE
-        # Evaluar si el tratamiento queda liquidado con el abono
+        # Evaluar si el tratamiento queda liquidado con el abono o si el usuario eligió Cerrado / Liquidar
         my $saldo_restante_trat = $saldo_global_paciente - $caja_monto_abono;
-        if ($saldo_restante_trat <= 0.005) {
+        if ($saldo_restante_trat <= 0.005 || $caja_estado_tratamiento eq 'Cerrado' || $caja_tipo_pago eq 'Liquidar') {
             $caja_estado_tratamiento = 'Cerrado';
             $fecha_fin = $hoy_fecha;
         }
@@ -837,6 +840,10 @@ if (($id_cotizacion && ($convertir_tratamiento eq '1' || $id_tratamiento_param))
         }
         
         my $total_trat = $total_cot + $total_cargos_directos;
+        if ($caja_monto_abono >= $total_trat || $caja_tipo_pago eq 'Liquidar') {
+            $caja_estado_tratamiento = 'Cerrado';
+            $fecha_fin = $hoy_fecha;
+        }
         my $linea_trat = join('|', 
             $id_tratamiento, $id_paciente, $id_cotizacion, $caja_estado_tratamiento, 
             $hoy_fecha, $fecha_fin, $id_medico, $total_trat, $proxima_cita_id

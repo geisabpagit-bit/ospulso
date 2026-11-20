@@ -290,99 +290,121 @@ sub render_step_exploracion {
                     <span id="triage-global-badge" class="badge bg-secondary rounded-pill">Pendiente de captura</span>
                 </div>
 
-                <div class="row g-2">
+                <div class="row g-2.5">
                     <!-- 1. T.A. -->
                     <div class="col-6 col-md-3">
                         <div class="vital-sign-card" id="vcard-ta">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
                                 <label class="wizard-label mb-0">1. T.A. (mmHg)</label>
                                 <span id="vbadge-ta" class="vital-status-pill bg-light text-muted">--</span>
                             </div>
-                            <input type="text" name="ta" id="ef_ta" class="wizard-input text-center fw-bold" placeholder="120/80" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            <div class="vital-card-body">
+                                <input type="text" name="ta" id="ef_ta" class="wizard-input text-center fw-bold" placeholder="120/80" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            </div>
                         </div>
                     </div>
 
                     <!-- 2. F.C. -->
                     <div class="col-6 col-md-3">
                         <div class="vital-sign-card" id="vcard-fc">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
                                 <label class="wizard-label mb-0">2. F.C. (lpm)</label>
                                 <span id="vbadge-fc" class="vital-status-pill bg-light text-muted">--</span>
                             </div>
-                            <input type="number" name="fc" id="ef_fc" class="wizard-input text-center fw-bold" placeholder="72" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            <div class="vital-card-body">
+                                <input type="number" name="fc" id="ef_fc" class="wizard-input text-center fw-bold" placeholder="72" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            </div>
                         </div>
                     </div>
 
                     <!-- 3. F.R. -->
                     <div class="col-6 col-md-3">
                         <div class="vital-sign-card" id="vcard-fr">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
                                 <label class="wizard-label mb-0">3. F.R. (rpm)</label>
                                 <span id="vbadge-fr" class="vital-status-pill bg-light text-muted">--</span>
                             </div>
-                            <input type="number" name="fr" id="ef_fr" class="wizard-input text-center fw-bold" placeholder="16" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            <div class="vital-card-body">
+                                <input type="number" name="fr" id="ef_fr" class="wizard-input text-center fw-bold" placeholder="16" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            </div>
                         </div>
                     </div>
 
                     <!-- 4. Temp -->
                     <div class="col-6 col-md-3">
                         <div class="vital-sign-card" id="vcard-temp">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
                                 <label class="wizard-label mb-0">4. Temp (°C)</label>
                                 <span id="vbadge-temp" class="vital-status-pill bg-light text-muted">--</span>
                             </div>
-                            <input type="number" step="0.1" name="temp" id="ef_temp" class="wizard-input text-center fw-bold" placeholder="36.5" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            <div class="vital-card-body">
+                                <input type="number" step="0.1" name="temp" id="ef_temp" class="wizard-input text-center fw-bold" placeholder="36.5" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            </div>
                         </div>
                     </div>
 
                     <!-- 5. SpO2 -->
                     <div class="col-6 col-md-3">
                         <div class="vital-sign-card" id="vcard-spo2">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
                                 <label class="wizard-label mb-0">5. SpO₂ (%)</label>
                                 <span id="vbadge-spo2" class="vital-status-pill bg-light text-muted">--</span>
                             </div>
-                            <input type="number" name="spo2" id="ef_spo2" class="wizard-input text-center fw-bold" placeholder="98" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            <div class="vital-card-body">
+                                <input type="number" name="spo2" id="ef_spo2" class="wizard-input text-center fw-bold" placeholder="98" oninput="SOAPReactiveEngine.evaluateTriage()">
+                            </div>
                         </div>
                     </div>
 
                     <!-- 6. Glucosa Capilar + Selector Ayuno / Posprandial -->
                     <div class="col-6 col-md-3">
                         <div class="vital-sign-card" id="vcard-glucosa">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
                                 <label class="wizard-label mb-0">6. Glucosa (mg/dL)</label>
                                 <span id="vbadge-glucosa" class="vital-status-pill bg-light text-muted">--</span>
                             </div>
-                            <div class="input-group input-group-sm">
-                                <input type="number" name="glucosa" id="ef_glucosa" class="form-control fw-bold text-center" placeholder="92" oninput="SOAPReactiveEngine.evaluateTriage()">
-                                <select name="glucosa_tipo" id="ef_glucosa_tipo" class="form-select fw-bold px-1" style="max-width: 82px; font-size:0.7rem;" onchange="SOAPReactiveEngine.evaluateTriage()">
-                                    <option value="AYUNO">Ayuno</option>
-                                    <option value="POSPRANDIAL">Pospr.</option>
-                                </select>
+                            <div class="vital-card-body">
+                                <div class="input-group">
+                                    <input type="number" name="glucosa" id="ef_glucosa" class="form-control wizard-input fw-bold text-center" placeholder="92" oninput="SOAPReactiveEngine.evaluateTriage()">
+                                    <select name="glucosa_tipo" id="ef_glucosa_tipo" class="form-select wizard-input fw-bold px-1" style="max-width: 86px; font-size:0.72rem;" onchange="SOAPReactiveEngine.evaluateTriage()">
+                                        <option value="AYUNO">Ayuno</option>
+                                        <option value="POSPRANDIAL">Pospr.</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Somatometría: Peso, Talla e IMC OMS Automático -->
-                    <div class="col-4 col-md-2">
-                        <div class="vital-sign-card">
-                            <label class="wizard-label mb-1">Peso (kg)</label>
-                            <input type="number" step="0.1" name="peso" id="ef_peso" class="wizard-input text-center fw-bold" placeholder="72.0" oninput="SOAPReactiveEngine.evaluateTriage()">
+                    <!-- 7. Somatometría: Peso & Talla -->
+                    <div class="col-6 col-md-3">
+                        <div class="vital-sign-card" id="vcard-somatometria">
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
+                                <label class="wizard-label mb-0">7. Peso y Talla</label>
+                                <span class="vital-status-pill bg-light text-muted">kg · cm</span>
+                            </div>
+                            <div class="vital-card-body">
+                                <div class="row g-1">
+                                    <div class="col-6">
+                                        <input type="number" step="0.1" name="peso" id="ef_peso" class="wizard-input text-center fw-bold w-100" placeholder="Peso kg" oninput="SOAPReactiveEngine.evaluateTriage()" title="Peso en Kilogramos">
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="number" step="1" name="talla" id="ef_talla" class="wizard-input text-center fw-bold w-100" placeholder="Talla cm" oninput="SOAPReactiveEngine.evaluateTriage()" title="Talla en Centímetros">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-4 col-md-2">
-                        <div class="vital-sign-card">
-                            <label class="wizard-label mb-1">Talla (cm)</label>
-                            <input type="number" step="1" name="talla" id="ef_talla" class="wizard-input text-center fw-bold" placeholder="170" oninput="SOAPReactiveEngine.evaluateTriage()">
-                        </div>
-                    </div>
-                    <div class="col-4 col-md-2">
+
+                    <!-- 8. IMC OMS -->
+                    <div class="col-6 col-md-3">
                         <div class="vital-sign-card" id="vcard-imc">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="wizard-label mb-0">IMC OMS</label>
+                            <div class="vital-card-header d-flex justify-content-between align-items-center mb-1">
+                                <label class="wizard-label mb-0">8. IMC OMS</label>
                                 <span id="vbadge-imc" class="vital-status-pill bg-light text-muted">--</span>
                             </div>
-                            <input type="text" name="imc" id="ef_imc" class="wizard-input text-center fw-bold bg-light" readonly placeholder="--">
+                            <div class="vital-card-body">
+                                <input type="text" name="imc" id="ef_imc" class="wizard-input text-center fw-bold bg-light" readonly placeholder="--">
+                            </div>
                         </div>
                     </div>
                 </div>

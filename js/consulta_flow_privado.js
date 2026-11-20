@@ -349,34 +349,37 @@ const SOAPReactiveEngine = {
 
     setEva: function(val) {
         if (this.isLockedNOM151) return;
-        const v = parseInt(val, 10) || 1;
+        const v = parseInt(val, 10);
+        const finalVal = isNaN(v) ? 0 : Math.max(0, Math.min(10, v));
         const inp1 = document.getElementById('f_intensidad_eva');
         const inp2 = document.getElementById('f_eva_dolor');
-        if (inp1) inp1.value = v;
-        if (inp2) inp2.value = v;
-
-        document.querySelectorAll('#eva-buttons-container .eva-btn').forEach(btn => {
-            btn.classList.remove('active-eva-low', 'active-eva-mid', 'active-eva-high');
-            const bVal = parseInt(btn.getAttribute('data-eva'), 10);
-            if (bVal === v) {
-                if (v <= 3) btn.classList.add('active-eva-low');
-                else if (v <= 6) btn.classList.add('active-eva-mid');
-                else btn.classList.add('active-eva-high');
-            }
-        });
+        const slider = document.getElementById('f_slider_eva');
+        if (inp1) inp1.value = finalVal;
+        if (inp2) inp2.value = finalVal;
+        if (slider && slider.value != finalVal) slider.value = finalVal;
 
         const badge = document.getElementById('lbl-eva-badge');
         if (badge) {
-            if (v <= 3) {
-                badge.className = 'badge bg-success rounded-pill';
-                badge.innerText = `EVA ${v}/10 · Dolor Leve`;
-            } else if (v <= 6) {
-                badge.className = 'badge bg-warning text-dark rounded-pill';
-                badge.innerText = `EVA ${v}/10 · Dolor Moderado`;
+            if (finalVal === 0) {
+                badge.className = 'badge bg-secondary rounded-pill fw-bold px-2.5 py-1';
+                badge.innerText = `EVA 0/10 · Sin Dolor`;
+            } else if (finalVal <= 3) {
+                badge.className = 'badge bg-success rounded-pill fw-bold px-2.5 py-1';
+                badge.innerText = `EVA ${finalVal}/10 · Dolor Leve`;
+            } else if (finalVal <= 6) {
+                badge.className = 'badge bg-warning text-dark rounded-pill fw-bold px-2.5 py-1';
+                badge.innerText = `EVA ${finalVal}/10 · Dolor Moderado`;
             } else {
-                badge.className = 'badge bg-danger rounded-pill';
-                badge.innerText = `EVA ${v}/10 · Dolor Severo`;
+                badge.className = 'badge bg-danger rounded-pill fw-bold px-2.5 py-1';
+                badge.innerText = `EVA ${finalVal}/10 · Dolor Severo / Intenso`;
             }
+        }
+        if (slider) {
+            const perc = (finalVal / 10) * 100;
+            let trackColor = '#10b981';
+            if (finalVal > 6) trackColor = '#ef4444';
+            else if (finalVal > 3) trackColor = '#f59e0b';
+            slider.style.background = `linear-gradient(to right, ${trackColor} 0%, ${trackColor} ${perc}%, #e2e8f0 ${perc}%, #e2e8f0 100%)`;
         }
         this.syncAll();
     },

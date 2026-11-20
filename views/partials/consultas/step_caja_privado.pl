@@ -166,7 +166,8 @@ sub render_step_caja_privado {
     
     my $saldo_pendiente = $total_cargos - $total_abonos;
     my $saldo_global_paciente = $total_cargos_global - $total_abonos_global;
-    $saldo_global_paciente = 0 if $saldo_global_paciente < 0; # No mostrar saldos negativos como cobro
+    $saldo_global_paciente = 0 if $saldo_global_paciente < 0.005; # No mostrar saldos negativos o residuales como cobro
+    $saldo_pendiente = 0 if $saldo_pendiente < 0.005;
 
     # Detección de Antecedentes de Consultas Previas y Citas Atendidas
     my $consultas_previas_count = 0;
@@ -205,6 +206,9 @@ sub render_step_caja_privado {
     my $motivo_actual = $paciente->{motivo_precargado} // '';
     my $es_motivo_continuacion = ($motivo_actual =~ /continuaci[oó]n|seguimiento|control|revisi[oó]n|revaloraci[oó]n/i) ? 1 : 0;
     my $es_consulta_continuacion = ($es_motivo_continuacion || ($tiene_tratamiento && $saldo_pendiente > 0)) ? 1 : 0;
+    if (!$tiene_tratamiento && $saldo_global_paciente <= 0.005) {
+        $es_consulta_continuacion = 0;
+    }
 
     my $json_historial = JSON::PP->new->ascii(1)->encode({
         tiene_tratamiento        => $tiene_tratamiento,

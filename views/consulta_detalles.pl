@@ -217,10 +217,12 @@ my $org = {
     logo_url       => '../favicon/favicon.svg'
 };
 
+my $id_negocio_target = $session_data->{id_empresa} || $session_data->{id_negocio} || '';
+my $found_org = 0;
 if ($res_negocios && @$res_negocios) {
     foreach my $r (@$res_negocios) {
         next if $r->[0] =~ /^ID$/i;
-        if ($r->[0] eq '0' || !$org->{nombre_negocio}) {
+        if (($id_negocio_target ne '' && $r->[0] eq $id_negocio_target) || (!$found_org && $r->[0] ne '0' && $r->[0] ne '')) {
             $org->{id}             = $r->[0] // '0';
             $org->{nombre_negocio} = $r->[1] || 'Clínica Médica Pulso';
             $org->{domicilio}      = $r->[6] || 'Domicilio Principal';
@@ -246,7 +248,8 @@ if ($res_negocios && @$res_negocios) {
             if ($org->{cp} && $org->{domicilio} !~ /\Q$org->{cp}\E/i) {
                 $org->{domicilio} .= " C.P. $org->{cp}";
             }
-            last;
+            $found_org = 1;
+            last if $id_negocio_target ne '' && $r->[0] eq $id_negocio_target;
         }
     }
 }
@@ -595,20 +598,21 @@ print <<HTML;
         /* Dimensiones controladas y proporcionales para el logotipo en cabecera */
         .sheet-logo-zone {
             flex-shrink: 0;
-            max-width: 95px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
         }
 
         .sheet-logo-img {
-            max-height: 38px !important;
-            max-width: 85px !important;
-            width: auto !important;
-            height: auto !important;
+            width: 44px !important;
+            height: 44px !important;
+            max-height: 44px !important;
+            max-width: 44px !important;
             object-fit: contain !important;
             border-radius: 4px;
-            display: block;
+            display: block !important;
         }
 
         /* Ocultar elementos de UI interactiva durante la impresión */
@@ -1067,7 +1071,7 @@ print <<HTML;
                     <div class="sheet-header">
                         <div class="sheet-header-grid">
                             <div class="sheet-logo-zone">
-                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img" style="max-height: 38px; max-width: 85px; width: auto; height: auto; object-fit: contain;">
+                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img" width="44" height="44" onerror="this.onerror=null; this.src='../favicon/favicon.svg';">
                             </div>
                             <div class="sheet-org-info">
                                 <h1 class="sheet-org-title">$org->{nombre_negocio}</h1>
@@ -1261,7 +1265,7 @@ print <<HTML;
                     <div class="sheet-header">
                         <div class="sheet-header-grid">
                             <div class="sheet-logo-zone">
-                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img" style="max-height: 38px; max-width: 85px; width: auto; height: auto; object-fit: contain;">
+                                <img src="$org->{logo_url}" alt="$org->{nombre_negocio}" class="sheet-logo-img" width="44" height="44" onerror="this.onerror=null; this.src='../favicon/favicon.svg';">
                             </div>
                             <div class="sheet-org-info">
                                 <h1 class="sheet-org-title">$org->{nombre_negocio}</h1>

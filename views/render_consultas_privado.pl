@@ -1494,6 +1494,18 @@ async function finalizarConsulta(skipStepValidation = false) {
         data.delete('procedimiento_riesgos');
         data.delete('procedimiento_alternativas');
     }
+
+    // Aseguramiento explícito de variables de Caja (Paso 6)
+    const elMontoAbono = document.getElementById('f_caja_monto_abono');
+    if (elMontoAbono && elMontoAbono.value !== '') data.set('caja_monto_abono', elMontoAbono.value);
+    const elEstadoTrat = document.getElementById('f_caja_estado_tratamiento');
+    if (elEstadoTrat && elEstadoTrat.value !== '') data.set('caja_estado_tratamiento', elEstadoTrat.value);
+    const elTipoPago = document.getElementById('f_caja_tipo_pago');
+    if (elTipoPago && elTipoPago.value !== '') data.set('caja_tipo_pago', elTipoPago.value);
+    const elMetodoPago = document.getElementById('f_caja_metodo_pago');
+    if (elMetodoPago && elMetodoPago.value !== '') data.set('caja_metodo_pago', elMetodoPago.value);
+    const elCajaItems = document.getElementById('f_caja_items_json');
+    if (elCajaItems && elCajaItems.value !== '') data.set('caja_items_json', elCajaItems.value);
     
     Swal.fire({
         title: 'Finalizando Consulta...',

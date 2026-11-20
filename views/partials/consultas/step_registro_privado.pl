@@ -277,21 +277,19 @@ sub render_step_registro_privado {
                     <div class="col-12 col-md-8">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="wizard-section-title">Escala Visual Analógica del Dolor (EVA 1–10)</span>
-                            <span id="lbl-eva-badge" class="badge bg-success rounded-pill">EVA 1/10 · Sin Dolor / Leve</span>
+                            <span id="lbl-eva-badge" class="badge bg-success rounded-pill fw-bold px-2.5 py-1">EVA 1/10 · Dolor Leve</span>
                         </div>
                         <input type="hidden" name="intensidad" id="f_intensidad_eva" value="1">
                         <input type="hidden" name="eva_dolor" id="f_eva_dolor" value="1">
-                        <div class="eva-scale-bar" id="eva-buttons-container">
-                            <button type="button" class="eva-btn active-eva-low" data-eva="1" onclick="SOAPReactiveEngine.setEva(1)">1</button>
-                            <button type="button" class="eva-btn" data-eva="2" onclick="SOAPReactiveEngine.setEva(2)">2</button>
-                            <button type="button" class="eva-btn" data-eva="3" onclick="SOAPReactiveEngine.setEva(3)">3</button>
-                            <button type="button" class="eva-btn" data-eva="4" onclick="SOAPReactiveEngine.setEva(4)">4</button>
-                            <button type="button" class="eva-btn" data-eva="5" onclick="SOAPReactiveEngine.setEva(5)">5</button>
-                            <button type="button" class="eva-btn" data-eva="6" onclick="SOAPReactiveEngine.setEva(6)">6</button>
-                            <button type="button" class="eva-btn" data-eva="7" onclick="SOAPReactiveEngine.setEva(7)">7</button>
-                            <button type="button" class="eva-btn" data-eva="8" onclick="SOAPReactiveEngine.setEva(8)">8</button>
-                            <button type="button" class="eva-btn" data-eva="9" onclick="SOAPReactiveEngine.setEva(9)">9</button>
-                            <button type="button" class="eva-btn" data-eva="10" onclick="SOAPReactiveEngine.setEva(10)">10</button>
+                        <div class="eva-slider-wrapper position-relative px-1 py-1">
+                            <input type="range" class="form-range eva-range-slider" min="0" max="10" step="1" id="f_slider_eva" value="1" oninput="SOAPReactiveEngine.setEva(this.value)">
+                            <div class="d-flex justify-content-between text-muted small px-1 font-monospace" style="font-size:0.72rem; margin-top:-2px;">
+                                <span>0 (Sin Dolor)</span>
+                                <span>3 (Leve)</span>
+                                <span>5 (Moderado)</span>
+                                <span>8 (Severo)</span>
+                                <span>10 (Máximo)</span>
+                            </div>
                         </div>
                     </div>
 

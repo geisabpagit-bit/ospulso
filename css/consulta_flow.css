@@ -458,44 +458,70 @@
     width: 100% !important;
 }
 
+/* ==========================================================================
+   HOMOGENEIDAD GEOMÉTRICA DE BOTONES DE ACCIÓN (FORMA, ALTO Y ANCHO)
+   ========================================================================== */
+.wizard-btn-next,
+.wizard-btn-prev,
+.wizard-btn-finish {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    min-width: 175px !important;
+    padding: 0 1.35rem !important;
+    border-radius: 50px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
 .wizard-btn-next {
     background: linear-gradient(135deg, #0A2A66 0%, #124A9E 100%);
-    color: #ffffff;
+    color: #ffffff !important;
     border: 1px solid #19B7A5;
-    padding: 0.55rem 1.35rem;
-    border-radius: 50px;
     font-weight: 800;
-    font-size: 0.82rem;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
     gap: 0.4rem;
 }
 
 .wizard-btn-next:hover {
     background: #19B7A5;
-    color: #ffffff;
+    color: #ffffff !important;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(25, 183, 165, 0.3);
 }
 
 .wizard-btn-prev {
     background: #f1f5f9;
-    color: #334155;
+    color: #334155 !important;
     border: 1px solid #cbd5e1;
-    padding: 0.55rem 1.2rem;
-    border-radius: 50px;
     font-weight: 700;
-    font-size: 0.82rem;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
     gap: 0.4rem;
 }
 
 .wizard-btn-prev:hover {
     background: #e2e8f0;
-    color: #0A2A66;
+    color: #0A2A66 !important;
+}
+
+/* Homogeneidad en botones secundarios / utilitarios del footer y modales */
+.wizard-footer-nav .btn,
+.wizard-footer-nav button:not(.wizard-btn-next):not(.wizard-btn-prev) {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    border-radius: 50px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 1.25rem !important;
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+    box-sizing: border-box !important;
 }
 
 /* Chips Aceleradores de 1 Clic */
@@ -551,14 +577,55 @@
     box-shadow: 0 4px 12px rgba(10, 42, 102, 0.18);
 }
 
-/* Tarjetas de Signos Vitales Semaforizados (Triage Paso 2) */
+/* Tarjetas de Signos Vitales Semaforizados (Triage Paso 2) - Distribución Vertical Homogénea */
 .vital-sign-card {
     background: #ffffff;
     border: 1.5px solid #cbd5e1;
     border-radius: 10px;
-    padding: 0.5rem 0.65rem;
+    padding: 0.55rem 0.65rem;
     transition: all 0.2s ease;
     position: relative;
+    height: 100%;
+    min-height: 84px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.vital-card-header {
+    min-height: 22px;
+}
+
+.vital-sign-card .wizard-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.vital-card-body {
+    margin-top: auto;
+}
+
+.vital-card-body input.wizard-input,
+.vital-card-body select.wizard-input,
+.vital-card-body .form-control {
+    height: 38px !important;
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+}
+
+.vital-card-body .input-group > select {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+.vital-card-body .input-group > input {
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
 }
 
 .vital-sign-card.vital-ok {
@@ -585,28 +652,54 @@
     text-transform: uppercase;
 }
 
-/* Escala EVA 1-10 Interactiva */
-.eva-scale-bar {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 4px;
+/* Escala EVA 1-10 Interactiva (Slider Moderno con Gradiente Reactivo) */
+.eva-slider-wrapper {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem !important;
 }
 
-.eva-btn {
-    border: 1.5px solid #cbd5e1;
-    background: #ffffff;
-    border-radius: 7px;
-    padding: 0.3rem 0;
-    font-size: 0.76rem;
-    font-weight: 800;
-    text-align: center;
+.eva-range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 6px;
+    background: linear-gradient(to right, #10b981 0%, #10b981 10%, #e2e8f0 10%, #e2e8f0 100%);
+    outline: none;
+    transition: background 0.2s ease;
     cursor: pointer;
-    transition: all 0.15s;
 }
 
-.eva-btn.active-eva-low { background: #10b981; color: #fff; border-color: #059669; }
-.eva-btn.active-eva-mid { background: #f59e0b; color: #fff; border-color: #d97706; }
-.eva-btn.active-eva-high { background: #ef4444; color: #fff; border-color: #dc2626; }
+.eva-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #0A2A66;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.35);
+    cursor: grab;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.eva-range-slider::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.2);
+    box-shadow: 0 0 0 5px rgba(25, 183, 165, 0.25);
+}
+
+.eva-range-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #0A2A66;
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(10, 42, 102, 0.35);
+    cursor: grab;
+}
 
 /* ==========================================================================
    4. CONTEXTO CLÍNICO EN VIVO + CONSOLIDADO SOAP (COLUMNA LATERAL INFERIOR)
