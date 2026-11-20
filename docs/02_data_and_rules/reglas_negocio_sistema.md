@@ -252,6 +252,25 @@
    - En el **Paso 5**, al sellar la nota bajo NOM-151 (`sha256_hex`), se bloquea la edición de los pasos 1–4 y el médico puede elegir entre: (A) Enviar orden de cobro a Recepción/Caja (`Cobro por recepción`) finalizando su acto médico en 1 clic, o (B) Avanzar al **Paso 6** para cobrar como Médico Independiente y agendar seguimiento.
    - El selector de pacientes toma como base `dat/pacientes.dat` (`views/pacientes.pl`), incluyendo pacientes Particulares y, cuando la organización tiene activa la capacidad SaaS `PACIENTES_ESTADO = 1`, agregando también a los Empleados de Municipio/Estado con soporte de importación directa desde el padrón CLUE (`api/buscar_empleadosmun.pl`).
 
+---
+
+## 18. Gobernanza de Eliminación de Trazo 1-a-1 por Slot y Recolección Forense de Datos Huérfanos
+
+1. **Desamarre Inverso 1-a-1 desde el Slot del Tablero Quirófano (`views/quirofano_kanban.pl`, `api/quirofano_crud.pl`, `utils/quirofano_purge_utils.pl`)**:
+   - Cada tarjeta del Tablero Quirófano (y sus modales de Zoom 360° y Detalle) expone, bajo control RBAC (`Administrador Organizacion` / permiso de eliminación), el botón de basura (`confirmarPurgarTrazoCirugia`).
+   - Al ejecutarse sobre un folio quirúrgico (`CIR-*`), realiza el desamarre inverso completo y exclusivo de ese evento:
+     - Revierte automáticamente a `dat/quirofano/catalogo_insumos.dat` las unidades consumidas en `dat/quirofano/consumo_insumos.dat`.
+     - Elimina la fila en `dat/quirofano.dat`, su archivo `dat/quirofano/cirugia_<ID>.json`, y sus registros en `tramites_ingreso.dat` y `recetas_alta.dat`.
+     - Libera la reserva de sala vinculada en `dat/rentas_espacios.dat` y la cita quirúrgica vinculada (`CITA-QX-*`) en `dat/citas.dat`.
+     - Remueve de `dat/consentimientos/paciente_<ID>.json` únicamente el consentimiento quirúrgico de esa cirugía y elimina su firma PNG en `uploads/firmas/`.
+     - Purga de `dat/estado_cuenta.dat` y `dat/folios_recibos_privados.dat` **exclusivamente** los cargos (`MOV-QX-*` / `TX-QX-*`) y recibos (`RC-*` de anticipo o finiquito) emitidos por esa cirugía, dejando 100% intactos los ingresos, egresos y consultas externas ajenas.
+2. **Eliminación Efectiva 1-a-1 en Slot de Agenda de Espacios con Citas Abiertas (`views/agenda_espacios.pl`, `js/agenda_espacios_spa.js`, `api/espacios_crud.pl`)**:
+   - Cada slot de reserva en la Vista Diaria Matriz, Vista Semanal Smart, Tablas de Reportes y Modales cuenta con acción directa de eliminación (`delCita`).
+   - La eliminación de una renta de espacio (`eliminar_renta`) procede sin bloqueo aun cuando el espacio tenga estado `En Uso`, `Finalizada`, `Pagado = 1` o existan una o más citas abiertas (`Programada`, `Confirmada`, `En consulta`, `Consulta en proceso`, incluyendo bloques `CIT-BLK-*`) en ese horario, limpiando en cascada la cita abierta, el trazo quirúrgico vinculado (si era sala de quirófano) y el recibo de cobro de esa renta para liberar el espacio de inmediato.
+3. **Auditoría y Purga Forense de Registros y Archivos Huérfanos (`views/admin_organizacion_reset.pl`, `api/reset_datos_organizacion_api.pl`)**:
+   - El panel de `Administrador Organizacion` integra un escáner no destructivo (`action=scan_orphans` y `action=purge_orphans`) que audita la integridad relacional padre-hijo y purga únicamente registros o archivos huérfanos (dossiers `cirugia_*.json` sin fila en `quirofano.dat`, consumos 3NF/trámites/recetas sin cirugía activa devolviendo su stock, rentas `REN-QX-*` o citas `CITA-QX-*` sin cirugía padre, firmas PNG sueltas y cargos/recibos quirúrgicos o de renta cuyo evento padre fue eliminado).
+
+
 
 
 

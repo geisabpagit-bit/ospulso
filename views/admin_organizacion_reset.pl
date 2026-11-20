@@ -214,7 +214,44 @@ print <<HTML;
         <div class="container-fluid container-mobile-flush px-2 px-md-4 pb-5">
             <div class="row g-3">
                 <div class="col-12">
-                    <!-- Tarjeta Principal de Información y Advertencia -->
+                    <!-- TARJETA 1: AUDITORÍA Y PURGA FORENSE DE DATOS / ARCHIVOS HUÉRFANOS (NO DESTRUCTIVA DE OPERACIÓN VIVA) -->
+                    <div class="card card-medentia-aura card-mobile-flush border-0 shadow-sm rounded-4 mb-4" style="border-top: 4px solid #19B7A5 !important;">
+                        <div class="card-body p-3 p-md-5">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 pb-3 border-bottom">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-4 d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; background: linear-gradient(135deg, #0A2A66, #19B7A5); color: #ffffff;">
+                                        <i class="bi bi-shield-check fs-3"></i>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <h4 class="fw-black text-dark mb-0">Auditoría y Purga de Datos Huérfanos</h4>
+                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 small fw-bold">Quirófano • Espacios • Expedientes</span>
+                                        </div>
+                                        <p class="small text-muted mb-0 mt-1">
+                                            Detecta y limpia exclusivamente registros o archivos sueltos sin relación padre válida (dossiers JSON sin cirugía, rentas <code>REN-QX-*</code> o citas <code>CITA-QX-*</code> sin evento padre, consumos 3NF huérfanos devolviendo su stock, firmas PNG sueltas y recibos/cargos de eventos ya eliminados). <strong>No afecta ninguna cirugía, renta, consulta, ingreso o egreso activo.</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 ms-auto">
+                                    <button type="button" id="btnScanOrphans" onclick="escanearHuerfanosOrg()" class="btn btn-mobile-standard btn-outline-primary fw-bold px-3 py-2 rounded-3">
+                                        <i class="bi bi-search me-1.5"></i>Escanear Huérfanos
+                                    </button>
+                                    <button type="button" id="btnPurgeOrphans" onclick="purgarHuerfanosOrg()" class="btn btn-mobile-standard btn-teal text-white fw-bold px-3.5 py-2 rounded-3 shadow-sm d-none" style="background-color: #19B7A5;">
+                                        <i class="bi bi-stars me-1.5"></i>Purgar Huérfanos Detectados (<span id="lblCountPurgeBtn">0</span>)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="boxOrphansResult" class="p-3 rounded-4 bg-light border">
+                                <div class="text-center py-3 text-muted small">
+                                    <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>
+                                    Analizando integridad relacional de archivos <code>.dat</code> y <code>.json</code>...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TARJETA 2: RESET OPERATIVO TOTAL DE LA ORGANIZACIÓN -->
                     <div class="card card-medentia-aura card-mobile-flush border-0 shadow-sm rounded-4 mb-4">
                         <div class="card-body p-3 p-md-5">
                             
@@ -275,6 +312,142 @@ HTML
 print <<'JS';
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                escanearHuerfanosOrg();
+            });
+
+            async function escanearHuerfanosOrg() {
+                const box = document.getElementById('boxOrphansResult');
+                const btnScan = document.getElementById('btnScanOrphans');
+                const btnPurge = document.getElementById('btnPurgeOrphans');
+                const lblCnt = document.getElementById('lblCountPurgeBtn');
+
+                if (btnScan) btnScan.disabled = true;
+                if (box) {
+                    box.innerHTML = '<div class="text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm text-primary me-2"></span>Escaneando relaciones padre-hijo en Quirófano, Agenda de Espacios, Citas, Consentimientos y Caja...</div>';
+                }
+
+                try {
+                    const res = await fetch('../api/reset_datos_organizacion_api.pl?action=scan_orphans');
+                    const data = await res.json();
+
+                    if (btnScan) btnScan.disabled = false;
+
+                    if (!data || !data.success) {
+                        box.innerHTML = `<div class="alert alert-danger mb-0 small">${(data && data.error) || 'No se pudo completar el escaneo.'}</div>`;
+                        return;
+                    }
+
+                    const lista = Array.isArray(data.huerfanos) ? data.huerfanos : [];
+                    if (lista.length === 0) {
+                        if (btnPurge) btnPurge.classList.add('d-none');
+                        box.innerHTML = `
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 p-2">
+                                <div class="d-flex align-items-center gap-2.5 text-success">
+                                    <i class="bi bi-check-circle-fill fs-4"></i>
+                                    <div>
+                                        <div class="fw-bold">0 Registros o Archivos Huérfanos Detectados</div>
+                                        <div class="small text-muted">La integridad relacional entre Agenda de Espacios, Tablero Quirófano, Inventario 3NF, Expedientes y Caja está al 100%.</div>
+                                    </div>
+                                </div>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill fw-bold">Base Limpia</span>
+                            </div>
+                        `;
+                    } else {
+                        if (lblCnt) lblCnt.textContent = lista.length;
+                        if (btnPurge) btnPurge.classList.remove('d-none');
+
+                        let rows = '';
+                        lista.forEach((h, idx) => {
+                            rows += `
+                                <tr>
+                                    <td class="fw-bold text-secondary">${idx + 1}</td>
+                                    <td><span class="badge bg-warning-subtle text-dark border border-warning-subtle">${h.categoria || 'Huérfano'}</span></td>
+                                    <td><code class="small text-primary">${h.archivo || ''}</code></td>
+                                    <td class="fw-bold font-monospace small">${h.id || ''}</td>
+                                    <td class="small text-muted">${h.detalle || ''}</td>
+                                </tr>
+                            `;
+                        });
+
+                        box.innerHTML = `
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5">
+                                <div class="fw-bold text-warning-emphasis small">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-1.5"></i>Se detectaron <strong>${lista.length}</strong> registro(s) / archivo(s) huérfano(s) sin vínculo padre activo:
+                                </div>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                    <i class="bi bi-shield-lock-fill me-1"></i>0 afectación a ingresos, gastos o consultas activas
+                                </span>
+                            </div>
+                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle bg-white rounded-3 overflow-hidden mb-0">
+                                    <thead class="table-light small text-uppercase">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Categoría</th>
+                                            <th>Archivo / Tabla</th>
+                                            <th>Folio / ID</th>
+                                            <th>Diagnóstico Relacional</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${rows}</tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+                } catch (err) {
+                    if (btnScan) btnScan.disabled = false;
+                    if (box) box.innerHTML = '<div class="alert alert-danger mb-0 small">Error de red al consultar el escáner de huérfanos.</div>';
+                }
+            }
+
+            async function purgarHuerfanosOrg() {
+                const confirmResult = await Swal.fire({
+                    title: '¿Purgar Registros y Archivos Huérfanos?',
+                    html: 'Se eliminarán <strong>únicamente</strong> los archivos y filas huérfanas listadas en el diagnóstico (y se devolverá al stock cualquier consumo 3NF huérfano).<br><br><span class="text-success fw-bold">Las cirugías activas, rentas vigentes, consultas clínicas, ingresos y gastos permanecerán 100% intactos.</span>',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#19B7A5',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="bi bi-stars me-1"></i> Sí, Purgar Huérfanos',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (!confirmResult.isConfirmed) return;
+
+                const btnPurge = document.getElementById('btnPurgeOrphans');
+                if (btnPurge) btnPurge.disabled = true;
+
+                try {
+                    const fd = new URLSearchParams();
+                    fd.append('action', 'purge_orphans');
+
+                    const res = await fetch('../api/reset_datos_organizacion_api.pl', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: fd
+                    });
+                    const data = await res.json();
+
+                    if (btnPurge) btnPurge.disabled = false;
+
+                    if (data && data.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: '¡Huérfanos Purgados!',
+                            text: data.msg,
+                            confirmButtonColor: '#0A2A66'
+                        });
+                        escanearHuerfanosOrg();
+                    } else {
+                        Swal.fire('Error', (data && data.error) || 'No se pudo completar la purga de huérfanos.', 'error');
+                    }
+                } catch (err) {
+                    if (btnPurge) btnPurge.disabled = false;
+                    Swal.fire('Error de Red', 'No se pudo conectar con el servidor.', 'error');
+                }
+            }
+
             async function ejecutarResetOrg(e) {
                 e.preventDefault();
                 const form = document.getElementById('formResetOrg');

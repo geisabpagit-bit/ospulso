@@ -12,6 +12,7 @@ use Fcntl qw(:flock);
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'quirofano_purge_utils.pl');
 
 binmode STDOUT, ':raw';
 
@@ -32,6 +33,23 @@ $id_empresa = '0' if (!defined $id_empresa || $id_empresa eq '');
 
 unless ($role eq 'Administrador Organizacion') {
     print encode_json({ success => 0, error => 'Acceso denegado. Se requieren permisos de Administrador de Organización.' });
+    exit;
+}
+
+my $action = $q->param('action') // $q->param('accion') // '';
+if ($action eq 'scan_orphans' || $action eq 'purge_orphans') {
+    my $ejecutar = ($action eq 'purge_orphans') ? 1 : 0;
+    my $res_h = utils::quirofano_purge_utils::auditar_y_purgar_huerfanos_org($id_empresa, $ejecutar);
+    print encode_json({
+        success         => 1,
+        ok              => 1,
+        ejecutado       => $res_h->{ejecutado},
+        total_huerfanos => $res_h->{total_huerfanos},
+        huerfanos       => $res_h->{huerfanos},
+        msg             => $ejecutar
+            ? "Purga forense completada: se eliminaron $res_h->{total_huerfanos} registro(s)/archivo(s) huérfano(s) sin afectar datos activos."
+            : "Auditoría completada: se detectaron $res_h->{total_huerfanos} registro(s)/archivo(s) huérfano(s)."
+    });
     exit;
 }
 

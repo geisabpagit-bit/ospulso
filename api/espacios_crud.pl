@@ -20,6 +20,7 @@ use Fcntl qw(:flock);
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'quirofano_purge_utils.pl');
 my $session_data = check_session();
 
 my $dirname      = dirname(__FILE__);
@@ -802,6 +803,18 @@ sub eliminar_renta {
     my $target = $query->param('id_renta') // $query->param('id_cita') // '';
     my $eliminar_grupo = $query->param('eliminar_grupo') // '0';
 
+    # Caso Especial: Bloque espejo de cita abierta en Agenda de Pacientes (CIT-BLK-<id_cita>)
+    if ($target =~ /^CIT-BLK-(.+)$/) {
+        my $id_cita_real = $1;
+        my $citas_del = utils::quirofano_purge_utils::purgar_citas_abiertas_slot_espacio('', '', '', '', '', '', $id_cita_real);
+        if ($citas_del > 0) {
+            responder_json(1, "Cita abierta #$id_cita_real eliminada y espacio liberado correctamente.");
+        } else {
+            responder_json(0, "No se encontró la cita abierta asociada al espacio.");
+        }
+        return;
+    }
+
     my $target_obj;
     foreach my $r (@$arr) {
         if ($r->{id_renta} eq $target) { $target_obj = $r; last; }
@@ -830,16 +843,6 @@ sub eliminar_renta {
         }
 
         if ($es_match) {
-            if (($r->{estado} // '') =~ /^(Finalizada|Atendida)$/i || ($r->{pagado} // '0') eq '1') {
-                if ($eliminar_grupo eq '1') {
-                    # Si forma parte de la serie pero ya fue liquidada o finalizada, la conservamos
-                    push @filtrados, $r;
-                    next;
-                } else {
-                    responder_json(0, "La reserva ya fue Finalizada o Cobrada y no se puede eliminar.");
-                    return;
-                }
-            }
             push @eliminados, $r;
         } else {
             push @filtrados, $r;
@@ -848,13 +851,74 @@ sub eliminar_renta {
 
     if (scalar(@eliminados) > 0) {
         guardar_rentas(\@filtrados);
+
+        my $citas_liberadas = 0;
+        my $cirugias_purgadas = 0;
+        my $recibos_purgados = 0;
+        my %recibos_renta_borrar;
+
         foreach my $el (@eliminados) {
+            my $id_r = $el->{id_renta} // '';
+            my $f_rec = $el->{folio_recibo} // '';
+            $recibos_renta_borrar{$f_rec} = 1 if ($f_rec ne '' && $f_rec =~ /^RC?-/);
+            $recibos_renta_borrar{$id_r}  = 1 if $id_r ne '';
+
+            # 1. Si tiene cirugía vinculada en notas/motivo o en quirofano.dat, purgar trazo completo 1-a-1
+            my $qx_id = '';
+            if (($el->{notas} // '') =~ /Folio QX:\s*([0-9A-Za-z\-]+)/i) {
+                $qx_id = $1;
+            } elsif (($el->{motivo} // '') =~ /Folio QX:\s*([0-9A-Za-z\-]+)/i) {
+                $qx_id = $1;
+            }
+            if ($qx_id) {
+                my $res_qx = utils::quirofano_purge_utils::purgar_trazo_cirugia_individual($qx_id, $id_empresa_sesion);
+                $cirugias_purgadas++ if ($res_qx && $res_qx->{ok});
+            }
             sincronizar_renta_con_quirofano($el, 1);
+
+            # 2. Liberar citas abiertas en citas.dat que ocupen ese espacio/horario
+            $citas_liberadas += utils::quirofano_purge_utils::purgar_citas_abiertas_slot_espacio(
+                $el->{fecha}, $el->{hora_ini}, $el->{hora_fin},
+                $el->{espacio}, $el->{id_arrendatario}, $id_r, ''
+            );
         }
+
+        # 3. Limpiar recibo de cobro de renta en folios_recibos_privados.dat si existía
+        if (scalar(keys %recibos_renta_borrar) > 0) {
+            my $file_rec = "$dirname/../dat/folios_recibos_privados.dat";
+            if (-e $file_rec && open(my $fh_rp, '<:encoding(UTF-8)', $file_rec)) {
+                my @lines_rp = <$fh_rp>;
+                close($fh_rp);
+                my $cab_rp = shift @lines_rp;
+                chomp $cab_rp if defined $cab_rp; $cab_rp =~ s/\r//g if defined $cab_rp;
+                my @keep_rp;
+                foreach my $lr (@lines_rp) {
+                    chomp $lr; $lr =~ s/\r//g;
+                    next if $lr =~ /^\s*$/;
+                    my @cr = split(/\|/, $lr, -1);
+                    my $r_id_rec  = $cr[0] // '';
+                    my $r_id_cons = $cr[4] // '';
+                    if (($r_id_rec ne '' && $recibos_renta_borrar{$r_id_rec}) ||
+                        ($r_id_cons ne '' && $recibos_renta_borrar{$r_id_cons})) {
+                        $recibos_purgados++;
+                        next;
+                    }
+                    push @keep_rp, $lr;
+                }
+                utils::quirofano_purge_utils::escribir_archivo_seguro($file_rec, $cab_rp, \@keep_rp);
+            }
+        }
+
         my $num_del = scalar(@eliminados);
+        my @extras;
+        push @extras, "$citas_liberadas cita(s) abierta(s) liberada(s)" if $citas_liberadas > 0;
+        push @extras, "$cirugias_purgadas trazo(s) quirúrgico(s) purgado(s)" if $cirugias_purgadas > 0;
+        push @extras, "$recibos_purgados recibo(s) de renta anulado(s)" if $recibos_purgados > 0;
+        my $extra_txt = @extras ? " (" . join(', ', @extras) . ")" : "";
+
         my $msg = ($num_del > 1) 
-            ? "Se eliminaron exitosamente $num_del reservas pertenecientes a la serie del rango."
-            : "Reserva de espacio eliminada correctamente.";
+            ? "Se eliminaron exitosamente $num_del reservas pertenecientes a la serie del rango$extra_txt."
+            : "Reserva de espacio eliminada y trazo liberado correctamente$extra_txt.";
         responder_json(1, $msg);
     } else {
         responder_json(0, "No se pudo eliminar la reserva solicitada.");
@@ -1509,7 +1573,7 @@ sub sincronizar_renta_con_quirofano {
     return unless $espacio =~ /Quir[oó]fano/i;
 
     my $file_qx = "$dirname/../dat/quirofano.dat";
-    my $header_qx = "ID_CIRUGIA|ID_ORG|ID_PACIENTE|ID_MEDICO|FECHA_PROGRAMADA|HORA_PROGRAMADA|ESTADO|SALA_QUIROFANO|PROCEDIMIENTO|ID_ANESTESIOLOGO|NOTAS";
+    my $header_qx = "ID_CIRUGIA|ID_ORG|ID_PACIENTE|ID_MEDICO|FECHA_PROGRAMADA|HORA_PROGRAMADA|ESTADO|SALA_QUIROFANO|PROCEDIMIENTO|ID_ANESTESIOLOGO|NOTAS|TIPO_CIRUGIA|ID_RENTA_ESPACIO|FOLIO_EXPEDIENTE";
 
     my @lineas_qx;
     if (-e $file_qx && open(my $fh_r, '<:encoding(UTF-8)', $file_qx)) {
@@ -1521,8 +1585,9 @@ sub sincronizar_renta_con_quirofano {
         close $fh_r;
     }
 
-    my $id_r = $renta->{id_renta};
+    my $id_r = $renta->{id_renta} // '';
     my @nuevas_lineas;
+    my @cirugias_vinculadas_a_purgar;
     my $header_presente = 0;
     foreach my $l (@lineas_qx) {
         if ($l =~ /^ID_CIRUGIA\|/) {
@@ -1531,7 +1596,14 @@ sub sincronizar_renta_con_quirofano {
             next;
         }
         my @f = split(/\|/, $l, -1);
-        next if ($f[0] // '') eq $id_r;
+        my $f_id_cir   = $f[0] // '';
+        my $f_id_renta = $f[12] // '';
+        if ($f_id_cir eq $id_r || ($id_r ne '' && $f_id_renta eq $id_r)) {
+            if ($es_eliminar && $f_id_cir ne '' && $f_id_cir ne $id_r) {
+                push @cirugias_vinculadas_a_purgar, $f_id_cir;
+            }
+            next;
+        }
         push @nuevas_lineas, $l;
     }
     unshift @nuevas_lineas, $header_qx unless $header_presente;
@@ -1553,7 +1625,10 @@ sub sincronizar_renta_con_quirofano {
             $espacio,
             "RENTA ESPACIO: " . ($renta->{motivo} // ''),
             '',
-            "Reserva desde Agenda de Espacios (" . ($renta->{nombre_arrendatario} // '') . ")"
+            "Reserva desde Agenda de Espacios (" . ($renta->{nombre_arrendatario} // '') . ")",
+            'PROGRAMADA',
+            $id_r,
+            ''
         );
         push @nuevas_lineas, $nueva_linea;
     }
@@ -1562,6 +1637,10 @@ sub sincronizar_renta_con_quirofano {
         flock($fh_w, LOCK_EX);
         foreach my $nl (@nuevas_lineas) { print $fh_w "$nl\n"; }
         close $fh_w;
+    }
+
+    foreach my $cid (@cirugias_vinculadas_a_purgar) {
+        utils::quirofano_purge_utils::purgar_trazo_cirugia_individual($cid, $id_empresa_sesion);
     }
 }
 

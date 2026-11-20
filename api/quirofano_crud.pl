@@ -11,6 +11,8 @@ use Fcntl qw(:flock);
 
 use lib "$FindBin::Bin/..";
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'permisos_utils.pl');
+require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'quirofano_purge_utils.pl');
 use utils::db_manager qw(guardar_registro actualizar_archivo);
 
 my $q = CGI->new;
@@ -25,10 +27,12 @@ unless ($sd->{session_ok}) {
 my $action = $q->param('action') || 'read';
 my $file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'quirofano.dat');
 my $id_org = $sd->{id_empresa} || 'ORG-000';
+my $role_sesion = $sd->{role} || '';
+my $id_usuario_sesion = $sd->{id_registro} // $sd->{id_medico} // '';
 
 unless (-e $file) {
     open my $fh_init, '>:encoding(UTF-8)', $file;
-    print $fh_init "ID_CIRUGIA|ID_ORG|ID_PACIENTE|ID_MEDICO|FECHA_PROGRAMADA|HORA_PROGRAMADA|ESTADO|SALA_QUIROFANO|PROCEDIMIENTO|ID_ANESTESIOLOGO|NOTAS\n";
+    print $fh_init "ID_CIRUGIA|ID_ORG|ID_PACIENTE|ID_MEDICO|FECHA_PROGRAMADA|HORA_PROGRAMADA|ESTADO|SALA_QUIROFANO|PROCEDIMIENTO|ID_ANESTESIOLOGO|NOTAS|TIPO_CIRUGIA|ID_RENTA_ESPACIO|FOLIO_EXPEDIENTE\n";
     close $fh_init;
 }
 
@@ -233,30 +237,30 @@ elsif ($action eq 'update_status') {
     }
     exit;
 }
-elsif ($action eq 'delete') {
+elsif ($action eq 'delete' || $action eq 'purge_surgical_trace') {
+    unless ($role_sesion =~ /Administrador/i || utils::permisos_utils::tiene_permiso_modulo($id_org, $role_sesion, 'quirofano', 'D', $id_usuario_sesion)) {
+        print encode_json({ ok => JSON::false, msg => 'Acceso denegado (RBAC). Solo el Administrador de la Organización cuenta con facultades para eliminar y purgar el trazo de una cirugía.' });
+        exit;
+    }
+
     my $id_cirugia = $q->param('id_cirugia') || '';
-    my @lines;
-    my $found = 0;
-    if (open my $fh, '<:encoding(UTF-8)', $file) {
-        my $cabecera = <$fh>;
-        chomp $cabecera if defined $cabecera;
-        
-        while (my $l = <$fh>) {
-            chomp $l;
-            my @c = split /\|/, $l, -1;
-            if ($c[0] eq $id_cirugia && ($c[1] eq $id_org || $id_org eq 'ORG-000')) {
-                $found = 1;
-                next; # Lo omitimos para borrarlo
-            }
-            push @lines, $l;
-        }
-        close $fh;
-        if ($found) {
-            utils::db_manager::actualizar_archivo($file, $cabecera, \@lines);
-            print encode_json({ ok => JSON::true });
-        } else {
-            print encode_json({ ok => JSON::false, msg => 'Cirugía no encontrada.' });
-        }
+    if (!$id_cirugia) {
+        print encode_json({ ok => JSON::false, msg => 'Falta especificar el folio de cirugía a eliminar.' });
+        exit;
+    }
+
+    my $res = utils::quirofano_purge_utils::purgar_trazo_cirugia_individual($id_cirugia, $id_org);
+    if ($res && $res->{ok}) {
+        print encode_json({
+            ok      => JSON::true,
+            msg     => $res->{msg},
+            resumen => $res->{resumen}
+        });
+    } else {
+        print encode_json({
+            ok  => JSON::false,
+            msg => ($res ? $res->{msg} : 'No se pudo eliminar el trazo quirúrgico.')
+        });
     }
     exit;
 }

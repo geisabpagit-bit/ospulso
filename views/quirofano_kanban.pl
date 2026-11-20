@@ -102,6 +102,8 @@ foreach my $m (@medicos) {
     $medicos_options_filtro .= "<option value='$m->{id}'>$m->{nombre}</option>\n";
 }
 
+my $puede_eliminar_qx = ($role =~ /Administrador/i || utils::permisos_utils::tiene_permiso_modulo($id_empresa, $role, 'quirofano', 'D', $id_usuario_sesion)) ? 1 : 0;
+
 render_header(
     titulo => 'Tablero de Quirófano (Kanban)',
     role => $role,
@@ -122,7 +124,7 @@ print <<"HTML";
 <link rel="stylesheet" href="../css/quirofano_wizard.css" />
 <script src="https://cdn.jsdelivr.net/npm/sortablejs\@latest/Sortable.min.js"></script>
 
-<main class="container-fluid container-mobile-flush pb-4 animate__animated animate__fadeIn kanban-wrapper kanban-wrapper-compact">
+<main id="qx_kanban_main" data-puede-eliminar="$puede_eliminar_qx" class="container-fluid container-mobile-flush pb-4 animate__animated animate__fadeIn kanban-wrapper kanban-wrapper-compact">
 
     <!-- CABECERA EJECUTIVA DE 3 FILAS (THREE-TIER TOOLBAR CON BORDE TEAL RAISED ESTILO FINANZAS & AGENDAS) -->
     <header class="qx-executive-three-tier">
@@ -359,6 +361,9 @@ print <<"HTML";
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-dark fw-bold" id="zc_btn_imprimir_alta">
                         <i class="bi bi-printer-fill me-1"></i>Imprimir Alta &amp; Receta
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger fw-bold d-none" id="zc_btn_purgar_trazo" title="Eliminar Cirugía y Purgar Todo su Trazo">
+                        <i class="bi bi-trash3-fill me-1"></i>Purgar Trazo
                     </button>
                 </div>
                 <div class="d-flex gap-2">
@@ -799,10 +804,13 @@ print <<"HTML";
                 </div>
             </div>
             <div class="modal-footer bg-white border-top px-3 py-2 d-flex justify-content-between align-items-center">
-                <div>
+                <div class="d-flex align-items-center gap-2">
                     <a href="#" id="mdl_btn_expediente" target="_blank" class="btn btn-sm fw-semibold px-3 py-1" style="background: rgba(10,42,102,0.06); color: var(--md-blue-deep, #0A2A66); border: 1.5px solid rgba(10,42,102,0.2); border-radius: 8px; font-size: 0.78rem;">
                         <i class="bi bi-folder2-open me-1"></i> Abrir Expediente
                     </a>
+                    <button type="button" id="mdl_btn_purgar_trazo" class="btn btn-sm btn-outline-danger fw-bold px-2.5 py-1 d-none" style="border-radius: 8px; font-size: 0.76rem;" title="Eliminar Cirugía y Purgar Trazo Completo">
+                        <i class="bi bi-trash3-fill me-1"></i> Purgar Trazo
+                    </button>
                 </div>
                 <button type="button" class="btn btn-sm btn-light border text-secondary fw-semibold px-3 py-1" data-bs-dismiss="modal" style="border-radius: 8px; font-size: 0.78rem;">Cerrar</button>
             </div>
@@ -1049,7 +1057,7 @@ print <<'JS';
                                 <span class="qx-glance-cost"><i class="bi bi-box-seam text-teal me-0.5"></i>\$${totalIns}</span>
                             </div>
                             
-                            <!-- Fila 4: Acciones Rápidas (Zoom Card Modal + Wizard) -->
+                            <!-- Fila 4: Acciones Rápidas (Zoom Card Modal + Wizard + Basura 1-a-1) -->
                             <div class="qx-glance-actions">
                                 <button type="button" class="btn-glance-zoom" onclick="event.stopPropagation(); abrirModalZoomCard('${c.id_cirugia}')" title="Ampliar Tarjeta en Vista Zoom 360°">
                                     <i class="bi bi-arrows-angle-expand"></i> Zoom
@@ -1060,6 +1068,11 @@ print <<'JS';
                                    title="Continuar en el Paso ${pasoWiz} del Wizard">
                                     <i class="bi bi-magic"></i> Paso ${pasoWiz}
                                 </a>
+                                ${esAdminPuedeEliminar() ? `
+                                <button type="button" class="btn-glance-zoom text-danger border-danger-subtle" style="flex: 0 0 auto; padding: 0.25rem 0.5rem;" onclick="event.stopPropagation(); confirmarPurgarTrazoCirugia('${c.id_cirugia}')" title="Eliminar Cirugía y Purgar Trazo Completo (Espacio, Cita, Stock 3NF y Caja)">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -1174,6 +1187,20 @@ print <<'JS';
         document.getElementById('zc_btn_imprimir_alta').onclick = function() {
             window.open(`imprimir_alta_quirurgica.pl?id_cirugia=${encodeURIComponent(c.id_cirugia)}`, '_blank');
         };
+
+        const btnPurgarZc = document.getElementById('zc_btn_purgar_trazo');
+        if (btnPurgarZc) {
+            if (esAdminPuedeEliminar()) {
+                btnPurgarZc.classList.remove('d-none');
+                btnPurgarZc.onclick = function() {
+                    const inst = bootstrap.Modal.getInstance(document.getElementById('modalZoomCardQx'));
+                    if (inst) inst.hide();
+                    confirmarPurgarTrazoCirugia(c.id_cirugia);
+                };
+            } else {
+                btnPurgarZc.classList.add('d-none');
+            }
+        }
 
         const modalEl = document.getElementById('modalZoomCardQx');
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -1382,6 +1409,20 @@ print <<'JS';
             tabInstance.show();
         }
         cargarDossierModal(c.id_cirugia);
+
+        const btnPurgarMdl = document.getElementById('mdl_btn_purgar_trazo');
+        if (btnPurgarMdl) {
+            if (esAdminPuedeEliminar()) {
+                btnPurgarMdl.classList.remove('d-none');
+                btnPurgarMdl.onclick = function() {
+                    const inst = bootstrap.Modal.getInstance(document.getElementById('modalDetalleCirugia'));
+                    if (inst) inst.hide();
+                    confirmarPurgarTrazoCirugia(c.id_cirugia);
+                };
+            } else {
+                btnPurgarMdl.classList.add('d-none');
+            }
+        }
 
         const modalEl = document.getElementById('modalDetalleCirugia');
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -1732,6 +1773,91 @@ print <<'JS';
         
         await actualizarEstadoCirugia(idCirugia, nuevoEstado);
         cargarTablero(fechaActualSeleccionada);
+    }
+
+    function esAdminPuedeEliminar() {
+        const mainEl = document.getElementById('qx_kanban_main');
+        return mainEl && mainEl.getAttribute('data-puede-eliminar') === '1';
+    }
+
+    async function confirmarPurgarTrazoCirugia(idCirugia) {
+        const c = cirugiasCargadas.find(item => String(item.id_cirugia) === String(idCirugia)) || { id_cirugia: idCirugia };
+        const pacNombre = c.nombre_paciente || 'Paciente';
+        const procTxt = c.procedimiento || 'Procedimiento Quirúrgico';
+        const salaTxt = c.sala || 'Sala Quirófano';
+
+        const confirmacion = await Swal.fire({
+            title: '¿Eliminar Cirugía y Purgar su Trazo?',
+            html: `
+                <div class="text-start small p-2">
+                    <div class="p-2.5 rounded-3 bg-danger-subtle border border-danger-subtle mb-2.5">
+                        <div class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Desamarre Quirúrgico 1-a-1: #${idCirugia}</div>
+                        <div class="text-dark mt-1"><strong>Paciente:</strong> ${pacNombre}</div>
+                        <div class="text-dark"><strong>Procedimiento:</strong> ${procTxt} (${salaTxt})</div>
+                    </div>
+                    <p class="mb-1.5 fw-bold text-navy">Esta acción eliminará exclusivamente los registros vinculados a este folio:</p>
+                    <ul class="mb-2 ps-3 text-secondary">
+                        <li>Tarjeta del Tablero Quirófano y dossier <code>cirugia_${idCirugia}.json</code>.</li>
+                        <li>Reserva de sala en Agenda de Espacios y cita quirúrgica vinculada.</li>
+                        <li>Reversión automática al stock 3NF de los insumos consumidos en esta cirugía.</li>
+                        <li>Trámite de ingreso, consentimiento quirúrgico, receta de alta y recibos/cargos de caja exclusivos de esta cirugía.</li>
+                    </ul>
+                    <div class="text-success fw-semibold" style="font-size:0.74rem;">
+                        <i class="bi bi-shield-check me-1"></i>Las consultas médicas generales, gastos y recibos ajenos del paciente o médico permanecen 100% intactos.
+                    </div>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: '<i class="bi bi-trash3-fill me-1"></i> Sí, Eliminar y Purgar Trazo',
+            cancelButtonText: 'Cancelar',
+            customClass: { popup: 'rounded-4 shadow-lg' }
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        try {
+            const f = new URLSearchParams();
+            f.append('action', 'purge_surgical_trace');
+            f.append('id_cirugia', idCirugia);
+
+            const req = await fetch('../api/quirofano_crud.pl', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: f
+            });
+            const res = await req.json();
+
+            if (res && res.ok) {
+                const r = res.resumen || {};
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Trazo Quirúrgico Eliminado',
+                    html: `
+                        <div class="text-start small p-2">
+                            <p class="mb-2 text-secondary">${res.msg || 'Se completó la limpieza integral del evento quirúrgico.'}</p>
+                            <div class="p-2 rounded-3 bg-light border">
+                                <div>• <strong>Renta de Espacio liberada:</strong> ${r.rentas_eliminadas || 0}</div>
+                                <div>• <strong>Cita Quirúrgica eliminada:</strong> ${r.citas_eliminadas || 0}</div>
+                                <div>• <strong>Unidades devueltas a Stock 3NF:</strong> ${r.unidades_stock_devueltas || 0} u. (${r.consumos_3nf_eliminados || 0} consumos)</div>
+                                <div>• <strong>Recibos / Cargos de Caja anulados:</strong> ${r.recibos_caja_purgados || 0} recibo(s) / ${r.cargos_edo_cta_purgados || 0} cargo(s)</div>
+                                <div>• <strong>Consentimiento Qx / Receta Alta:</strong> ${r.consentimientos_purgados || 0} doc(s) / ${r.recetas_alta_eliminadas || 0} receta(s)</div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonColor: '#0A2A66',
+                    customClass: { popup: 'rounded-4 shadow' }
+                });
+                cargarTablero(modoTodasLasFechas ? 'todas' : fechaActualSeleccionada);
+            } else {
+                Swal.fire({ icon: 'error', title: 'No se pudo eliminar', text: (res && res.msg) || 'Error al procesar la eliminación.' });
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire({ icon: 'error', title: 'Error de red', text: 'No fue posible conectar con el servidor.' });
+        }
     }
 </script>
 JS

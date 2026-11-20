@@ -365,6 +365,9 @@ function renderSmartSlots(date) {
                                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5" style="font-size:0.75rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${apt.id}')" title="Ver Detalle Rápido">
                                     <i class="bi bi-eye me-1"></i> Ver Detalle
                                 </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1.5" style="font-size:0.75rem;" onclick="event.stopPropagation(); delCita('${apt.id}')" title="Eliminar Reserva y Liberar Espacio">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-3 pt-3">
@@ -501,6 +504,7 @@ function renderSmartSlots(date) {
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
                                 <button type="button" class="btn btn-sm text-white py-0 px-2 rounded-pill fw-bold" style="font-size:0.65rem; background-color:#059669 !important;" onclick="event.stopPropagation(); window.location.href='render_consultas_privado.pl?id=${aptInSlot.extendedProps?.id_paciente}&id_cita=${aptInSlot.id}'" title="Ir a Consulta en Proceso"><i class="bi bi-play-fill"></i> Ir</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1.5 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); delCita('${aptInSlot.id}')" title="Eliminar Reserva y Liberar Espacio"><i class="bi bi-trash3-fill"></i></button>
                             </div>
                         `;
                     } else if (esAtendida) {
@@ -515,6 +519,7 @@ function renderSmartSlots(date) {
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${aptInSlot.id}')" title="Ver Detalle Rápido"><i class="bi bi-eye"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1.5 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); delCita('${aptInSlot.id}')" title="Eliminar Reserva y Liberar Espacio"><i class="bi bi-trash3-fill"></i></button>
                             </div>
                         `;
                     } else if (esCancelada) {
@@ -541,6 +546,7 @@ function renderSmartSlots(date) {
                             <div class="d-flex justify-content-end gap-1 mt-1">
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Re-agendar"><i class="bi bi-pencil-square"></i></button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); openAppointmentQuickDetail('${aptInSlot.id}')" title="Ver Detalle Rápido"><i class="bi bi-eye"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); delCita('${aptInSlot.id}')" title="Eliminar Reserva y Liberar Espacio"><i class="bi bi-trash3-fill"></i></button>
                             </div>
                         `;
                     } else if (res.esBloqueoPacientes || aptInSlot.extendedProps?.es_bloqueo_pacientes) {
@@ -553,6 +559,9 @@ function renderSmartSlots(date) {
                                 <span class="badge text-white" style="font-size:0.55rem; background-color:#0284C7 !important;">PACIENTES</span>
                             </div>
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
+                            <div class="d-flex justify-content-end gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); delCita('${aptInSlot.id}')" title="Eliminar Cita Abierta y Liberar Espacio"><i class="bi bi-trash3-fill"></i></button>
+                            </div>
                         `;
                     } else {
                         const esConf = stLow.includes('confirmada');
@@ -571,6 +580,7 @@ function renderSmartSlots(date) {
                             <span class="d-block text-truncate fw-bold mt-1" style="font-size:0.68rem;">${aptInSlot.title}</span>
                             <div class="d-flex justify-content-end gap-1 mt-1">
                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); abrirModalCita('${aptInSlot.id}')" title="Editar / Re-agendar"><i class="bi bi-pencil-square"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1 rounded-pill" style="font-size:0.65rem;" onclick="event.stopPropagation(); delCita('${aptInSlot.id}')" title="Eliminar Reserva y Liberar Espacio"><i class="bi bi-trash3-fill"></i></button>
                             </div>
                         `;
                     }
@@ -1896,7 +1906,13 @@ window.openAppointmentQuickDetail = function(id) {
         btnExp.addClass('d-none');
         btnEditar.addClass('d-none');
         btnCobrar.addClass('d-none');
-        btnEliminar.addClass('d-none');
+        btnEliminar.removeClass('d-none').show().on('click', function() {
+            const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
+            if (bsModal) bsModal.hide();
+            setTimeout(() => {
+                delCita(a.id);
+            }, 200);
+        });
     } else {
         btnExp.removeClass('d-none');
         btnEditar.removeClass('d-none');
@@ -1943,17 +1959,13 @@ window.openAppointmentQuickDetail = function(id) {
             });
         }
 
-        if (stLow.includes('finalizada') || pagado) {
-            btnEliminar.addClass('d-none');
-        } else {
-            btnEliminar.removeClass('d-none').show().on('click', function() {
-                const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
-                if (bsModal) bsModal.hide();
-                setTimeout(() => {
-                    delCita(a.id);
-                }, 200);
-            });
-        }
+        btnEliminar.removeClass('d-none').show().on('click', function() {
+            const bsModal = bootstrap.Modal.getInstance(document.getElementById('appointmentQuickModal'));
+            if (bsModal) bsModal.hide();
+            setTimeout(() => {
+                delCita(a.id);
+            }, 200);
+        });
     }
 
     const bsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('appointmentQuickModal'));
@@ -2089,10 +2101,15 @@ function renderMatrixAptCard(a, interval, maxSlots = 1) {
                 ${a.extendedProps.motivo || 'Renta de Espacio'}
             </div>
             <div class="d-flex align-items-center justify-content-between mt-auto pt-1 border-top border-light-subtle" style="font-size:0.68rem;">
-                <span class="text-secondary text-truncate" style="max-width: 75%;">
+                <span class="text-secondary text-truncate" style="max-width: 68%;">
                     <i class="bi bi-door-open me-0.5 opacity-75"></i>${a.extendedProps.espacio || a.extendedProps.consultorio || 'Espacio'}
                 </span>
-                ${pagado ? '<i class="bi bi-check-circle-fill text-success" title="Pagado"></i>' : '<i class="bi bi-clock-history text-warning" title="Pendiente de pago"></i>'}
+                <div class="d-flex align-items-center gap-1.5">
+                    ${pagado ? '<i class="bi bi-check-circle-fill text-success" title="Pagado"></i>' : '<i class="bi bi-clock-history text-warning" title="Pendiente de pago"></i>'}
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0" style="font-size:0.74rem; line-height:1;" onclick="event.stopPropagation(); delCita('${a.id}')" title="Eliminar Reserva y Purgar Trazo / Liberar Espacio">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                </div>
             </div>
             ${progressBarHtml}
         </div>
@@ -4384,7 +4401,7 @@ function abrirModalCita(id, isReadonly) {
     if (esCerrada || isReadonly) {
         $("#modalCita input, #modalCita select").prop('disabled', true);
         $("#modalCita button[onclick*='saveCita']").hide();
-        $("#btn-del-cita").addClass('d-none');
+        $("#btn-del-cita").removeClass('d-none');
         if (pagado) {
             $("#btn-cobrar-recepcion").addClass('d-none');
             $("#leyenda-cita-pagada").removeClass('d-none').html('<i class="bi bi-check-circle-fill me-1"></i> Renta Liquidada en Recepción');
@@ -4577,18 +4594,6 @@ function cobrarRecepcionModal() {
 function delCita(id) {
     const targetId = id || $("#f_id_cita").val();
     const a = appointments.find(x => x.id == targetId);
-    if (a) {
-        const stLow = (a.extendedProps.estado || '').trim().toLowerCase();
-        if (stLow === 'en consulta' || stLow === 'consulta en proceso' || stLow.includes('proceso') || stLow.includes('atendida')) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Acción Bloqueada',
-                text: 'La cita está en consulta o finalizada (atendida) y no se puede eliminar.',
-                customClass: { popup: 'rounded-4' }
-            });
-            return;
-        }
-    }
 
     const notas = (a && a.extendedProps && a.extendedProps.notas) ? a.extendedProps.notas : '';
     const esSerieRango = notas.includes('Grupo: GRP-');
@@ -4609,7 +4614,6 @@ function delCita(id) {
             customClass: { popup: 'rounded-4' }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Eliminar solo este día
                 $.post('../api/espacios_crud.pl', { accion: 'delete', id_cita: targetId, eliminar_grupo: 0 }, function(res) {
                     if (res && !res.ok) {
                         Swal.fire({ icon: 'error', title: 'Error', text: res.msg, customClass: { popup: 'rounded-4' } });
@@ -4624,11 +4628,13 @@ function delCita(id) {
                             const instQ = bootstrap.Modal.getInstance(qEl);
                             if (instQ) instQ.hide();
                         }
+                        if (typeof CrystalToast !== 'undefined' && CrystalToast) {
+                            CrystalToast.fire({ icon: 'success', title: (res && res.msg) || 'Reserva eliminada' });
+                        }
                         loadContext();
                     }
                 }, 'json');
             } else if (result.isDenied) {
-                // Eliminar toda la serie del rango
                 $.post('../api/espacios_crud.pl', { accion: 'delete', id_cita: targetId, eliminar_grupo: 1 }, function(res) {
                     if (res && !res.ok) {
                         Swal.fire({ icon: 'error', title: 'Error', text: res.msg, customClass: { popup: 'rounded-4' } });
@@ -4643,7 +4649,7 @@ function delCita(id) {
                             const instQ = bootstrap.Modal.getInstance(qEl);
                             if (instQ) instQ.hide();
                         }
-                        Swal.fire({ icon: 'success', title: 'Serie Cancelada', text: res.msg, timer: 1600, showConfirmButton: false });
+                        Swal.fire({ icon: 'success', title: 'Serie Eliminada', text: res.msg, timer: 1800, showConfirmButton: false });
                         loadContext();
                     }
                 }, 'json');
@@ -4652,14 +4658,25 @@ function delCita(id) {
         return;
     }
 
-    // Flujo normal de reserva de día único
+    const titleObj = (a && a.title) ? a.title : 'Reserva de Espacio';
+    const espObj = (a && a.extendedProps && (a.extendedProps.espacio || a.extendedProps.consultorio)) ? (a.extendedProps.espacio || a.extendedProps.consultorio) : 'Espacio';
+
     Swal.fire({ 
-        title: '¿Eliminar reserva?', 
-        text: "Esta acción no se puede deshacer.",
+        title: '¿Eliminar Reserva y Liberar Espacio?', 
+        html: `
+            <div class="text-start small p-2">
+                <div class="p-2 rounded-3 bg-danger-subtle border border-danger-subtle mb-2">
+                    <div class="fw-bold text-danger"><i class="bi bi-trash3-fill me-1"></i>Folio: #${targetId}</div>
+                    <div class="text-dark mt-0.5"><strong>Arrendatario / Evento:</strong> ${titleObj}</div>
+                    <div class="text-dark"><strong>Espacio:</strong> ${espObj}</div>
+                </div>
+                <p class="mb-0 text-secondary">Se liberará el espacio de inmediato, eliminando en cascada cualquier cita abierta o trazo quirúrgico vinculado a este bloque.</p>
+            </div>
+        `,
         icon: 'warning', 
         showCancelButton: true, 
         confirmButtonColor: '#d33',
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: '<i class="bi bi-trash3-fill me-1"></i> Sí, eliminar y liberar',
         cancelButtonText: 'Cancelar',
         customClass: { popup: 'rounded-4' }
     }).then((r) => {
@@ -4676,6 +4693,9 @@ function delCita(id) {
                 if (qEl) {
                     const instQ = bootstrap.Modal.getInstance(qEl);
                     if (instQ) instQ.hide();
+                }
+                if (typeof CrystalToast !== 'undefined' && CrystalToast) {
+                    CrystalToast.fire({ icon: 'success', title: (res && res.msg) || 'Espacio liberado correctamente' });
                 }
                 loadContext();
             }
@@ -4807,7 +4827,10 @@ function renderTable(type) {
                 <td data-label="Espacio"><span class="badge bg-light text-navy border">${espNom}</span></td>
                 <td data-label="Status"><span class="badge ${stBadgeCls} rounded-pill" style="${stBadgeStyle}">${st.toUpperCase()}</span></td>
                 <td class="text-end" data-label="Acciones">
-                    <button class="btn btn-sm btn-light rounded-3" onclick="abrirModalCita('${a.id}')" title="Editar / Ver Reserva"><i class="bi bi-pencil"></i></button>
+                    <div class="d-inline-flex gap-1">
+                        <button class="btn btn-sm btn-light border rounded-3" onclick="abrirModalCita('${a.id}')" title="Editar / Ver Reserva"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger rounded-3" onclick="delCita('${a.id}')" title="Eliminar Reserva y Liberar Espacio"><i class="bi bi-trash3-fill"></i></button>
+                    </div>
                 </td>
             </tr>
         `);
