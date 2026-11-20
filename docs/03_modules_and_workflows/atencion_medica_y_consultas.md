@@ -376,7 +376,12 @@ graph LR
 - **Integración en Wizard de Consulta y Expediente Clínico**:
   - En `views/partials/consultas/step_soap.pl`, se añadió el botón de acción directa `[ Vista Previa Receta ]` con enlace a `SOAPReactiveEngine.abrirModalRecetaPreview()`.
   - En `views/partials/consultas/step_cierre_privado.pl`, se incorporó el acceso a `Receta Imprimible COFEPRIS` previo y posterior al sellado de la consulta.
-  - En `views/render_expediente_clinico.pl`, se refactorizó la liga "Receta" tanto en la línea de tiempo de consultas como en el modal interactivo de detalles de consulta (`modalDetalleConsulta`).
+- **Gobernanza y Cumplimiento de Lineamientos AGENTS.md**:
+  - **Saneamiento UTF-8 Integral (Anti-Mojibake)**: Implementación de rutinas canónicas recursivas `fix_utf8()`, `fix_hash_utf8()` y `fix_array_utf8()` en `views/consulta_detalles.pl` e `api/imprimir_receta_api.pl`, reparando secuencias de doble codificación residuales en cadenas históricas (ej. `CÃ¡psula` -> `Cápsula`, `dÃ­as` -> `días`) y estandarizando los descriptores de `binmode(STDOUT, ":encoding(UTF-8)")`.
+  - **Separación Estricta de CSS**: Desacoplamiento de las reglas de estilo de receta hacia el archivo modular `css/receta_medica_digital.css`.
+  - **Aislamiento de Javascript y Prevención de Colisiones de Sigilos**: Erradicación de interpolaciones directas de variables de Perl en bloques `<script>` mediante contenedores DOM (`data-*`) y bloques aislados con comillas simples (`print <<'JS';`).
+  - **Prohibición de `sub_footer.pl`**: Eliminación de dependencias obsoletas al pie heredado de página en todos los nuevos scripts de visualización.
+
 
 
 

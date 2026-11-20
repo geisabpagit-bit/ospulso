@@ -6,7 +6,7 @@ use utf8;
 use open qw(:std :utf8);
 use CGI;
 use JSON qw(decode_json encode_json);
-use Encode qw(encode_utf8 decode_utf8);
+use Encode qw(encode_utf8 decode_utf8 decode encode is_utf8);
 use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
@@ -17,7 +17,68 @@ use utils::db_manager qw(leer_tabla);
 my $q = CGI->new;
 my $session_data = eval { check_session($q) } || {};
 
-binmode STDOUT, ":utf8";
+# Capa canónica de encoding UTF-8 para CGI STDOUT y STDIN
+binmode(STDOUT, ":encoding(UTF-8)");
+binmode(STDIN,  ":encoding(UTF-8)");
+
+# -------------------------------------------------------------------
+# RUTINAS CANÓNICAS DE REPARACIÓN Y SANEAMIENTO UTF-8 (ANTI-MOJIBAKE)
+# -------------------------------------------------------------------
+sub fix_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    
+    # Si detecta secuencias de doble codificación UTF-8 (mojibake típico)
+    if ($str =~ /Ã[\x80-\xBF]|Â[\x80-\xBF]/) {
+        my $repaired = eval { Encode::decode("UTF-8", Encode::encode("iso-8859-1", $str)) };
+        return $repaired if defined $repaired && length($repaired);
+    }
+    
+    # Sanitizaciones de reemplazo directo para casos persistentes
+    $str =~ s/Ã¡/á/g;
+    $str =~ s/Ã©/é/g;
+    $str =~ s/Ã­/í/g;
+    $str =~ s/Ã³/ó/g;
+    $str =~ s/Ãº/ú/g;
+    $str =~ s/Ã±/ñ/g;
+    $str =~ s/Ã‘/Ñ/g;
+    $str =~ s/Â°/°/g;
+    $str =~ s/Â¿/¿/g;
+    $str =~ s/Â¡/¡/g;
+    $str =~ s/â€¢/•/g;
+    $str =~ s/â€”/—/g;
+    $str =~ s/â€“/–/g;
+    
+    return $str;
+}
+
+sub fix_hash_utf8 {
+    my ($h) = @_;
+    return unless ref($h) eq 'HASH';
+    for my $k (keys %$h) {
+        if (ref($h->{$k}) eq 'HASH') {
+            fix_hash_utf8($h->{$k});
+        } elsif (ref($h->{$k}) eq 'ARRAY') {
+            fix_array_utf8($h->{$k});
+        } elsif (!ref($h->{$k})) {
+            $h->{$k} = fix_utf8($h->{$k});
+        }
+    }
+}
+
+sub fix_array_utf8 {
+    my ($arr) = @_;
+    return unless ref($arr) eq 'ARRAY';
+    for my $item (@$arr) {
+        if (ref($item) eq 'HASH') {
+            fix_hash_utf8($item);
+        } elsif (ref($item) eq 'ARRAY') {
+            fix_array_utf8($item);
+        } elsif (!ref($item)) {
+            $item = fix_utf8($item);
+        }
+    }
+}
 
 # Identificadores de solicitud
 my $id_receta       = $q->param('id_receta') || '';
@@ -347,6 +408,17 @@ my $alergias_txt  = $d_cons->{antecedentes_patologicos} || $paciente->{alergias}
 my $indicaciones_extra = $d_cons->{receta_indicaciones} || $d_cons->{receta_indicaciones_extra} || 'Tomar medicamentos puntualmente según posología. Evitar alimentos irritantes, grasas y ayunos prolongados.';
 my $estudios_solicitados = $d_cons->{laboratorios_solicitados} || 'Prueba de Antígeno en Heces para Helicobacter pylori (48 hrs post-tratamiento).';
 
+# Saneamiento Integral UTF-8 de Todas las Entidades
+fix_hash_utf8($org);
+fix_hash_utf8($paciente);
+fix_hash_utf8($medico);
+fix_array_utf8($items);
+$dx_principal       = fix_utf8($dx_principal);
+$dx_secundario      = fix_utf8($dx_secundario);
+$alergias_txt       = fix_utf8($alergias_txt);
+$indicaciones_extra = fix_utf8($indicaciones_extra);
+$estudios_solicitados = fix_utf8($estudios_solicitados);
+
 print $q->header(-type => 'text/html', -charset => 'UTF-8');
 print <<HTML;
 <!DOCTYPE html>
@@ -369,428 +441,8 @@ print <<HTML;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons\@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <style>
-        :root {
-            --primary-clinical: #00C0B5;
-            --primary-clinical-hover: #00A39A;
-            --primary-clinical-active: #00847D;
-            --navy-surgical: #0D2238;
-            --navy-dark: #0F172A;
-            --workspace-bg: #F1F5F9;
-            --slate-muted: #64748B;
-            --slate-border: #E2E8F0;
-            --card-neutral: #F8FAFC;
-            --accent-teal-soft: #F0FDFA;
-            --alert-danger-bg: #FEF2F2;
-            --alert-danger-border: #FCA5A5;
-            --alert-danger-text: #991B1B;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            background-color: var(--workspace-bg);
-            color: var(--navy-dark);
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* 1. BARRA DE HERRAMIENTAS SUPERIOR DEL VISOR (Toolbar) */
-        .visor-toolbar-top {
-            position: sticky;
-            top: 0;
-            z-index: 1050;
-            background: #ffffff;
-            border-bottom: 1px solid var(--slate-border);
-            box-shadow: 0 2px 12px rgba(13, 34, 56, 0.04);
-            padding: 0.65rem 1.5rem;
-        }
-
-        .btn-toolbar-pill {
-            font-size: 0.8rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            padding: 0.38rem 0.95rem;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            text-decoration: none;
-        }
-
-        .badge-regulatorio {
-            font-size: 0.68rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            padding: 0.25rem 0.55rem;
-            border-radius: 0.35rem;
-        }
-
-        /* 2. SUB-HEADER NORMATIVO */
-        .sub-header-normativo {
-            max-width: 900px;
-            margin: 1.25rem auto 0.75rem;
-            padding: 0 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: gap;
-            gap: 0.75rem;
-        }
-
-        /* 3. HOJA DE RECETA MÉDICA OFICIAL (Letter Portrait 8.5" x 11") */
-        .recipe-workspace-area {
-            padding: 0.5rem 1rem 3.5rem;
-            display: flex;
-            justify-content: center;
-        }
-
-        .recipe-letter-sheet {
-            background: #ffffff;
-            width: 816px; /* Ancho estándar 8.5in a 96 DPI */
-            min-height: 1056px; /* 11in a 96 DPI */
-            border-radius: 0.75rem;
-            border: 1px solid var(--slate-border);
-            box-shadow: 0 15px 45px rgba(13, 34, 56, 0.1), 0 2px 10px rgba(13, 34, 56, 0.04);
-            padding: 24px 28px;
-            color: var(--navy-dark);
-            position: relative;
-            transform-origin: top center;
-            transition: transform 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Encabezado Institucional */
-        .receta-header-inst {
-            border-bottom: 2px solid var(--navy-surgical);
-            padding-bottom: 0.65rem;
-            margin-bottom: 0.75rem;
-        }
-        .receta-logo-sq {
-            width: 48px;
-            height: 48px;
-            object-fit: contain;
-            border-radius: 0.4rem;
-        }
-        .receta-inst-name {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--navy-surgical);
-            letter-spacing: -0.3px;
-            line-height: 1.2;
-        }
-        .receta-inst-meta {
-            font-size: 0.68rem;
-            color: var(--slate-muted);
-            line-height: 1.35;
-        }
-
-        /* Bloque del Médico Prescriptor */
-        .receta-medico-card {
-            background-color: var(--navy-surgical);
-            color: #ffffff;
-            border-radius: 0.65rem;
-            padding: 0.75rem 1rem;
-            margin-bottom: 0.65rem;
-        }
-        .receta-medico-nombre {
-            font-size: 1.05rem;
-            font-weight: 800;
-            letter-spacing: -0.2px;
-        }
-        .receta-cedulas-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 0.5rem;
-            margin-top: 0.45rem;
-            padding-top: 0.45rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-        }
-        .receta-cedula-cell {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 0.35rem;
-            padding: 0.25rem 0.5rem;
-            text-align: center;
-        }
-        .receta-cedula-lbl {
-            font-size: 0.58rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #94A3B8;
-            font-weight: 700;
-        }
-        .receta-cedula-val {
-            font-size: 0.8rem;
-            font-weight: 800;
-            color: #ffffff;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Ficha Demográfica del Paciente */
-        .receta-paciente-grid {
-            background-color: var(--card-neutral);
-            border: 1px solid var(--slate-border);
-            border-radius: 0.5rem;
-            padding: 0.55rem 0.75rem;
-            margin-bottom: 0.55rem;
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1.2fr 1.3fr;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-        }
-        .p-field-lbl {
-            font-size: 0.6rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--slate-muted);
-            margin-bottom: 0.1rem;
-        }
-        .p-field-val {
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--navy-dark);
-            line-height: 1.3;
-        }
-
-        /* Banner de Alerta Farmacológica Crítica */
-        .receta-alerta-critica {
-            background-color: var(--alert-danger-bg);
-            border: 1px solid var(--alert-danger-border);
-            border-left: 4px solid #DC2626;
-            color: var(--alert-danger-text);
-            border-radius: 0.45rem;
-            padding: 0.45rem 0.75rem;
-            margin-bottom: 0.65rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.72rem;
-        }
-
-        /* Prescripción Médica (Cuerpo Principal) */
-        .receta-section-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1.5px solid var(--navy-surgical);
-            padding-bottom: 0.25rem;
-            margin-bottom: 0.55rem;
-        }
-        .receta-section-title {
-            font-size: 0.82rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--navy-surgical);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .med-item-card {
-            border: 1px solid var(--slate-border);
-            border-radius: 0.45rem;
-            padding: 0.5rem 0.7rem;
-            margin-bottom: 0.45rem;
-            background: #ffffff;
-        }
-        .med-num-pill {
-            background-color: var(--navy-surgical);
-            color: #ffffff;
-            font-size: 0.65rem;
-            font-weight: 800;
-            border-radius: 0.25rem;
-            padding: 0.1rem 0.4rem;
-            margin-right: 0.4rem;
-            display: inline-block;
-        }
-        .med-generico-title {
-            font-size: 0.86rem;
-            font-weight: 800;
-            color: var(--navy-surgical);
-        }
-        .med-meta-line {
-            font-size: 0.68rem;
-            color: var(--slate-muted);
-            margin: 0.15rem 0;
-        }
-        .med-posologia-box {
-            background-color: var(--card-neutral);
-            border-left: 3px solid var(--primary-clinical);
-            padding: 0.35rem 0.55rem;
-            border-radius: 0.25rem;
-            font-size: 0.74rem;
-            font-weight: 600;
-            color: #1E293B;
-            margin-top: 0.25rem;
-            line-height: 1.35;
-        }
-
-        /* Indicaciones y Estudios (Grid Doble) */
-        .receta-indicaciones-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-            margin-bottom: 0.6rem;
-        }
-        .receta-subcard {
-            background-color: var(--card-neutral);
-            border: 1px solid var(--slate-border);
-            border-radius: 0.45rem;
-            padding: 0.45rem 0.65rem;
-            font-size: 0.68rem;
-        }
-        .receta-subcard-title {
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--navy-surgical);
-            margin-bottom: 0.3rem;
-            border-bottom: 1px solid #E2E8F0;
-            padding-bottom: 0.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        /* Firma y Legalidad */
-        .receta-legal-signatures {
-            border-top: 1px solid var(--slate-border);
-            padding-top: 0.5rem;
-            margin-bottom: 0.5rem;
-            display: grid;
-            grid-template-columns: 1.4fr 1.2fr 0.8fr;
-            gap: 0.6rem;
-            align-items: center;
-        }
-        .receta-fiel-box {
-            font-size: 0.6rem;
-            color: var(--slate-muted);
-            line-height: 1.3;
-        }
-        .receta-sig-doc {
-            text-align: center;
-        }
-        .receta-sig-line {
-            width: 160px;
-            border-bottom: 1.5px solid var(--navy-surgical);
-            margin: 0 auto 0.25rem;
-            height: 28px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-        }
-        .receta-qr-col {
-            text-align: center;
-        }
-
-        .receta-disclaimer-legal {
-            font-size: 0.56rem;
-            color: #64748B;
-            line-height: 1.25;
-            text-align: justify;
-            margin-bottom: 0.4rem;
-        }
-
-        /* 4. TALÓN DESPRENDIBLE DE FARMACIA */
-        .receta-talon-cut {
-            border-top: 1.5px dashed #94A3B8;
-            position: relative;
-            margin: 0.4rem 0 0.5rem;
-            text-align: center;
-        }
-        .receta-cut-badge {
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ffffff;
-            padding: 0 0.6rem;
-            font-size: 0.58rem;
-            font-weight: 800;
-            color: #64748B;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-
-        .receta-talon-box {
-            background-color: #F8FAFC;
-            border: 1px solid #CBD5E1;
-            border-radius: 0.45rem;
-            padding: 0.45rem 0.65rem;
-            font-size: 0.65rem;
-        }
-        .talon-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #E2E8F0;
-            padding-bottom: 0.25rem;
-            margin-bottom: 0.35rem;
-        }
-        .talon-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.63rem;
-            margin-bottom: 0.3rem;
-        }
-        .talon-table th {
-            background: #E2E8F0;
-            color: var(--navy-surgical);
-            font-weight: 800;
-            padding: 0.2rem 0.35rem;
-            text-transform: uppercase;
-            font-size: 0.58rem;
-        }
-        .talon-table td {
-            border-bottom: 1px solid #E2E8F0;
-            padding: 0.25rem 0.35rem;
-        }
-
-        /* 5. REGLAS DE ESTILOS DE IMPRESIÓN (\@media print) */
-        \@media print {
-            \@page {
-                size: letter portrait;
-                margin: 6mm 8mm;
-            }
-            body {
-                background: #ffffff !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            .visor-toolbar-top, .sub-header-normativo, .no-print {
-                display: none !important;
-            }
-            .recipe-workspace-area {
-                padding: 0 !important;
-                margin: 0 !important;
-                display: block !important;
-            }
-            .recipe-letter-sheet {
-                box-shadow: none !important;
-                border: 1px solid #CBD5E1 !important;
-                width: 100% !important;
-                min-height: auto !important;
-                padding: 18px 22px !important;
-                margin: 0 auto !important;
-                border-radius: 0 !important;
-                transform: none !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-        }
-    </style>
+    <!-- Hoja de Estilo Mandante Aislada (Regla de Oro AGENTS.md) -->
+    <link rel="stylesheet" href="../css/receta_medica_digital.css?v=20261120">
 </head>
 <body>
 
@@ -1179,12 +831,30 @@ print <<HTML;
         </div>
     </div>
 
+    <!-- Contenedor DOM para intercambio de variables con JS (Regla de Oro AGENTS.md) -->
+    <div id="receta-meta-dom"
+         class="d-none"
+         data-folio="$folio"
+         data-paciente-nombre="$paciente->{nombre}"
+         data-paciente-tel="$paciente->{telefono}"
+         data-medico-nombre="$medico->{nombre}"
+         data-org-nombre="$org->{nombre_negocio}"></div>
+
     <!-- Bootstrap Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Script de Control del Visor e Impresión Directa -->
+    <!-- Script de Control del Visor e Impresión Directa (Aislado con comillas simples) -->
     <script>
+HTML
+
+print <<'JS';
     let currentZoom = 1.0;
+
+    // Obtener metadatos desde el DOM sin interpolar Perl
+    function getRecetaMeta() {
+        const el = document.getElementById('receta-meta-dom');
+        return el ? el.dataset : {};
+    }
 
     // Ajuste reactivo de escala/zoom del visor
     function ajustarZoom(delta) {
@@ -1203,7 +873,7 @@ print <<HTML;
         }
     }
 
-    // Impresión limpia de 1 sola página Carta con \@media print
+    // Impresión limpia de 1 sola página Carta con @media print
     function ejecutarImpresionReceta() {
         const sheet = document.getElementById('receta-imprimible-sheet');
         const originalTransform = sheet ? sheet.style.transform : '';
@@ -1219,13 +889,15 @@ print <<HTML;
 
     // Compartir por WhatsApp
     function enviarWhatsAppReceta() {
-        const telefono = "$paciente->{telefono}" || '';
-        const folio = "$folio";
-        const paciente = "$paciente->{nombre}";
+        const meta = getRecetaMeta();
+        const telefono = meta.pacienteTel || '';
+        const folio = meta.folio || '';
+        const paciente = meta.pacienteNombre || '';
+        const org = meta.orgNombre || '';
         const urlReceta = window.location.href;
 
         const texto = encodeURIComponent(
-            "Hola " + paciente + ", le compartimos el enlace oficial para consultar y descargar su Receta Médica Digital con validez oficial COFEPRIS (Folio: " + folio + ") emitida por $org->{nombre_negocio}: " + urlReceta
+            "Hola " + paciente + ", le compartimos el enlace oficial para consultar y descargar su Receta Médica Digital con validez oficial COFEPRIS (Folio: " + folio + ") emitida por " + org + ": " + urlReceta
         );
 
         const targetUrl = telefono ? "https://wa.me/52" + telefono + "?text=" + texto : "https://wa.me/?text=" + texto;
@@ -1234,15 +906,21 @@ print <<HTML;
 
     // Compartir por Email
     function enviarEmailReceta() {
-        const paciente = "$paciente->{nombre}";
-        const folio = "$folio";
+        const meta = getRecetaMeta();
+        const paciente = meta.pacienteNombre || '';
+        const folio = meta.folio || '';
+        const org = meta.orgNombre || '';
+        const medico = meta.medicoNombre || '';
         const urlReceta = window.location.href;
-        const subject = encodeURIComponent("Receta Médica Digital - Folio " + folio + " | $org->{nombre_negocio}");
+        const subject = encodeURIComponent("Receta Médica Digital - Folio " + folio + " | " + org);
         const body = encodeURIComponent(
-            "Estimado(a) " + paciente + ":\\n\\nAdjuntamos el enlace a su Receta Médica Digital oficial:\\n" + urlReceta + "\\n\\nAtentamente,\\n$medico->{nombre}\\n$org->{nombre_negocio}"
+            "Estimado(a) " + paciente + ":\n\nAdjuntamos el enlace a su Receta Médica Digital oficial:\n" + urlReceta + "\n\nAtentamente,\n" + medico + "\n" + org
         );
         window.location.href = "mailto:?subject=" + subject + "&body=" + body;
     }
+JS
+
+print <<HTML;
     </script>
 </body>
 </html>

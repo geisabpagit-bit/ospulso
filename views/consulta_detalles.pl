@@ -6,7 +6,7 @@ use utf8;
 use open qw(:std :utf8);
 use CGI;
 use JSON qw(decode_json encode_json);
-use Encode qw(encode_utf8 decode_utf8);
+use Encode qw(encode_utf8 decode_utf8 decode encode is_utf8);
 use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
@@ -19,10 +19,71 @@ my $q = CGI->new;
 my $session_data = eval { check_session($q) } || {};
 my $usuario_sesion = $session_data->{usuario} || 'admin';
 
-binmode STDOUT, ":utf8";
+# Capa canónica de encoding UTF-8 para CGI STDOUT y STDIN
+binmode(STDOUT, ":encoding(UTF-8)");
+binmode(STDIN,  ":encoding(UTF-8)");
 
-my $id_consulta = $q->param('id_consulta') || '';
-my $id_cita     = $q->param('id_cita') || '';
+# -------------------------------------------------------------------
+# RUTINAS CANÓNICAS DE REPARACIÓN Y SANEAMIENTO UTF-8 (ANTI-MOJIBAKE)
+# -------------------------------------------------------------------
+sub fix_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    
+    # Si detecta secuencias de doble codificación UTF-8 (mojibake típico)
+    if ($str =~ /Ã[\x80-\xBF]|Â[\x80-\xBF]/) {
+        my $repaired = eval { Encode::decode("UTF-8", Encode::encode("iso-8859-1", $str)) };
+        return $repaired if defined $repaired && length($repaired);
+    }
+    
+    # Sanitizaciones de reemplazo directo para casos persistentes
+    $str =~ s/Ã¡/á/g;
+    $str =~ s/Ã©/é/g;
+    $str =~ s/Ã­/í/g;
+    $str =~ s/Ã³/ó/g;
+    $str =~ s/Ãº/ú/g;
+    $str =~ s/Ã±/ñ/g;
+    $str =~ s/Ã‘/Ñ/g;
+    $str =~ s/Â°/°/g;
+    $str =~ s/Â¿/¿/g;
+    $str =~ s/Â¡/¡/g;
+    $str =~ s/â€¢/•/g;
+    $str =~ s/â€”/—/g;
+    $str =~ s/â€“/–/g;
+    
+    return $str;
+}
+
+sub fix_hash_utf8 {
+    my ($h) = @_;
+    return unless ref($h) eq 'HASH';
+    for my $k (keys %$h) {
+        if (ref($h->{$k}) eq 'HASH') {
+            fix_hash_utf8($h->{$k});
+        } elsif (ref($h->{$k}) eq 'ARRAY') {
+            fix_array_utf8($h->{$k});
+        } elsif (!ref($h->{$k})) {
+            $h->{$k} = fix_utf8($h->{$k});
+        }
+    }
+}
+
+sub fix_array_utf8 {
+    my ($arr) = @_;
+    return unless ref($arr) eq 'ARRAY';
+    for my $item (@$arr) {
+        if (ref($item) eq 'HASH') {
+            fix_hash_utf8($item);
+        } elsif (ref($item) eq 'ARRAY') {
+            fix_array_utf8($item);
+        } elsif (!ref($item)) {
+            $item = fix_utf8($item);
+        }
+    }
+}
+
+my $id_consulta     = $q->param('id_consulta') || '';
+my $id_cita         = $q->param('id_cita') || '';
 my $id_paciente_req = $q->param('id_paciente') || $q->param('id') || '';
 
 # 1. Cargar la consulta clínica desde dat/consultas_clinicas.dat
@@ -215,6 +276,7 @@ foreach my $p (@$res_pacientes) {
         $paciente->{sexo}      = $p->[7] || $paciente->{sexo};
         $paciente->{ts}        = $p->[11] || 'O+';
         $paciente->{telefono}  = $p->[12] || '5512345678';
+        $paciente->{alergias}  = $p->[15] || $paciente->{alergias};
         last;
     }
 }
@@ -319,7 +381,17 @@ if ($d->{pacs_estudios_seleccionados}) {
     }
 }
 
-# 8. Cálculo reactivo de cumplimiento normativo NOM-004 / NOM-024
+# 8. Saneamiento Exhaustivo UTF-8 de Todas las Variables
+fix_hash_utf8($consulta);
+fix_hash_utf8($d);
+fix_hash_utf8($org);
+fix_hash_utf8($paciente);
+fix_array_utf8($medicamentos);
+$nombre_medico       = fix_utf8($nombre_medico);
+$especialidad_medico = fix_utf8($especialidad_medico);
+$consultorio_medico  = fix_utf8($consultorio_medico);
+
+# 9. Cálculo reactivo de cumplimiento normativo NOM-004 / NOM-024
 my $compliance_score = 0;
 $compliance_score += 15 if ($d->{motivo} || $d->{evolucion});
 $compliance_score += 15 if ($d->{ta} || $d->{temp} || $d->{fc});
@@ -517,7 +589,7 @@ print <<HTML;
 
         /* VISTA HOJA CARTA (WYSIWYG 2 PÁGINAS) */
         #view-wysiwyg-container {
-            display: none; /* Por defecto oculto si arranca en bento o visible según switch */
+            display: none;
         }
 
         /* Ocultar elementos de UI interactiva durante la impresión */
@@ -1329,14 +1401,31 @@ print <<HTML;
 
     </div>
 
+    <!-- Contenedor DOM para intercambio de variables con JS (Regla de Oro AGENTS.md) -->
+    <div id="consulta-detalles-dom"
+         class="d-none"
+         data-id-consulta="$consulta->{id_consulta}"
+         data-paciente-nombre="$paciente->{nombre}"
+         data-paciente-tel="$paciente->{telefono}"
+         data-org-nombre="$org->{nombre_negocio}"></div>
+
     <!-- Bootstrap Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap\@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Lógica de Control e Interactividad del Visor y Vistas -->
+    <!-- Lógica de Control e Interactividad del Visor (Aislado con comillas simples) -->
     <script>
+HTML
+
+print <<'JS';
     let currentMasterView = 'bento';
     let currentDocMode = 'continuous';
     let currentDocPage = 1;
+
+    // Obtener metadatos desde el DOM sin interpolar Perl
+    function getConsultaMeta() {
+        const el = document.getElementById('consulta-detalles-dom');
+        return el ? el.dataset : {};
+    }
 
     // Switch Maestro entre Vista Bento y Hoja Carta WYSIWYG
     function setMasterView(mode) {
@@ -1424,7 +1513,6 @@ print <<HTML;
             }
             counter.textContent = 'Página ' + p + ' de 2';
         } else {
-            // En continua, hacer scroll hacia la página
             const targetEl = (p === 1) ? page1 : page2;
             if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth' });
         }
@@ -1445,10 +1533,6 @@ print <<HTML;
 
     // Impresión Oficial Multi-página
     function ejecutarImpresion() {
-        // Asegurarse de que el contenedor WYSIWYG esté activo y ambas hojas visibles
-        const prevView = currentMasterView;
-        const prevMode = currentDocMode;
-
         setMasterView('wysiwyg');
         setDocViewerMode('continuous');
 
@@ -1459,18 +1543,23 @@ print <<HTML;
 
     // Compartir por WhatsApp
     function compartirWhatsApp() {
-        const telefono = "$paciente->{telefono}" || '';
-        const folio = "$consulta->{id_consulta}";
-        const paciente = "$paciente->{nombre}";
+        const meta = getConsultaMeta();
+        const telefono = meta.pacienteTel || '';
+        const folio = meta.idConsulta || '';
+        const paciente = meta.pacienteNombre || '';
+        const org = meta.orgNombre || '';
         const urlNota = window.location.href;
         
         const texto = encodeURIComponent(
-            "Hola " + paciente + ", le compartimos el enlace oficial para consultar su Nota Médica y Receta Digital (Folio: " + folio + ") emitida por $org->{nombre_negocio}: " + urlNota
+            "Hola " + paciente + ", le compartimos el enlace oficial para consultar su Nota Médica y Receta Digital (Folio: " + folio + ") emitida por " + org + ": " + urlNota
         );
         
         const targetUrl = telefono ? "https://wa.me/52" + telefono + "?text=" + texto : "https://wa.me/?text=" + texto;
         window.open(targetUrl, '_blank');
     }
+JS
+
+print <<HTML;
     </script>
 </body>
 </html>
