@@ -127,10 +127,9 @@ my @lt = localtime(time);
 my $fecha_hoy = sprintf("%04d-%02d-%02d", $lt[5]+1900, $lt[4]+1, $lt[3]);
 
 render_header(
-    titulo      => 'Nuevo Ingreso Quirúrgico (Wizard Integral)',
-    role        => $role,
-    usuario     => $usuario,
-    skip_header => 1
+    titulo  => 'Nuevo Ingreso Quirúrgico (Wizard Integral)',
+    role    => $role,
+    usuario => $usuario
 );
 
 utils::sub_sidebar::render_sidebar(
@@ -228,7 +227,7 @@ print <<HTML;
         <aside class="qx-live-monitor-panel">
             <div class="qx-monitor-header">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small fw-bold text-uppercase opacity-75" style="font-size:0.68rem; letter-spacing:0.6px;">Monitoreo en Vivo</span>
+                    <span class="small fw-bold text-uppercase opacity-75 qx-micro-text">Monitoreo en Vivo</span>
                     <span id="monitor-tipo-cirugia" class="badge bg-info text-dark fw-bold">PROGRAMADA</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
@@ -239,10 +238,10 @@ print <<HTML;
 
             <div class="px-3 pt-2.5 pb-1 border-bottom bg-light d-flex justify-content-between align-items-center">
                 <span class="small fw-bold text-muted">Semaforización (8 Actores)</span>
-                <div class="d-flex gap-1.5 align-items-center" style="font-size:0.65rem;">
-                    <span class="qx-traffic-dot dot-verde" style="width:8px;height:8px;"></span>OK
-                    <span class="qx-traffic-dot dot-ambar" style="width:8px;height:8px;"></span>Proc
-                    <span class="qx-traffic-dot dot-rojo" style="width:8px;height:8px;"></span>Alerta
+                <div class="d-flex gap-1.5 align-items-center qx-micro-text">
+                    <span class="qx-traffic-dot dot-verde qx-dot-legend"></span>OK
+                    <span class="qx-traffic-dot dot-ambar qx-dot-legend"></span>Proc
+                    <span class="qx-traffic-dot dot-rojo qx-dot-legend"></span>Alerta
                 </div>
             </div>
 
@@ -253,14 +252,14 @@ print <<HTML;
                     <span class="small fw-bold text-secondary">Acumulado Insumos 3NF:</span>
                     <span id="monitor-total-insumos" class="fw-bold text-primary fs-6">\$0.00</span>
                 </div>
-                <div class="small text-muted mt-1" style="font-size:0.7rem;">
+                <div class="small text-muted mt-1 qx-micro-text">
                     <i class="bi bi-shield-check text-success me-1"></i>Cumplimiento NOM-004 y NOM-024
                 </div>
             </div>
         </aside>
 
         <!-- CONTENEDOR DE LOS 6 PASOS DEL WIZARD -->
-        <section class="card border-0 shadow-sm rounded-3 bg-white">
+        <section class="card card-mobile-flush border-0 shadow-sm rounded-3 bg-white">
             <div class="card-body p-3 p-lg-4">
 
                 <!-- =========================================================
@@ -285,7 +284,7 @@ print <<HTML;
                                 <span class="fw-bold text-primary"><i class="bi bi-calendar-check-fill me-1.5"></i>CIRUGÍA PROGRAMADA</span>
                                 <span class="badge bg-primary">Secuencial Estricto</span>
                             </div>
-                            <p class="text-muted small mb-0" style="font-size:0.76rem;">
+                            <p class="text-muted small mb-0 qx-micro-text">
                                 Requiere disponibilidad libre en <strong>Agenda de Espacios</strong>. Ingresa a columna <code>PROGRAMADA</code> y exige Contrato, Consentimiento y Depósito (\$5,000) antes de pasar a Pre-Op.
                             </p>
                         </div>
@@ -295,7 +294,7 @@ print <<HTML;
                                 <span class="fw-bold text-danger"><i class="bi bi-lightning-charge-fill me-1.5"></i>CIRUGÍA DE URGENCIAS</span>
                                 <span class="badge bg-danger">Flujo en Paralelo</span>
                             </div>
-                            <p class="text-muted small mb-0" style="font-size:0.76rem;">
+                            <p class="text-muted small mb-0 qx-micro-text">
                                 Bloqueo prioritario en <strong>Agenda de Espacios</strong>. Ingresa directo a <code>PRE-OPERATORIO</code>. Enfermería estabiliza sin bloqueo mientras el familiar tramita Recepción y Caja (Semáforos en Rojo pulsante).
                             </p>
                         </div>
@@ -796,15 +795,15 @@ print <<HTML;
                                 <!-- Mini formulario para agregar medicamentos -->
                                 <div class="row g-1.5 align-items-end mb-2 bg-white p-2 rounded border">
                                     <div class="col-12 col-md-4">
-                                        <label class="form-label small fw-bold text-muted mb-0.5" style="font-size:0.7rem;">Fármaco y Presentación</label>
+                                        <label class="form-label small fw-bold text-muted mb-0.5 qx-micro-text">Fármaco y Presentación</label>
                                         <input type="text" id="rec_add_farmaco" class="form-control form-control-sm" placeholder="Ketorolaco 10mg Tab" />
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label small fw-bold text-muted mb-0.5" style="font-size:0.7rem;">Dosis</label>
+                                        <label class="form-label small fw-bold text-muted mb-0.5 qx-micro-text">Dosis</label>
                                         <input type="text" id="rec_add_dosis" class="form-control form-control-sm" placeholder="1 tableta" />
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label small fw-bold text-muted mb-0.5" style="font-size:0.7rem;">Vía</label>
+                                        <label class="form-label small fw-bold text-muted mb-0.5 qx-micro-text">Vía</label>
                                         <select id="rec_add_via" class="form-select form-select-sm">
                                             <option value="Oral">Oral</option>
                                             <option value="IM">IM</option>
@@ -814,11 +813,11 @@ print <<HTML;
                                         </select>
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label small fw-bold text-muted mb-0.5" style="font-size:0.7rem;">Frecuencia</label>
+                                        <label class="form-label small fw-bold text-muted mb-0.5 qx-micro-text">Frecuencia</label>
                                         <input type="text" id="rec_add_frecuencia" class="form-control form-control-sm" placeholder="Cada 8 h" />
                                     </div>
                                     <div class="col-6 col-md-2">
-                                        <label class="form-label small fw-bold text-muted mb-0.5" style="font-size:0.7rem;">Duración</label>
+                                        <label class="form-label small fw-bold text-muted mb-0.5 qx-micro-text">Duración</label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" id="rec_add_duracion" class="form-control" placeholder="5 días" />
                                             <button type="button" class="btn btn-primary fw-bold" onclick="agregarMedicamentoReceta()" title="Agregar a Receta">+</button>
@@ -827,7 +826,7 @@ print <<HTML;
                                 </div>
 
                                 <div class="table-responsive bg-white rounded border mb-2.5">
-                                    <table class="table table-sm align-middle mb-0" style="font-size:0.76rem;">
+                                    <table class="table table-sm align-middle mb-0 qx-micro-text">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>Fármaco</th>
@@ -944,7 +943,7 @@ print <<HTML;
 <div class="modal fade" id="modalQuickPatient" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-navy text-white py-2.5" style="background:#0A2A66;">
+            <div class="modal-header qx-modal-navy-header py-2.5">
                 <h6 class="modal-title fw-bold mb-0"><i class="bi bi-person-plus-fill me-2"></i>Alta Rápida de Paciente Quirúrgico</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -994,7 +993,7 @@ print <<HTML;
 <div class="modal fade" id="modalNuevoInsumo3NF" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-navy text-white py-2.5" style="background:#0A2A66;">
+            <div class="modal-header qx-modal-navy-header py-2.5">
                 <h6 class="modal-title fw-bold mb-0"><i class="bi bi-box-seam-fill me-2"></i>Agregar Insumo al Catálogo Universal (3NF)</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -1042,3 +1041,4 @@ utils::sub_sidebar::render_sidebar_footer();
 render_bottom_nav('hospital');
 print "</body></html>\n";
 1;
+

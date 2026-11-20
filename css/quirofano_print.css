@@ -222,3 +222,11 @@ body.qx-print-body {
         padding: 10px;
     }
 }
+
+
+.td-center { text-align: center; }
+.td-right { text-align: right; }
+.td-empty { text-align: center; color: #64748b; }
+.pase-title { margin: 0; color: #0A2A66; }
+.pase-sub { margin: 2px 0; font-size: 11px; }
+.pase-meta { margin-top: 6px; font-size: 12px; }

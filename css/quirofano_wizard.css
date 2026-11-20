@@ -303,3 +303,314 @@
     border-radius: 50%;
     display: inline-block;
 }
+
+
+/* ==========================================================================
+   ESTILOS DEL TABLERO KANBAN QUIRÚRGICO Y MODAL DE INSPECCIÓN EJECUTIVA
+   (Migrados fuera de views/quirofano_kanban.pl por regla de separación CSS)
+   ========================================================================== */
+
+.kanban-wrapper {
+    width: 100%;
+    max-width: 100%;
+}
+
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.85rem;
+    padding-bottom: 1.5rem;
+    min-height: calc(100vh - 290px);
+    width: 100%;
+    align-items: start;
+}
+
+@media (max-width: 1099px) {
+    .kanban-board {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 1rem;
+    }
+    .kanban-col {
+        min-width: 280px !important;
+        max-width: 320px !important;
+        scroll-snap-align: start;
+        flex-shrink: 0;
+    }
+}
+
+.kanban-col {
+    background: #f8fafc;
+    border-radius: 14px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.kanban-col:hover {
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.kanban-header {
+    padding: 0.85rem 0.95rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border-bottom: 2px solid;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+}
+
+.kanban-header .badge-counter {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.55rem;
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.kanban-body {
+    padding: 0.75rem 0.65rem;
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 350px);
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.kanban-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 0.85rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #cbd5e1;
+    cursor: grab;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    position: relative;
+}
+
+.kanban-card:active {
+    cursor: grabbing;
+}
+
+.kanban-card:hover {
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+}
+
+.col-programada .kanban-header { border-color: #94a3b8; color: #475569; background: #f8fafc; }
+.col-programada .kanban-card { border-left-color: #94a3b8; }
+
+.col-preop .kanban-header { border-color: #f59e0b; color: #b45309; background: #fffdf5; }
+.col-preop .kanban-card { border-left-color: #f59e0b; }
+
+.col-quirofano .kanban-header { border-color: #ef4444; color: #b91c1c; background: #fff5f5; }
+.col-quirofano .kanban-card { border-left-color: #ef4444; }
+
+.col-recuperacion .kanban-header { border-color: #3b82f6; color: #1d4ed8; background: #f0f7ff; }
+.col-recuperacion .kanban-card { border-left-color: #3b82f6; }
+
+.col-alta .kanban-header { border-color: #10b981; color: #047857; background: #f0fdf4; }
+.col-alta .kanban-card { border-left-color: #10b981; }
+
+.pulse-live {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0.6);
+    animation: pulseLiveAnim 1.6s infinite;
+    margin-right: 5px;
+}
+
+@keyframes pulseLiveAnim {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.avatar-monogram {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0A2A66 0%, #1e40af 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sortable-ghost {
+    opacity: 0.35;
+    background: #e2e8f0;
+    border: 2px dashed #94a3b8;
+}
+
+.sortable-drag {
+    transform: rotate(2deg);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.18) !important;
+}
+
+.empty-kanban-hint {
+    padding: 2.2rem 0.5rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 500;
+    user-select: none;
+}
+
+.kpi-chip {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #334155;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.modal-qx-compact .modal-dialog {
+    max-width: 820px !important;
+    margin: 1.25rem auto;
+}
+
+.modal-qx-compact .modal-content {
+    border-radius: 16px !important;
+    border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 16px 40px rgba(10, 42, 102, 0.25) !important;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.modal-qx-header {
+    background: linear-gradient(135deg, var(--md-blue-deep, #0A2A66) 0%, #124A9E 100%) !important;
+    border-bottom: 2.5px solid var(--md-teal-clinical, #19B7A5) !important;
+    padding: 0.75rem 1.25rem !important;
+}
+
+.modal-qx-body {
+    background: #F8FBFF !important;
+    padding: 0.9rem 1.15rem !important;
+    max-height: calc(85vh - 110px);
+    overflow-y: auto;
+}
+
+.nav-pills-qx {
+    background: #ffffff;
+    border: 1.5px solid rgba(25, 183, 165, 0.35);
+    border-radius: 10px;
+    padding: 3px;
+    display: flex;
+    gap: 3px;
+}
+
+.nav-pills-qx .nav-link {
+    color: #334155 !important;
+    font-weight: 700;
+    font-size: 0.76rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 7px;
+    transition: all 0.2s ease;
+    text-align: center;
+    flex: 1;
+}
+
+.nav-pills-qx .nav-link:hover {
+    background: rgba(25, 183, 165, 0.1);
+    color: var(--md-blue-deep, #0A2A66) !important;
+}
+
+.nav-pills-qx .nav-link.active {
+    background: var(--md-teal-clinical, #19B7A5) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(25, 183, 165, 0.35);
+}
+
+.qx-subcard {
+    background: #ffffff;
+    border: 1.5px solid rgba(25, 183, 165, 0.25);
+    border-radius: 10px;
+    padding: 0.75rem 0.9rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.qx-subcard-title {
+    color: var(--md-blue-deep, #0A2A66) !important;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.qx-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.3px;
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+.qx-value {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.qx-form-control {
+    font-size: 0.8rem !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 0.25rem 0.5rem !important;
+    color: #0f172a !important;
+}
+
+.qx-form-control:focus {
+    border-color: var(--md-teal-clinical, #19B7A5) !important;
+    box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.15) !important;
+}
+
+.qx-switch-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+.qx-modal-navy-header {
+    background: #0A2A66;
+    color: #ffffff;
+}
+
+.qx-micro-text {
+    font-size: 0.7rem;
+}
+
+.qx-dot-legend {
+    width: 8px;
+    height: 8px;
+}

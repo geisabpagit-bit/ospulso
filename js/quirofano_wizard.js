@@ -1060,3 +1060,4 @@ function abrirVistaImprimibleAlta() {
     }
     window.open(`imprimir_alta_quirurgica.pl?id_cirugia=${encodeURIComponent(currentCirugiaId)}`, '_blank');
 }
+

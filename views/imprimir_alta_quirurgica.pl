@@ -59,7 +59,7 @@ foreach my $m (@{$rec->{medicamentos} || []}) {
     };
 }
 if (!$meds_rows) {
-    $meds_rows = qq{<tr><td colspan="5" style="text-align:center;color:#64748b;">Sin medicamentos prescritos en lista.</td></tr>};
+    $meds_rows = qq{<tr><td colspan="5" class="td-empty">Sin medicamentos prescritos en lista.</td></tr>};
 }
 
 my $insumos_rows = '';
@@ -71,14 +71,14 @@ foreach my $c (@$cns) {
             <td><span class="badge">$c->{etapa_clinica}</span></td>
             <td>$c->{codigo_sku}</td>
             <td>$c->{nombre}</td>
-            <td style="text-align:center;">$c->{cantidad} $c->{unidad}</td>
-            <td style="text-align:right;">\$$pu</td>
-            <td style="text-align:right;"><strong>\$$sub</strong></td>
+            <td class="td-center">$c->{cantidad} $c->{unidad}</td>
+            <td class="td-right">\$$pu</td>
+            <td class="td-right"><strong>\$$sub</strong></td>
         </tr>
     };
 }
 if (!$insumos_rows) {
-    $insumos_rows = qq{<tr><td colspan="6" style="text-align:center;color:#64748b;">Sin insumos registrados.</td></tr>};
+    $insumos_rows = qq{<tr><td colspan="6" class="td-empty">Sin insumos registrados.</td></tr>};
 }
 
 my $sub_3nf  = sprintf("%.2f", ($liq->{subtotal_insumos_3nf} || 0) + 0);
@@ -218,12 +218,12 @@ print <<HTML;
         <section class="pase-salida-box">
             <div class="d-flex-between">
                 <div>
-                    <h3 style="margin:0;color:#0A2A66;">PASE DE SALIDA HOSPITALARIO — MÓDULO QUIRÚRGICO</h3>
-                    <p style="margin:2px 0;font-size:11px;">Entregar en Control de Enfermería y Vigilancia al egresar el paciente.</p>
+                    <h3 class="pase-title">PASE DE SALIDA HOSPITALARIO — MÓDULO QUIRÚRGICO</h3>
+                    <p class="pase-sub">Entregar en Control de Enfermería y Vigilancia al egresar el paciente.</p>
                 </div>
                 <div class="pase-folio">$folio_pase</div>
             </div>
-            <div style="margin-top:6px;font-size:12px;">
+            <div class="pase-meta">
                 <strong>Paciente:</strong> $dossier->{nombre_paciente} |
                 <strong>Sala:</strong> $dossier->{sala} |
                 <strong>Habitación:</strong> $dossier->{habitacion_asignada} |
@@ -236,3 +236,4 @@ print <<HTML;
 </html>
 HTML
 1;
+
