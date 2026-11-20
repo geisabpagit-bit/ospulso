@@ -1305,8 +1305,8 @@ HTML
                 $meds_count = scalar @{$cons->{data}->{medicamentos}};
             }
             my $tiene_receta = $cons->{tiene_receta} // (($cons->{data}->{requiere_receta} && $cons->{data}->{requiere_receta} eq '1' && $meds_count > 0) ? 1 : 0);
-            my $receta_html = $tiene_receta ? "<div class='mt-3 pt-3 border-top'><span class='badge bg-light text-dark border'><i class='bi bi-capsule text-primary me-1'></i> $meds_count F&aacute;rmaco(s) recetado(s)</span></div>" : "";
-            my $btn_receta = $tiene_receta ? qq{<a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-capsule me-1"></i>Receta</a>} : "";
+            my $receta_html = $tiene_receta ? "<div class='mt-3 pt-3 border-top'><span class='badge bg-light text-dark border'><i class='bi bi-prescription2 text-teal me-1' style='color:#00C0B5;'></i> $meds_count F&aacute;rmaco(s) recetado(s)</span></div>" : "";
+            my $btn_receta = $tiene_receta ? qq{<a href="../api/imprimir_receta_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm rounded-pill px-3 fw-bold" style="border:1px solid #00C0B5; color:#00847D; background:#F0FDFA;" title="Receta Médica Digital COFEPRIS"><i class="bi bi-prescription2 me-1"></i>Receta</a>} : "";
 
             my $tiene_consentimiento = $cons->{tiene_consentimiento} // (($cons->{data}->{requiere_consentimiento} && $cons->{data}->{requiere_consentimiento} eq '1') ? 1 : 0);
             my $btn_consentimiento = $tiene_consentimiento ? qq{<a href="../api/imprimir_consentimiento_api.pl?id_consulta=$cons->{id_consulta}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold"><i class="bi bi-file-earmark-text me-1"></i>Consentimiento</a>} : "";
@@ -2428,9 +2428,21 @@ print <<HTML;
             document.getElementById('detConsRecetaCont').classList.add('d-none');
         }
         
-        // Link para impresión
+        // Links para impresión y receta oficial COFEPRIS
+        const btnRecetaModal = document.getElementById('btnImprimirRecetaModal');
+        if (data.medicamentos && data.medicamentos.length > 0) {
+            if (btnRecetaModal) {
+                btnRecetaModal.classList.remove('d-none');
+                btnRecetaModal.onclick = function() {
+                    window.open('../api/imprimir_receta_api.pl?id_consulta=' + id_consulta, '_blank');
+                };
+            }
+        } else if (btnRecetaModal) {
+            btnRecetaModal.classList.add('d-none');
+        }
+
         document.getElementById('btnImprimirNota').onclick = function() {
-            window.open('imprime_nota_medica.pl?id_consulta=' + id_consulta, '_blank');
+            window.open('consulta_detalles.pl?id_consulta=' + id_consulta, '_blank');
         };
         
         const modalEl = document.getElementById('modalDetalleConsulta');
@@ -2573,6 +2585,7 @@ print <<HTML;
                 <div class="small text-muted fw-bold"><i class="bi bi-shield-lock-fill text-success me-1"></i> Registro Hist&oacute;rico (Solo Lectura)</div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn rounded-pill px-3 fw-bold d-none" id="btnImprimirRecetaModal" style="border: 1px solid #00C0B5; color: #00847D; background: #F0FDFA;"><i class="bi bi-prescription2 me-1"></i>Imprimir Receta</button>
                     <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btnImprimirNota"><i class="bi bi-printer-fill me-2"></i>Imprimir Nota</button>
                 </div>
             </div>

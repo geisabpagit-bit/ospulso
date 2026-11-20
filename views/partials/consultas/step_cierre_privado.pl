@@ -90,6 +90,9 @@ sub render_step_cierre_privado {
                             <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 fw-semibold" onclick="SOAPReactiveEngine.abrirModalPDFNotaQR()">
                                 <i class="bi bi-qr-code-scan me-1"></i>Vista Imprimible PDF + QR NOM-024
                             </button>
+                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-semibold" style="border: 1px solid #00C0B5; color: #00847D; background: #F0FDFA;" onclick="SOAPReactiveEngine.abrirModalRecetaPreview()">
+                                <i class="bi bi-prescription2 me-1"></i>Receta Imprimible COFEPRIS
+                            </button>
                             <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="SOAPReactiveEngine.enviarNotaCifradaTLS()">
                                 <i class="bi bi-shield-lock me-1"></i>Enviar por Canal TLS 1.3
                             </button>

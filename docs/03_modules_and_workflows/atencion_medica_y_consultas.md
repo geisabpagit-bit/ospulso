@@ -359,6 +359,26 @@ graph LR
   - `views/consulta_detalles.pl` implementa un switch maestro en el topbar que alterna fluidamente entre el **Dashboard Bento Interactivo** (tarjetas Bento con diseño *Clinical Pulse*, badges reactivos de cumplimiento normativo y datos dinámicos) y la **Hoja Carta WYSIWYG** (2 páginas Carta con toolbar de vista continua vs. paginada, selector de páginas, zoom 75%/100%/125%, compartir por WhatsApp y botón de impresión directa con salto estricto `@media print`).
   - Preservación íntegra de la identidad de la organización (`$org->{logo_url}`, razón social, CLUES, RFC) y los datos clínicos reales almacenados en `dat/consultas_clinicas.dat`.
 
+### 4.28 Visor y Vista Previa en PDF de Receta Médica Imprimible (COFEPRIS / NOM-004 / NOM-072 / LGS Art. 226)
+- **Cumplimiento Regulatorio y Diseño Clinical Pulse (`api/imprimir_receta_api.pl`)**:
+  - **Toolbar Superior Fija**: Navegación de retorno al expediente, controles interactivos de Zoom (`[ - ] 100% [ + ]`), canales de envío directo por WhatsApp y Correo Electrónico, botón de Descargar PDF (Navy `#0D2238`), e Impresión Directa (Teal `#00C0B5` con `window.print()`).
+  - **Sub-Header Normativo**: Certificación esmeralda NOM-004 • NOM-072, estatus de vigencia legal (30 días naturales según Art. 226 LGS), identificador de Folio Oficial, y botones de flujo rápido (`Imprimir Hoja Clínica`, `PDF Cifrado`, `WhatsApp Paciente`).
+  - **Hoja Carta Letter Portrait (8.5" x 11") Unificada**:
+    - **Encabezado Institucional**: Logotipo institucional, sede/sucursal, domicilio legal, central telefónica, urgencias, Acreditación SSA Federal, Licencia Sanitaria, CLUES SSA y fecha/hora de emisión CST.
+    - **Médico Prescriptor**: Contenedor navy de alto contraste con especialidad médica, alma mater y 3 columnas para Cédula Profesional, Cédula de Especialidad y Certificación de Consejo (CMIM/CONACEM).
+    - **Demografía, Somatometría y Diagnóstico CIE-10**: Ficha del paciente (expediente, CURP, edad, sexo, fecha nacimiento), signos vitales (T/A, peso, talla, IMC) y diagnósticos CIE-10 (principal y secundario).
+    - **Alerta Farmacológica Crítica**: Banner de contraindicación absoluta para pacientes con alergias reportadas (betalactámicos, etc.) con sello "Verificado en Expediente".
+    - **Prescripción Farmacológica (Rx)**: Fármacos correlativos numerados con denominación genérica, forma farmacéutica, concentración/dosis, presentación, vía de administración, fracción legal de dispensación (Art. 226 LGS), posología destacada y duración del tratamiento.
+    - **Régimen Higiénico-Dietético y Paraclínicos**: Medidas obligatorias, citas de control y alerta roja de urgencias ante signos de alarma.
+    - **Firma Electrónica Avanzada y QR Oficial**: Sello digital SHA-256 inmutable NOM-024, rúbrica digitalizada del médico y código QR de validación oficial.
+    - **Talón Desprendible de Farmacia**: Línea de corte con tijeras (`✂ LÍNEA DE DESPRENDIMIENTO PARA ARCHIVO DE FARMACIA`), copia para botica, casillas de surtido total/parcial, lote, fecha y sello de la farmacia, conforme a NOM-072.
+  - **Reglas `@media print`**: Formato exacto `@page { size: letter portrait; margin: 6mm 8mm; }` calibrado al milímetro para garantizar que todo el documento quepa exactamente en **1 sola página física Carta**.
+- **Integración en Wizard de Consulta y Expediente Clínico**:
+  - En `views/partials/consultas/step_soap.pl`, se añadió el botón de acción directa `[ Vista Previa Receta ]` con enlace a `SOAPReactiveEngine.abrirModalRecetaPreview()`.
+  - En `views/partials/consultas/step_cierre_privado.pl`, se incorporó el acceso a `Receta Imprimible COFEPRIS` previo y posterior al sellado de la consulta.
+  - En `views/render_expediente_clinico.pl`, se refactorizó la liga "Receta" tanto en la línea de tiempo de consultas como en el modal interactivo de detalles de consulta (`modalDetalleConsulta`).
+
+
 
 
 

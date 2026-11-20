@@ -1785,6 +1785,30 @@ const SOAPReactiveEngine = {
         }
     },
 
+    abrirModalRecetaPreview: function() {
+        const chkReceta = document.getElementById('check_requiere_receta');
+        if (chkReceta && !chkReceta.checked && (!window.recetaItems || window.recetaItems.length === 0)) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Receta Médica no habilitada',
+                    text: 'Active el switch "¿Expedir Receta Médica?" y agregue al menos un medicamento para visualizar la receta oficial.',
+                    confirmButtonColor: '#00C0B5'
+                });
+            } else {
+                alert('Active el switch "¿Expedir Receta Médica?" y agregue al menos un medicamento.');
+            }
+            return;
+        }
+
+        const cfg = document.getElementById('js-config');
+        const idPac = cfg ? (cfg.getAttribute('data-id-paciente') || '1') : '1';
+        
+        // Abrir el visor interactivo de receta oficial COFEPRIS / NOM-004 en nueva ventana
+        const targetUrl = `../api/imprimir_receta_api.pl?id_paciente=${encodeURIComponent(idPac)}&preview=1`;
+        window.open(targetUrl, '_blank');
+    },
+
     toggleCommandPalette: function() {
         const modalEl = document.getElementById('modalCommandPaletteAltK');
         if (!modalEl || !window.bootstrap) return;

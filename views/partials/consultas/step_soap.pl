@@ -303,12 +303,15 @@ sub render_step_soap {
                                 <label for="select_producto_receta">Buscar Medicamento en Catálogo 3NF (productos.dat)</label>
                             </div>
                         </div>
-                        <div class="col-12 col-md-5 d-flex align-items-center gap-1.5">
+                        <div class="col-12 col-md-5 d-flex align-items-center gap-1.5 flex-wrap">
                             <button type="button" class="btn btn-sm btn-navy-outline rounded-pill px-3 py-2 fw-semibold flex-grow-1" onclick="agregarMedicamentoRecetaManual()">
                                 <i class="bi bi-plus-circle me-1"></i>+ Prescripción Manual
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-teal rounded-pill px-3 py-2 fw-semibold" style="border-color:#19B7A5;color:#0f766e;" onclick="BovedaService.openDrawer('RECETA')" title="Clonar medicamentos desde una receta previa en la Bóveda">
                                 <i class="bi bi-copy me-1"></i>Clonar de Bóveda
+                            </button>
+                            <button type="button" class="btn btn-sm text-dark fw-bold rounded-pill px-3 py-2" style="background-color: #00C0B5;" onclick="SOAPReactiveEngine.abrirModalRecetaPreview()" title="Ver Vista Previa PDF de Receta Médica Imprimible (COFEPRIS / NOM-004)">
+                                <i class="bi bi-prescription2 me-1"></i> Vista Previa Receta
                             </button>
                         </div>
                     </div>
