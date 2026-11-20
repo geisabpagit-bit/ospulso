@@ -9,6 +9,39 @@ use JSON qw(encode_json decode_json);
 use FindBin;
 use lib "$FindBin::Bin/..";
 use File::Spec;
+use Encode qw(decode encode);
+
+# Rutina Canónica de Saneamiento y Desenredo Multi-Capa UTF-8 (Anti-Mojibake)
+sub fix_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    
+    for (1..4) {
+        last unless $str =~ /Ã[\x80-\xFF]|Â[\x80-\xFF]|â€|Ãƒ|Ã‚/;
+        my $decoded = eval { Encode::decode("UTF-8", Encode::encode("iso-8859-1", $str)) };
+        if (defined $decoded && length($decoded)) {
+            $str = $decoded;
+        } else {
+            last;
+        }
+    }
+    
+    $str =~ s/Ã¡/á/g;
+    $str =~ s/Ã©/é/g;
+    $str =~ s/Ã­/í/g;
+    $str =~ s/Ã³/ó/g;
+    $str =~ s/Ãº/ú/g;
+    $str =~ s/Ã±/ñ/g;
+    $str =~ s/Ã‘/Ñ/g;
+    $str =~ s/Â°/°/g;
+    $str =~ s/Â¿/¿/g;
+    $str =~ s/Â¡/¡/g;
+    $str =~ s/â€¢/•/g;
+    $str =~ s/â€”/—/g;
+    $str =~ s/â€“/–/g;
+    
+    return $str;
+}
 
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'sub_header.pl');
@@ -493,7 +526,7 @@ if (-e $draft_file && $id_cita) {
             # Solo restaurar si pertenece estrictamente a este paciente y a ESTA cita activa en curso
             if ($c[1] eq $id_paciente && $c[2] eq $id_cita) {
                 $draft_step = $c[4] || 0;
-                $draft_json = $c[5] || '{}';
+                $draft_json = fix_utf8($c[5] || '{}');
                 $draft_json =~ s/\\\\n/\\n/g; # Restaurar saltos de línea
                 last;
             }
@@ -1240,7 +1273,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Restaurar únicamente datos del borrador legítimo de esta cita activa
         for (const key in draftData) {
             if (key === 'fecha_consulta' || key === 'hora_consulta' || key.startsWith('paciente_') || key === 'especialidad' || key === 'id_espe') continue; // Preservar inmutabilidad
-            const val = draftData[key];
+            let val = draftData[key];
+            if (typeof val === 'string' && typeof window.fixUTF8 === 'function') {
+                val = window.fixUTF8(val);
+            }
             const el = document.querySelector(`[name="${key}"]`);
             if (el) {
                 if (el.type === 'checkbox' || el.type === 'radio') {
@@ -1249,6 +1285,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.value = val;
                 }
             }
+        }
+        const fHall = document.getElementById('f_exploracion_hallazgos');
+        if (fHall && typeof window.fixUTF8 === 'function') {
+            fHall.value = window.fixUTF8(fHall.value);
         }
         if (draftData.requiere_receta === '1' || draftData.requiere_receta === 1) {
             const chk = document.getElementById('check_requiere_receta');

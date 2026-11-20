@@ -36,7 +36,8 @@
 }
 
 .wizard-panel h5 {
-    font-size: 1.05rem !important; /* Tamaño estándar de títulos finanzas.pl */
+    font-size: 1.05rem !important;
+    /* Tamaño estándar de títulos finanzas.pl */
 }
 
 .qx-subcard-title {
@@ -54,7 +55,8 @@
 .qx-label,
 .wizard-panel .text-muted.small {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    color: #64748b !important; /* Gris de sección según finanzas.pl */
+    color: #64748b !important;
+    /* Gris de sección según finanzas.pl */
     font-weight: 500 !important;
     font-size: 0.74rem !important;
     text-transform: none !important;
@@ -88,7 +90,9 @@
     background: #ffffff !important;
     transition: all 0.2s ease !important;
 }
-.btn-outline-teal:hover, .btn-outline-teal:focus {
+
+.btn-outline-teal:hover,
+.btn-outline-teal:focus {
     background: #00C0B5 !important;
     color: #ffffff !important;
     border-color: #00C0B5 !important;
@@ -111,6 +115,7 @@
         overflow: visible !important;
         padding-right: 0;
     }
+
     .soap-nav-steps-list {
         display: flex !important;
         flex-direction: row !important;
@@ -118,6 +123,7 @@
         scroll-snap-type: x mandatory;
         padding-bottom: 4px;
     }
+
     .soap-nav-step-item {
         min-width: 155px;
         scroll-snap-align: start;
@@ -266,14 +272,22 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .wizard-label {
     font-size: 0.74rem;
     font-weight: 500;
-    color: #64748b; /* Gris para títulos de sección / etiquetas */
+    color: #64748b;
+    /* Gris para títulos de sección / etiquetas */
     margin-bottom: 0.25rem;
     display: block;
     text-transform: none;
@@ -315,12 +329,12 @@
     margin-bottom: 0.65rem;
 }
 
-.form-floating > .form-control,
-.form-floating > .wizard-input,
-.form-floating > .form-select,
-.wizard-floating > .form-control,
-.wizard-floating > .wizard-input,
-.wizard-floating > .form-select {
+.form-floating>.form-control,
+.form-floating>.wizard-input,
+.form-floating>.form-select,
+.wizard-floating>.form-control,
+.wizard-floating>.wizard-input,
+.wizard-floating>.form-select {
     height: calc(3.15rem + 2px) !important;
     min-height: calc(3.15rem + 2px) !important;
     line-height: 1.25 !important;
@@ -338,29 +352,29 @@
     transition: all 0.2s ease;
 }
 
-.form-floating > .form-control:focus,
-.form-floating > .wizard-input:focus,
-.form-floating > .form-select:focus,
-.wizard-floating > .form-control:focus,
-.wizard-floating > .wizard-input:focus,
-.wizard-floating > .form-select:focus {
+.form-floating>.form-control:focus,
+.form-floating>.wizard-input:focus,
+.form-floating>.form-select:focus,
+.wizard-floating>.form-control:focus,
+.wizard-floating>.wizard-input:focus,
+.wizard-floating>.form-select:focus {
     border-color: #19B7A5 !important;
     box-shadow: 0 0 0 3px rgba(25, 183, 165, 0.16) !important;
     background-color: #ffffff;
 }
 
-.form-floating > textarea.form-control,
-.form-floating > textarea.wizard-input,
-.wizard-floating > textarea.form-control,
-.wizard-floating > textarea.wizard-input {
+.form-floating>textarea.form-control,
+.form-floating>textarea.wizard-input,
+.wizard-floating>textarea.form-control,
+.wizard-floating>textarea.wizard-input {
     height: auto !important;
     min-height: 90px !important;
     padding-top: 1.65rem !important;
     padding-bottom: 0.5rem !important;
 }
 
-.form-floating > label,
-.wizard-floating > label {
+.form-floating>label,
+.wizard-floating>label {
     position: absolute;
     top: 0;
     left: 0;
@@ -377,23 +391,25 @@
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.78rem !important;
     font-weight: 500 !important;
-    color: #64748b !important; /* Gris para la etiqueta según finanzas.pl */
+    color: #64748b !important;
+    /* Gris para la etiqueta según finanzas.pl */
 }
 
 /* Flotado activo: la etiqueta sube a la zona superior y deja el valor 100% visible abajo */
-.form-floating > .form-control:focus ~ label,
-.form-floating > .form-control:not(:placeholder-shown) ~ label,
-.form-floating > .wizard-input:focus ~ label,
-.form-floating > .wizard-input:not(:placeholder-shown) ~ label,
-.form-floating > .form-select ~ label,
-.wizard-floating > .form-control:focus ~ label,
-.wizard-floating > .form-control:not(:placeholder-shown) ~ label,
-.wizard-floating > .wizard-input:focus ~ label,
-.wizard-floating > .wizard-input:not(:placeholder-shown) ~ label,
-.wizard-floating > .form-select ~ label {
+.form-floating>.form-control:focus~label,
+.form-floating>.form-control:not(:placeholder-shown)~label,
+.form-floating>.wizard-input:focus~label,
+.form-floating>.wizard-input:not(:placeholder-shown)~label,
+.form-floating>.form-select~label,
+.wizard-floating>.form-control:focus~label,
+.wizard-floating>.form-control:not(:placeholder-shown)~label,
+.wizard-floating>.wizard-input:focus~label,
+.wizard-floating>.wizard-input:not(:placeholder-shown)~label,
+.wizard-floating>.form-select~label {
     opacity: 1 !important;
     transform: scale(0.8) translateY(-0.6rem) translateX(0.15rem) !important;
-    color: #0A2A66 !important; /* Azul marino para lo importante al enfocar */
+    color: #0A2A66 !important;
+    /* Azul marino para lo importante al enfocar */
     font-weight: 600 !important;
 }
 
@@ -618,12 +634,12 @@
     font-size: 0.85rem !important;
 }
 
-.vital-card-body .input-group > select {
+.vital-card-body .input-group>select {
     border-top-right-radius: 8px !important;
     border-bottom-right-radius: 8px !important;
 }
 
-.vital-card-body .input-group > input {
+.vital-card-body .input-group>input {
     border-top-left-radius: 8px !important;
     border-bottom-left-radius: 8px !important;
 }
@@ -848,7 +864,7 @@
     transition: all 0.3s;
     z-index: 105000;
     border: 1px solid #19B7A5;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .autosave-indicator.show {
@@ -876,9 +892,20 @@
 }
 
 @keyframes pulseDictado {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-    70% { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+
+    70% {
+        transform: scale(1.04);
+        box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
 }
 
 .pulsing-mic {
@@ -1028,7 +1055,8 @@
 }
 
 .soap-top-step-btn.active .soap-top-step-icon {
-    color: #2dd4bf !important; /* Teal brillante */
+    color: #2dd4bf !important;
+    /* Teal brillante */
 }
 
 .soap-top-step-btn.active .qx-traffic-dot {
@@ -1046,4 +1074,3 @@
     background: #fef2f2;
     border-color: #fecaca;
 }
-

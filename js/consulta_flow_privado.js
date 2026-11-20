@@ -7,6 +7,44 @@
 window.recetaItems = window.recetaItems || [];
 window.diagnosticosSecundarios = window.diagnosticosSecundarios || [];
 
+/**
+ * Función global de des-mojibake multi-capa (Self-Healing UTF-8)
+ * Corrige cadenas con doble o triple codificación UTF-8 tanto de legacy como en tiempo real.
+ */
+window.fixUTF8 = function(str) {
+    if (typeof str !== 'string' || !str) return str || '';
+    let result = str;
+    for (let i = 0; i < 4; i++) {
+        if (/Ã[\x80-\xFF]|Â[\x80-\xFF]|Ãƒ|Ã‚/g.test(result)) {
+            try {
+                const decoded = decodeURIComponent(escape(result));
+                if (decoded && decoded !== result) {
+                    result = decoded;
+                } else {
+                    break;
+                }
+            } catch (e) {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    return result
+        .replace(/ÃƒÂ³|Ã‚Â³|Ã³|ÃƒÂ³|Ã‚Â³/g, 'ó')
+        .replace(/ÃƒÂ­|Ã‚Â­|Ã­|ÃƒÂ­|Ã‚Â­/g, 'í')
+        .replace(/ÃƒÂ¡|Ã‚Â¡|Ã¡|ÃƒÂ¡|Ã‚Â¡/g, 'á')
+        .replace(/ÃƒÂ©|Ã‚Â©|Ã©|ÃƒÂ©|Ã‚Â©/g, 'é')
+        .replace(/ÃƒÂº|Ã‚Âº|Ãº|ÃƒÂº|Ã‚Âº/g, 'ú')
+        .replace(/ÃƒÂ±|Ã‚Â±|Ã±|ÃƒÂ±|Ã‚Â±/g, 'ñ')
+        .replace(/Ãƒâ€œ|Ã“/g, 'Ó')
+        .replace(/ÃƒÂ|Ã /g, 'Í')
+        .replace(/ÃƒÂ|Ã/g, 'Á')
+        .replace(/Ãƒâ€°|Ã‰/g, 'É')
+        .replace(/ÃƒÅ¡|Ãš/g, 'Ú')
+        .replace(/Ãƒâ€˜|Ã‘/g, 'Ñ');
+};
+
 /* ==========================================================================
    1. CONTROLADOR DE NAVEGACIÓN DE 6 PASOS SOAP (Índices 0 a 5)
    ========================================================================== */
@@ -966,7 +1004,11 @@ const SOAPReactiveEngine = {
         const spo2 = (document.getElementById('ef_spo2') ? document.getElementById('ef_spo2').value : '').trim();
         const peso = (document.getElementById('ef_peso') ? document.getElementById('ef_peso').value : '').trim();
         const imc = (document.getElementById('ef_imc') ? document.getElementById('ef_imc').value : '').trim();
-        const hallazgos = (document.getElementById('f_exploracion_hallazgos') ? document.getElementById('f_exploracion_hallazgos').value : '').trim();
+        const fHallazgosEl = document.getElementById('f_exploracion_hallazgos');
+        if (fHallazgosEl && /Ã[\x80-\xFF]|Â[\x80-\xFF]|Ãƒ|Ã‚/.test(fHallazgosEl.value) && typeof window.fixUTF8 === 'function') {
+            fHallazgosEl.value = window.fixUTF8(fHallazgosEl.value);
+        }
+        const hallazgos = (fHallazgosEl ? fHallazgosEl.value : '').trim();
 
         const dx = (document.getElementById('diagnostico_principal') ? document.getElementById('diagnostico_principal').value : '').trim();
         const impresion = (document.getElementById('f_impresion_clinica') ? document.getElementById('f_impresion_clinica').value : '').trim();
@@ -1084,7 +1126,11 @@ const SOAPReactiveEngine = {
     updatePreSignatureAudit: function() {
         const motivo = (document.getElementById('f_motivo_consulta') ? document.getElementById('f_motivo_consulta').value : '').trim();
         const evolucion = (document.getElementById('f_evolucion') ? document.getElementById('f_evolucion').value : '').trim();
-        const hallazgos = (document.getElementById('f_exploracion_hallazgos') ? document.getElementById('f_exploracion_hallazgos').value : '').trim();
+        const fHallazgosEl = document.getElementById('f_exploracion_hallazgos');
+        if (fHallazgosEl && /Ã[\x80-\xFF]|Â[\x80-\xFF]|Ãƒ|Ã‚/.test(fHallazgosEl.value) && typeof window.fixUTF8 === 'function') {
+            fHallazgosEl.value = window.fixUTF8(fHallazgosEl.value);
+        }
+        const hallazgos = (fHallazgosEl ? fHallazgosEl.value : '').trim();
         const impresion = (document.getElementById('f_impresion_clinica') ? document.getElementById('f_impresion_clinica').value : '').trim();
         const plan = (document.getElementById('f_plan_tratamiento') ? document.getElementById('f_plan_tratamiento').value : '').trim();
         const chkExp = document.getElementById('c_exp') ? document.getElementById('c_exp').checked : false;
@@ -1115,7 +1161,11 @@ const SOAPReactiveEngine = {
     sellarNotaClinicaNOM151: async function() {
         const motivo = (document.getElementById('f_motivo_consulta') ? document.getElementById('f_motivo_consulta').value : '').trim();
         const evolucion = (document.getElementById('f_evolucion') ? document.getElementById('f_evolucion').value : '').trim();
-        const hallazgos = (document.getElementById('f_exploracion_hallazgos') ? document.getElementById('f_exploracion_hallazgos').value : '').trim();
+        const fHallazgosEl = document.getElementById('f_exploracion_hallazgos');
+        if (fHallazgosEl && /Ã[\x80-\xFF]|Â[\x80-\xFF]|Ãƒ|Ã‚/.test(fHallazgosEl.value) && typeof window.fixUTF8 === 'function') {
+            fHallazgosEl.value = window.fixUTF8(fHallazgosEl.value);
+        }
+        const hallazgos = (fHallazgosEl ? fHallazgosEl.value : '').trim();
         const impresion = (document.getElementById('f_impresion_clinica') ? document.getElementById('f_impresion_clinica').value : '').trim();
         const plan = (document.getElementById('f_plan_tratamiento') ? document.getElementById('f_plan_tratamiento').value : '').trim();
 

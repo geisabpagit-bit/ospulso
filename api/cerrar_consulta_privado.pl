@@ -12,12 +12,48 @@ use Fcntl qw(:flock);
 use MIME::Base64 qw(decode_base64);
 use lib "$FindBin::Bin/..";
 
+use Encode qw(decode encode);
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 require File::Spec->catfile($FindBin::Bin, '..', 'utils', 'catalogo_org_utils.pl');
 use utils::db_manager qw(guardar_registro actualizar_archivo);
 
+# Rutina Canónica de Saneamiento y Desenredo Multi-Capa UTF-8
+sub fix_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    
+    for (1..4) {
+        last unless $str =~ /Ã[\x80-\xFF]|Â[\x80-\xFF]|â€|Ãƒ|Ã‚/;
+        my $decoded = eval { Encode::decode("UTF-8", Encode::encode("iso-8859-1", $str)) };
+        if (defined $decoded && length($decoded)) {
+            $str = $decoded;
+        } else {
+            last;
+        }
+    }
+    
+    $str =~ s/Ã¡/á/g;
+    $str =~ s/Ã©/é/g;
+    $str =~ s/Ã­/í/g;
+    $str =~ s/Ã³/ó/g;
+    $str =~ s/Ãº/ú/g;
+    $str =~ s/Ã±/ñ/g;
+    $str =~ s/Ã‘/Ñ/g;
+    $str =~ s/Â°/°/g;
+    $str =~ s/Â¿/¿/g;
+    $str =~ s/Â¡/¡/g;
+    $str =~ s/â€¢/•/g;
+    $str =~ s/â€”/—/g;
+    $str =~ s/â€“/–/g;
+    
+    return $str;
+}
+
 my $q = CGI->new;
 my $session_data = check_session($q);
+
+binmode(STDOUT, ":encoding(UTF-8)");
+binmode(STDIN,  ":encoding(UTF-8)");
 
 print $q->header(-type => 'application/json; charset=UTF-8');
 
@@ -29,7 +65,12 @@ unless ($session_data->{session_ok}) {
 my %payload;
 foreach my $p ($q->param) {
     my @v = $q->param($p);
-    $payload{$p} = scalar(@v) > 1 ? \@v : $v[0];
+    my $val = scalar(@v) > 1 ? \@v : $v[0];
+    if (!ref($val)) {
+        utf8::decode($val) if !utf8::is_utf8($val);
+        $val = fix_utf8($val);
+    }
+    $payload{$p} = $val;
 }
 if ($payload{medicamentos_json}) { eval { $payload{medicamentos} = decode_json(encode_utf8($payload{medicamentos_json})); }; }
 
@@ -437,7 +478,7 @@ unless (-e $consultas_file) {
     print $fh_new "id_consulta|id_paciente|id_cita|id_medico|timestamp|payload_json\n";
     close $fh_new;
 }
-my $json_str = encode_json(\%payload);
+my $json_str = JSON::PP->new->utf8(0)->encode(\%payload);
 $json_str =~ s/\r|\n/\\n/g; # Escapar saltos de línea para mantener formato CSV
 my $linea = join('|', $id_consulta, $id_paciente, $id_cita, $id_medico, time(), $json_str);
 

@@ -9,11 +9,47 @@ use FindBin;
 use File::Spec;
 use lib "$FindBin::Bin/..";
 
+use Encode qw(decode encode);
 require File::Spec->catfile($FindBin::Bin, '..', 'auth', 'check_session.pl');
 use utils::db_manager qw(actualizar_archivo);
 
+# Rutina Canónica de Saneamiento y Desenredo Multi-Capa UTF-8
+sub fix_utf8 {
+    my ($str) = @_;
+    return '' unless defined $str;
+    
+    for (1..4) {
+        last unless $str =~ /Ã[\x80-\xFF]|Â[\x80-\xFF]|â€|Ãƒ|Ã‚/;
+        my $decoded = eval { Encode::decode("UTF-8", Encode::encode("iso-8859-1", $str)) };
+        if (defined $decoded && length($decoded)) {
+            $str = $decoded;
+        } else {
+            last;
+        }
+    }
+    
+    $str =~ s/Ã¡/á/g;
+    $str =~ s/Ã©/é/g;
+    $str =~ s/Ã­/í/g;
+    $str =~ s/Ã³/ó/g;
+    $str =~ s/Ãº/ú/g;
+    $str =~ s/Ã±/ñ/g;
+    $str =~ s/Ã‘/Ñ/g;
+    $str =~ s/Â°/°/g;
+    $str =~ s/Â¿/¿/g;
+    $str =~ s/Â¡/¡/g;
+    $str =~ s/â€¢/•/g;
+    $str =~ s/â€”/—/g;
+    $str =~ s/â€“/–/g;
+    
+    return $str;
+}
+
 my $q = CGI->new;
 my $session_data = check_session($q);
+
+binmode(STDOUT, ":encoding(UTF-8)");
+binmode(STDIN,  ":encoding(UTF-8)");
 
 print $q->header(-type => 'application/json; charset=UTF-8');
 
@@ -34,11 +70,12 @@ if (!$id_paciente) {
     exit;
 }
 
-# Recopilar todos los parámetros en un payload
+# Recopilar todos los parámetros en un payload garantizando saneamiento UTF-8
 my %payload;
 foreach my $p ($q->param) {
     my $val = $q->param($p);
     utf8::decode($val) if !utf8::is_utf8($val);
+    $val = fix_utf8($val);
     $payload{$p} = $val;
 }
 # Decodificar medicamentos_json si existe
@@ -49,8 +86,9 @@ if ($payload{medicamentos_json}) {
 my $draft_file = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'consulta_draft.dat');
 
 # Estructura del draft: id_draft|id_paciente|id_cita|id_medico|current_step|payload_json|timestamp
+# NOTA: utf8(0) produce caracteres; al escribirse en un filehandle con :encoding(UTF-8) evita la doble codificación
 my $id_draft = "DRAFT-$id_paciente"; 
-my $json_str = JSON::PP->new->utf8(1)->encode(\%payload);
+my $json_str = JSON::PP->new->utf8(0)->encode(\%payload);
 $json_str =~ s/\r|\n/\\n/g; # Escapar saltos de línea
 my $now = time();
 
@@ -65,6 +103,8 @@ if (-e $draft_file) {
         
         while (my $l = <$fh>) {
             chomp $l;
+            next if $l =~ /^\s*$/;
+            next if $l !~ /^DRAFT-/; # Filtrar líneas fragmentadas o corruptas
             my @c = split /\|/, $l, -1;
             if ($c[0] eq $id_draft) {
                 # Actualizar línea existente

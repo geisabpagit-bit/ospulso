@@ -56,14 +56,18 @@ const AutosaveService = {
         
         inputs.forEach(el => {
             if (el.name && !['id_paciente', 'id_cita', 'id_medico', 'current_step'].includes(el.name)) {
+                let val = el.value;
+                if (typeof val === 'string' && typeof window.fixUTF8 === 'function') {
+                    val = window.fixUTF8(val);
+                }
                 if (el.type === 'checkbox' || el.type === 'radio') {
                     if (el.checked) {
-                        dataObj[el.name] = el.value;
-                        formData.append(el.name, el.value);
+                        dataObj[el.name] = val;
+                        formData.append(el.name, val);
                     }
                 } else {
-                    dataObj[el.name] = el.value;
-                    formData.append(el.name, el.value);
+                    dataObj[el.name] = val;
+                    formData.append(el.name, val);
                 }
             }
         });
