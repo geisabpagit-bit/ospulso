@@ -12,33 +12,57 @@
 }
 
 /* ==========================================================================
-   1. LAYOUT REACTIVO DE 3 COLUMNAS (MOBILE-FIRST & LAPTOP FRIENDLY)
+   1. LAYOUT REACTIVO DE 2 COLUMNAS (COL LATERAL 6 PASOS + CONTEXTO | COL PRINCIPAL FORMULARIO)
    ========================================================================== */
+.soap-wizard-2col-layout,
 .soap-wizard-3col-layout {
     display: grid;
-    grid-template-columns: 225px minmax(0, 1fr) 310px;
-    gap: 0.9rem;
+    grid-template-columns: 310px minmax(0, 1fr);
+    gap: 1.15rem;
     align-items: start;
     width: 100%;
 }
 
-@media (max-width: 1279.98px) {
+@media (max-width: 991.98px) {
+    .soap-wizard-2col-layout,
     .soap-wizard-3col-layout {
-        grid-template-columns: minmax(0, 1fr) 295px;
-    }
-    .soap-left-nav-col {
-        grid-column: 1 / -1;
-    }
-    .soap-nav-steps-list {
-        display: grid !important;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 0.45rem !important;
+        grid-template-columns: 1fr;
     }
 }
 
+/* Columna Lateral Unificada (Sticky en Desktop con Scroll Suave) */
+.soap-sidebar-col {
+    position: sticky;
+    top: 78px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding-right: 2px;
+}
+
+.soap-sidebar-col::-webkit-scrollbar {
+    width: 4px;
+}
+.soap-sidebar-col::-webkit-scrollbar-track {
+    background: transparent;
+}
+.soap-sidebar-col::-webkit-scrollbar-thumb {
+    background: rgba(25, 183, 165, 0.35);
+    border-radius: 4px;
+}
+.soap-sidebar-col::-webkit-scrollbar-thumb:hover {
+    background: rgba(25, 183, 165, 0.7);
+}
+
 @media (max-width: 991.98px) {
-    .soap-wizard-3col-layout {
-        grid-template-columns: 1fr;
+    .soap-sidebar-col {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
     }
     .soap-nav-steps-list {
         display: flex !important;
@@ -54,22 +78,14 @@
 }
 
 /* ==========================================================================
-   2. COLUMNA IZQUIERDA: NAVEGACIÓN SEMAFORIZADA DE 6 PASOS SOAP
+   2. COLUMNA LATERAL: NAVEGACIÓN SEMAFORIZADA DE 6 PASOS SOAP
    ========================================================================== */
 .soap-left-nav-col {
     background: #ffffff;
     border: 1.5px solid var(--md-teal-clinical, #19B7A5);
     border-radius: 14px;
     box-shadow: 0 4px 16px rgba(10, 42, 102, 0.06);
-    position: sticky;
-    top: 78px;
     overflow: hidden;
-}
-
-@media (max-width: 1279.98px) {
-    .soap-left-nav-col {
-        position: static;
-    }
 }
 
 .soap-nav-header {
@@ -390,15 +406,13 @@
 .eva-btn.active-eva-high { background: #ef4444; color: #fff; border-color: #dc2626; }
 
 /* ==========================================================================
-   4. COLUMNA DERECHA STICKY: CONTEXTO CLÍNICO EN VIVO + CONSOLIDADO SOAP
+   4. CONTEXTO CLÍNICO EN VIVO + CONSOLIDADO SOAP (COLUMNA LATERAL INFERIOR)
    ========================================================================== */
 .soap-right-context-col {
     background: #ffffff;
     border: 1.5px solid var(--md-teal-clinical, #19B7A5);
     border-radius: 14px;
     box-shadow: 0 6px 20px rgba(10, 42, 102, 0.07);
-    position: sticky;
-    top: 78px;
     overflow: hidden;
 }
 

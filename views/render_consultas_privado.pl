@@ -570,7 +570,7 @@ my $btn_import_municipio_hdr = $has_pacientes_estado
 print <<HTML;
 <link rel="stylesheet" href="../css/sdm_mobile_standards.css">
 <link rel="stylesheet" href="../css/quirofano_wizard.css">
-<link rel="stylesheet" href="../css/consulta_flow.css">
+<link rel="stylesheet" href="../css/consulta_flow.css?v=$^T">
 <!-- DataTables CSS/JS para Estudios PACS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -664,76 +664,184 @@ print <<HTML;
         </div>
     </header>
 
-    <!-- LAYOUT PERSISTENTE DE 3 COLUMNAS (COL IZQUIERDA NAV 6 PASOS | COL CENTRAL FORMULARIO | COL DERECHA STICKY CONTEXTO) -->
-    <div class="soap-wizard-3col-layout">
+    <!-- LAYOUT PERSISTENTE DE 2 COLUMNAS (COL LATERAL IZQUIERDA: 6 PASOS + CONTEXTO CLÍNICO EN VIVO | COL PRINCIPAL: FORMULARIO ACTIVO) -->
+    <div class="soap-wizard-2col-layout">
 
         <!-- =========================================================
-             COLUMNA IZQUIERDA: NAVEGACIÓN SEMAFORIZADA DE 6 PASOS SOAP
+             COLUMNA LATERAL IZQUIERDA: NAVEGACIÓN 6 PASOS + CONTEXTO EN VIVO
              ========================================================= -->
-        <aside class="soap-left-nav-col">
-            <div class="soap-nav-header">
-                <span class="small fw-bold text-uppercase"><i class="bi bi-list-check me-1 text-teal"></i>6 Pasos S.O.A.P.</span>
-                <span class="badge bg-teal text-white" style="background:#19B7A5;font-size:0.65rem;">Alt+1..6</span>
+        <aside class="soap-sidebar-col">
+
+            <!-- BLOQUE SUPERIOR: NAVEGACIÓN SEMAFORIZADA DE 6 PASOS SOAP -->
+            <div class="soap-left-nav-col">
+                <div class="soap-nav-header">
+                    <span class="small fw-bold text-uppercase"><i class="bi bi-list-check me-1 text-teal"></i>6 Pasos S.O.A.P.</span>
+                    <span class="badge bg-teal text-white" style="background:#19B7A5;font-size:0.65rem;">Alt+1..6</span>
+                </div>
+                <div class="soap-nav-steps-list">
+                    <button type="button" class="soap-nav-step-item active" data-step="0" onclick="WizardController.jumpToStep(0)">
+                        <span class="soap-step-badge-num">1</span>
+                        <div class="soap-step-text-wrap">
+                            <span class="soap-step-title">Subjetivo (S)</span>
+                            <span class="soap-step-sub">Motivo &middot; EVA &middot; Alergias</span>
+                        </div>
+                        <span id="nav-dot-step-0" class="qx-traffic-dot dot-ambar"></span>
+                    </button>
+
+                    <button type="button" class="soap-nav-step-item" data-step="1" onclick="WizardController.jumpToStep(1)">
+                        <span class="soap-step-badge-num">2</span>
+                        <div class="soap-step-text-wrap">
+                            <span class="soap-step-title">Objetivo (O)</span>
+                            <span class="soap-step-sub">Triage &middot; Exploración &middot; PACS</span>
+                        </div>
+                        <span id="nav-dot-step-1" class="qx-traffic-dot dot-gris"></span>
+                    </button>
+
+                    <button type="button" class="soap-nav-step-item" data-step="2" onclick="WizardController.jumpToStep(2)">
+                        <span class="soap-step-badge-num">3</span>
+                        <div class="soap-step-text-wrap">
+                            <span class="soap-step-title">Análisis y Plan</span>
+                            <span class="soap-step-sub">CIE-10 &middot; Pronóstico &middot; Receta</span>
+                        </div>
+                        <span id="nav-dot-step-2" class="qx-traffic-dot dot-gris"></span>
+                    </button>
+
+                    <button type="button" class="soap-nav-step-item" data-step="3" onclick="WizardController.jumpToStep(3)">
+                        <span class="soap-step-badge-num">4</span>
+                        <div class="soap-step-text-wrap">
+                            <span class="soap-step-title">Acuerdos y Legal</span>
+                            <span class="soap-step-sub">Comprensión &middot; Consentim.</span>
+                        </div>
+                        <span id="nav-dot-step-3" class="qx-traffic-dot dot-gris"></span>
+                    </button>
+
+                    <button type="button" class="soap-nav-step-item" data-step="4" onclick="WizardController.jumpToStep(4)">
+                        <span class="soap-step-badge-num">5</span>
+                        <div class="soap-step-text-wrap">
+                            <span class="soap-step-title">Firma NOM-151</span>
+                            <span class="soap-step-sub">e.firma &middot; QR &middot; Enviar Caja</span>
+                        </div>
+                        <span id="nav-dot-step-4" class="qx-traffic-dot dot-gris"></span>
+                    </button>
+
+                    <button type="button" class="soap-nav-step-item" data-step="5" onclick="WizardController.jumpToStep(5)">
+                        <span class="soap-step-badge-num">6</span>
+                        <div class="soap-step-text-wrap">
+                            <span class="soap-step-title">Caja y Agenda</span>
+                            <span class="soap-step-sub">Cobro 3NF &middot; Próxima Cita</span>
+                        </div>
+                        <span id="nav-dot-step-5" class="qx-traffic-dot dot-gris"></span>
+                    </button>
+                </div>
             </div>
-            <div class="soap-nav-steps-list">
-                <button type="button" class="soap-nav-step-item active" data-step="0" onclick="WizardController.jumpToStep(0)">
-                    <span class="soap-step-badge-num">1</span>
-                    <div class="soap-step-text-wrap">
-                        <span class="soap-step-title">Subjetivo (S)</span>
-                        <span class="soap-step-sub">Motivo &middot; EVA &middot; Alergias</span>
-                    </div>
-                    <span id="nav-dot-step-0" class="qx-traffic-dot dot-ambar"></span>
-                </button>
 
-                <button type="button" class="soap-nav-step-item" data-step="1" onclick="WizardController.jumpToStep(1)">
-                    <span class="soap-step-badge-num">2</span>
-                    <div class="soap-step-text-wrap">
-                        <span class="soap-step-title">Objetivo (O)</span>
-                        <span class="soap-step-sub">Triage &middot; Exploración &middot; PACS</span>
+            <!-- BLOQUE INFERIOR: CONTEXTO CLÍNICO EN VIVO + S.O.A.P. (DEBAJO DE LOS 6 PASOS) -->
+            <div class="soap-right-context-col">
+                <div class="qx-monitor-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="small fw-bold text-uppercase d-block" style="font-size:0.72rem;letter-spacing:0.4px;">Contexto Clínico en Vivo</span>
+                        <span class="text-white-50" style="font-size:0.68rem;">Médico: $med_nombre</span>
                     </div>
-                    <span id="nav-dot-step-1" class="qx-traffic-dot dot-gris"></span>
-                </button>
+                    <span id="ctx-firma-status" class="badge bg-warning text-dark" style="font-size:0.65rem;">BORRADOR</span>
+                </div>
 
-                <button type="button" class="soap-nav-step-item" data-step="2" onclick="WizardController.jumpToStep(2)">
-                    <span class="soap-step-badge-num">3</span>
-                    <div class="soap-step-text-wrap">
-                        <span class="soap-step-title">Análisis y Plan</span>
-                        <span class="soap-step-sub">CIE-10 &middot; Pronóstico &middot; Receta</span>
-                    </div>
-                    <span id="nav-dot-step-2" class="qx-traffic-dot dot-gris"></span>
-                </button>
+                <!-- 1. Banner Rojo de Alergias o Badge Verde NKDA -->
+                <div id="ctx-allergy-banner" class="context-allergy-banner-green">
+                    <i class="bi bi-shield-check-fill text-success fs-6"></i>
+                    <span>✓ SIN ALERGIAS CONOCIDAS (NKDA)</span>
+                </div>
 
-                <button type="button" class="soap-nav-step-item" data-step="3" onclick="WizardController.jumpToStep(3)">
-                    <span class="soap-step-badge-num">4</span>
-                    <div class="soap-step-text-wrap">
-                        <span class="soap-step-title">Acuerdos y Legal</span>
-                        <span class="soap-step-sub">Comprensión &middot; Consentim.</span>
-                    </div>
-                    <span id="nav-dot-step-3" class="qx-traffic-dot dot-gris"></span>
-                </button>
+                <!-- 2. Banner Ámbar de Alertas Fisiológicas -->
+                <div id="ctx-physio-banner" class="context-physio-banner-amber d-none"></div>
 
-                <button type="button" class="soap-nav-step-item" data-step="4" onclick="WizardController.jumpToStep(4)">
-                    <span class="soap-step-badge-num">5</span>
-                    <div class="soap-step-text-wrap">
-                        <span class="soap-step-title">Firma NOM-151</span>
-                        <span class="soap-step-sub">e.firma &middot; QR &middot; Enviar Caja</span>
+                <!-- 3. Tabla Comparativa: Triage Actual vs. Signos Basales Previos -->
+                <div class="p-2.5 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="qx-label mb-0 text-navy"><i class="bi bi-activity text-teal me-1"></i>Triage Actual vs. Basal</span>
+                        <span class="text-muted" style="font-size:0.65rem;">Prev: <strong id="ctx-basal-fecha">--</strong></span>
                     </div>
-                    <span id="nav-dot-step-4" class="qx-traffic-dot dot-gris"></span>
-                </button>
+                    <table class="table table-sm table-bordered mb-0 triage-compare-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Signo</th>
+                                <th class="text-center">Hoy</th>
+                                <th class="text-center text-muted">Basal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">T.A.</td>
+                                <td class="text-center fw-bold text-navy" id="ctx-now-ta">--</td>
+                                <td class="text-center text-muted" id="ctx-basal-ta">--</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">F.C.</td>
+                                <td class="text-center fw-bold text-navy" id="ctx-now-fc">--</td>
+                                <td class="text-center text-muted" id="ctx-basal-fc">--</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Temp</td>
+                                <td class="text-center fw-bold text-navy" id="ctx-now-temp">--</td>
+                                <td class="text-center text-muted" id="ctx-basal-temp">--</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">SpO₂</td>
+                                <td class="text-center fw-bold text-navy" id="ctx-now-spo2">--</td>
+                                <td class="text-center text-muted" id="ctx-basal-spo2">--</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Peso</td>
+                                <td class="text-center fw-bold text-navy" id="ctx-now-peso">--</td>
+                                <td class="text-center text-muted" id="ctx-basal-peso">--</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">IMC</td>
+                                <td class="text-center fw-bold text-navy" id="ctx-now-imc">--</td>
+                                <td class="text-center text-muted" id="ctx-basal-imc">--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                <button type="button" class="soap-nav-step-item" data-step="5" onclick="WizardController.jumpToStep(5)">
-                    <span class="soap-step-badge-num">6</span>
-                    <div class="soap-step-text-wrap">
-                        <span class="soap-step-title">Caja y Agenda</span>
-                        <span class="soap-step-sub">Cobro 3NF &middot; Próxima Cita</span>
+                <!-- 4. Consolidado S.O.A.P. en Vivo -->
+                <div class="p-2.5 border-bottom soap-live-summary-box">
+                    <div class="qx-label mb-1.5 text-navy"><i class="bi bi-file-earmark-medical text-teal me-1"></i>Consolidado S.O.A.P. en Vivo</div>
+                    <div class="d-flex gap-2 mb-1.5 align-items-start">
+                        <span class="soap-live-letter">S</span>
+                        <div class="text-muted text-break" id="ctx-soap-s">Sin motivo capturado...</div>
                     </div>
-                    <span id="nav-dot-step-5" class="qx-traffic-dot dot-gris"></span>
-                </button>
+                    <div class="d-flex gap-2 mb-1.5 align-items-start">
+                        <span class="soap-live-letter" style="background:#19B7A5;">O</span>
+                        <div class="text-muted text-break" id="ctx-soap-o">Sin exploración capturada...</div>
+                    </div>
+                    <div class="d-flex gap-2 mb-1.5 align-items-start">
+                        <span class="soap-live-letter" style="background:#0284c7;">A</span>
+                        <div class="text-muted text-break" id="ctx-soap-a">Sin diagnóstico/impresión...</div>
+                    </div>
+                    <div class="d-flex gap-2 align-items-start">
+                        <span class="soap-live-letter" style="background:#059669;">P</span>
+                        <div class="text-muted text-break" id="ctx-soap-p">Sin plan terapéutico...</div>
+                    </div>
+                </div>
+
+                <!-- 5. Estado Financiero y Accesos Rápidos -->
+                <div class="p-2.5 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <span class="small fw-bold text-secondary">Total Caja / Orden:</span>
+                        <span id="ctx-caja-total" class="fw-black text-success fs-6">\$0.00</span>
+                    </div>
+                    <div class="d-grid gap-1">
+                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill fw-bold py-1" onclick="BovedaService.openDrawer('ALL')">
+                            <i class="bi bi-safe2 me-1"></i>Abrir Bóveda del Paciente (Alt+B)
+                        </button>
+                    </div>
+                </div>
             </div>
+
         </aside>
 
         <!-- =========================================================
-             COLUMNA CENTRAL: FORMULARIO ACTIVO DE LOS 6 PASOS SOAP
+             COLUMNA PRINCIPAL: FORMULARIO ACTIVO DE LOS 6 PASOS SOAP
              ========================================================= -->
         <section class="soap-center-form-col min-w-0">
             <!-- Banner Verde de Bloqueo Inmutable cuando se sella bajo NOM-151 en el Paso 5 -->
@@ -758,111 +866,6 @@ print <<HTML;
                 @{[ render_step_caja_privado($paciente, $id_cita) ]}
             </form>
         </section>
-
-        <!-- =========================================================
-             COLUMNA DERECHA STICKY: CONTEXTO CLÍNICO EN VIVO + S.O.A.P.
-             ========================================================= -->
-        <aside class="soap-right-context-col">
-            <div class="qx-monitor-header d-flex justify-content-between align-items-center">
-                <div>
-                    <span class="small fw-bold text-uppercase d-block" style="font-size:0.72rem;letter-spacing:0.4px;">Contexto Clínico en Vivo</span>
-                    <span class="text-white-50" style="font-size:0.68rem;">Médico: $med_nombre</span>
-                </div>
-                <span id="ctx-firma-status" class="badge bg-warning text-dark" style="font-size:0.65rem;">BORRADOR</span>
-            </div>
-
-            <!-- 1. Banner Rojo de Alergias o Badge Verde NKDA -->
-            <div id="ctx-allergy-banner" class="context-allergy-banner-green">
-                <i class="bi bi-shield-check-fill text-success fs-6"></i>
-                <span>✓ SIN ALERGIAS CONOCIDAS (NKDA)</span>
-            </div>
-
-            <!-- 2. Banner Ámbar de Alertas Fisiológicas -->
-            <div id="ctx-physio-banner" class="context-physio-banner-amber d-none"></div>
-
-            <!-- 3. Tabla Comparativa: Triage Actual vs. Signos Basales Previos -->
-            <div class="p-2.5 border-bottom">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="qx-label mb-0 text-navy"><i class="bi bi-activity text-teal me-1"></i>Triage Actual vs. Basal</span>
-                    <span class="text-muted" style="font-size:0.65rem;">Prev: <strong id="ctx-basal-fecha">--</strong></span>
-                </div>
-                <table class="table table-sm table-bordered mb-0 triage-compare-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Signo</th>
-                            <th class="text-center">Hoy</th>
-                            <th class="text-center text-muted">Basal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="fw-bold">T.A.</td>
-                            <td class="text-center fw-bold text-navy" id="ctx-now-ta">--</td>
-                            <td class="text-center text-muted" id="ctx-basal-ta">--</td>
-                        </tr>
-                        <tr>
-                            <td class="fw-bold">F.C.</td>
-                            <td class="text-center fw-bold text-navy" id="ctx-now-fc">--</td>
-                            <td class="text-center text-muted" id="ctx-basal-fc">--</td>
-                        </tr>
-                        <tr>
-                            <td class="fw-bold">Temp</td>
-                            <td class="text-center fw-bold text-navy" id="ctx-now-temp">--</td>
-                            <td class="text-center text-muted" id="ctx-basal-temp">--</td>
-                        </tr>
-                        <tr>
-                            <td class="fw-bold">SpO₂</td>
-                            <td class="text-center fw-bold text-navy" id="ctx-now-spo2">--</td>
-                            <td class="text-center text-muted" id="ctx-basal-spo2">--</td>
-                        </tr>
-                        <tr>
-                            <td class="fw-bold">Peso</td>
-                            <td class="text-center fw-bold text-navy" id="ctx-now-peso">--</td>
-                            <td class="text-center text-muted" id="ctx-basal-peso">--</td>
-                        </tr>
-                        <tr>
-                            <td class="fw-bold">IMC</td>
-                            <td class="text-center fw-bold text-navy" id="ctx-now-imc">--</td>
-                            <td class="text-center text-muted" id="ctx-basal-imc">--</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 4. Consolidado S.O.A.P. en Vivo -->
-            <div class="p-2.5 border-bottom soap-live-summary-box">
-                <div class="qx-label mb-1.5 text-navy"><i class="bi bi-file-earmark-medical text-teal me-1"></i>Consolidado S.O.A.P. en Vivo</div>
-                <div class="d-flex gap-2 mb-1.5 align-items-start">
-                    <span class="soap-live-letter">S</span>
-                    <div class="text-muted text-break" id="ctx-soap-s">Sin motivo capturado...</div>
-                </div>
-                <div class="d-flex gap-2 mb-1.5 align-items-start">
-                    <span class="soap-live-letter" style="background:#19B7A5;">O</span>
-                    <div class="text-muted text-break" id="ctx-soap-o">Sin exploración capturada...</div>
-                </div>
-                <div class="d-flex gap-2 mb-1.5 align-items-start">
-                    <span class="soap-live-letter" style="background:#0284c7;">A</span>
-                    <div class="text-muted text-break" id="ctx-soap-a">Sin diagnóstico/impresión...</div>
-                </div>
-                <div class="d-flex gap-2 align-items-start">
-                    <span class="soap-live-letter" style="background:#059669;">P</span>
-                    <div class="text-muted text-break" id="ctx-soap-p">Sin plan terapéutico...</div>
-                </div>
-            </div>
-
-            <!-- 5. Estado Financiero y Accesos Rápidos -->
-            <div class="p-2.5 bg-light">
-                <div class="d-flex justify-content-between align-items-center mb-1.5">
-                    <span class="small fw-bold text-secondary">Total Caja / Orden:</span>
-                    <span id="ctx-caja-total" class="fw-black text-success fs-6">\$0.00</span>
-                </div>
-                <div class="d-grid gap-1">
-                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill fw-bold py-1" onclick="BovedaService.openDrawer('ALL')">
-                        <i class="bi bi-safe2 me-1"></i>Abrir Bóveda del Paciente (Alt+B)
-                    </button>
-                </div>
-            </div>
-        </aside>
 
     </div>
 </div>
