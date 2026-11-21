@@ -2289,13 +2289,14 @@ print <<'JS';
         });
 
         try {
-            const formData = new FormData();
-            formData.append('id_cita', idCita);
-            formData.append('id_paciente', idPaciente);
+            const params = new URLSearchParams();
+            params.append('id_cita', idCita);
+            params.append('id_paciente', idPaciente);
 
             const resp = await fetch('../api/cancelar_consulta_activa.pl', {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
             });
             const json = await resp.json();
 

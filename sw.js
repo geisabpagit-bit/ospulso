@@ -51,7 +51,10 @@ self.addEventListener('activate', (event) => {
 
 // 3. Estrategia de peticiones (Network First con Fallback a Caché para contenido fresco)
 self.addEventListener('fetch', (event) => {
-    // Excluir llamadas POST, APIs CGI (.pl) y extensiones no cacheables de autenticación
+    // Excluir esquemas no soportados (ej. chrome-extension://) y métodos no-GET
+    if (!event.request.url.startsWith('http')) {
+        return;
+    }
     if (event.request.method !== 'GET') {
         return;
     }
