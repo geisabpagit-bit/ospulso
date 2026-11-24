@@ -981,9 +981,15 @@ PAGE_HTML
     </div>
 </div>
 
+PAGE_HTML
+
+    my $rol_sesion_cc = $session_data->{role} // '';
+    print <<"PAGE_HTML";
 <!-- TAB: CORTE DE CAJA -->
-<div id="tab_corte_caja" class="sdm-tab-pane d-none">
-    
+<div id="tab_corte_caja" class="sdm-tab-pane d-none" data-role="$rol_sesion_cc">
+PAGE_HTML
+
+    print <<'PAGE_HTML';
     <!-- Dock Premium de Filtros de Corte de Caja (Una Sola Fila con Mismo Diseño de tab=ingresos) -->
     <div class="card card-mobile-flush border-0 shadow-sm mb-3" style="border-radius: 14px; background: #FFFFFF; border: 1.5px solid var(--md-teal-clinical, #19B7A5) !important;">
         <div class="card-body p-2 p-md-2.5">
@@ -1136,13 +1142,15 @@ PAGE_HTML
                             <table id="dtCorteIngresos" class="table table-hover table-sm align-middle w-100" style="font-size: 10px !important;">
                                 <thead class="table-light text-muted" style="font-size: 10.5px !important;">
                                     <tr>
-                                        <th style="width: 8%;">Folio</th>
-                                        <th style="width: 12%;">Fecha</th>
-                                        <th style="width: 23%;">Paciente</th>
-                                        <th style="width: 20%;">Médico / Concepto</th>
-                                        <th style="width: 14%;">Forma Pago</th>
-                                        <th style="width: 13%;" class="text-end">Monto</th>
-                                        <th style="width: 10%;" class="text-center">Acciones</th>
+                                        <th style="width: 7%;">Folio</th>
+                                        <th style="width: 10%;">Fecha</th>
+                                        <th style="width: 18%;">Paciente</th>
+                                        <th style="width: 17%;">Médico / Concepto</th>
+                                        <th style="width: 10%;" class="text-end">Efectivo</th>
+                                        <th style="width: 10%;" class="text-end">Tarjetas</th>
+                                        <th style="width: 10%;" class="text-end">Otras Formas</th>
+                                        <th style="width: 10%;" class="text-end">Monto</th>
+                                        <th style="width: 8%;" class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 10px !important;"></tbody>
@@ -1782,12 +1790,50 @@ PAGE_HTML
             }
         },
         { 
-            data: 'forma_pago',
+            data: 'monto', 
+            className: 'text-end',
             render: function(data, type, row) {
+                let fp = (row.forma_pago || '').toLowerCase().trim();
+                let isEfvo = fp.includes('efectivo');
+                if (!isEfvo) return `<span class="text-muted opacity-50">—</span>`;
+                let val = parseFloat(data) || 0;
+                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 if (row.estatus === 'Cancelado') {
-                    return `<span class="badge bg-danger text-uppercase px-2 py-0" style="font-size: 8.5px;"><i class="bi bi-x-circle me-1"></i>CANCELADO</span>`;
+                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
                 }
-                return `<span class="badge bg-light text-dark border px-2 py-1" style="font-size: 9.5px;">${data || 'Efectivo'}</span>`;
+                return `<span class="text-success fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+            }
+        },
+        { 
+            data: 'monto', 
+            className: 'text-end',
+            render: function(data, type, row) {
+                let fp = (row.forma_pago || '').toLowerCase().trim();
+                let isTarj = fp.includes('tarjeta');
+                if (!isTarj) return `<span class="text-muted opacity-50">—</span>`;
+                let val = parseFloat(data) || 0;
+                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                if (row.estatus === 'Cancelado') {
+                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+                }
+                return `<span class="text-primary fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
+            }
+        },
+        { 
+            data: 'monto', 
+            className: 'text-end',
+            render: function(data, type, row) {
+                let fp = (row.forma_pago || '').toLowerCase().trim();
+                let isEfvo = fp.includes('efectivo');
+                let isTarj = fp.includes('tarjeta');
+                if (isEfvo || isTarj) return `<span class="text-muted opacity-50">—</span>`;
+                let val = parseFloat(data) || 0;
+                let fmt = '$' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                let label = row.forma_pago || 'Otro';
+                if (row.estatus === 'Cancelado') {
+                    return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span><div class="text-muted" style="font-size: 8.5px;">${escapeHtml(label)}</div>`;
+                }
+                return `<span class="text-info fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span><div class="text-muted" style="font-size: 8.5px;">${escapeHtml(label)}</div>`;
             }
         },
         { 
@@ -1799,7 +1845,7 @@ PAGE_HTML
                 if (row.estatus === 'Cancelado') {
                     return `<span class="text-decoration-line-through text-danger fw-bold text-nowrap" style="font-size: 11px;">${fmt}</span>`;
                 }
-                return `<span class="text-success fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
+                return `<span class="text-dark fw-bold text-nowrap" style="font-size: 11.5px;">${fmt}</span>`;
             }
         },
         {
@@ -2080,27 +2126,106 @@ PAGE_HTML
         let hasAcciones = $(selector).find('thead th:last-child').text().toLowerCase().includes('acci');
         let exportCols = hasAcciones ? ':not(:last-child)' : ':visible';
 
-        try {
-            $(selector).DataTable({
-                data: data || [],
-                columns: columns,
-                language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
-                dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
-                buttons: [
-                    { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
-                    { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
-                    { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
-                    { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } }
-                ],
-                responsive: false, // Handle via SDM mobile styles data-label
-                createdRow: function(row, data, dataIndex) {
-                    // Inject data-label for SDM Mobile Standards point 7
-                    $(row).find('td').each(function(i) {
-                        let header = $(selector).find('thead th').eq(i).text();
-                        $(this).attr('data-label', header);
+        let userRole = $('#tab_corte_caja').data('role') || (ultimoResCorte ? ultimoResCorte.role : '') || '';
+        let esAdmin = /Administrador/i.test(userRole);
+
+        let dtOptions = {
+            data: data || [],
+            columns: columns,
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-MX.json' },
+            dom: '<"d-flex flex-wrap align-items-center justify-content-between mb-3"<"export-toolbar"B><"search-box"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>',
+            buttons: [
+                { extend: 'copyHtml5', text: '<i class="bi bi-files me-1"></i> <span class="d-none d-md-inline">COPIAR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
+                { extend: 'excelHtml5', text: '<i class="bi bi-file-earmark-spreadsheet me-1"></i> <span class="d-none d-md-inline">EXCEL</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
+                { extend: 'pdfHtml5', text: '<i class="bi bi-file-earmark-pdf me-1"></i> <span class="d-none d-md-inline">PDF</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } },
+                { extend: 'print', text: '<i class="bi bi-printer me-1"></i> <span class="d-none d-md-inline">IMPRIMIR</span>', className: 'btn btn-sm btn-export', exportOptions: { columns: exportCols } }
+            ],
+            responsive: false,
+            createdRow: function(row, data, dataIndex) {
+                $(row).find('td').each(function(i) {
+                    let header = $(selector).find('thead th').eq(i).text();
+                    $(this).attr('data-label', header);
+                });
+            }
+        };
+
+        // Agrupación por Recepcionista para Administrador Organización en #dtCorteIngresos
+        if (selector === '#dtCorteIngresos' && esAdmin) {
+            dtOptions.order = [[1, 'asc']];
+            dtOptions.rowGroup = {
+                dataSrc: function(row) {
+                    return row.recepcionista || 'Recepción General';
+                },
+                startRender: function(rows, group) {
+                    let minTime = '';
+                    let maxTime = '';
+                    let subTotEfvo = 0;
+                    let subTotTarj = 0;
+                    let subTotOtras = 0;
+                    let subTotGral = 0;
+
+                    rows.data().each(function(item) {
+                        let hora = item.hora || '';
+                        if (!hora && item.fecha) {
+                            let parts = item.fecha.split(' ');
+                            if (parts[1]) hora = parts[1];
+                        }
+                        if (hora) {
+                            if (!minTime || hora < minTime) minTime = hora;
+                            if (!maxTime || hora > maxTime) maxTime = hora;
+                        }
+                        if (item.estatus !== 'Cancelado') {
+                            let m = parseFloat(item.monto) || 0;
+                            let fp = (item.forma_pago || '').toLowerCase();
+                            if (fp.includes('efectivo')) {
+                                subTotEfvo += m;
+                            } else if (fp.includes('tarjeta')) {
+                                subTotTarj += m;
+                            } else {
+                                subTotOtras += m;
+                            }
+                            subTotGral += m;
+                        }
                     });
+
+                    let shiftBadge = '';
+                    if (minTime && maxTime && minTime !== maxTime) {
+                        shiftBadge = `<span class="badge rounded-pill bg-white text-dark border px-2.5 py-1 ms-2 shadow-xs" style="font-size: 0.72rem;"><i class="bi bi-clock-history me-1 text-primary"></i>Jornada: <strong>${minTime}</strong> a <strong>${maxTime}</strong></span>`;
+                    } else if (minTime) {
+                        shiftBadge = `<span class="badge rounded-pill bg-white text-dark border px-2.5 py-1 ms-2 shadow-xs" style="font-size: 0.72rem;"><i class="bi bi-clock-history me-1 text-primary"></i>Hora: <strong>${minTime}</strong></span>`;
+                    }
+
+                    let fmtSub = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    let htmlHeader = `
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 py-1">
+                            <div class="d-flex align-items-center flex-wrap gap-1">
+                                <span class="badge rounded-pill px-2.5 py-1 text-white fw-bold shadow-xs" style="background: var(--md-blue-deep, #0A2A66); font-size: 0.75rem;">
+                                    <i class="bi bi-person-badge me-1"></i>${escapeHtml(group)}
+                                </span>
+                                ${shiftBadge}
+                                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border px-2 py-0.5" style="font-size: 0.7rem;">
+                                    ${rows.count()} ${rows.count() === 1 ? 'recibo' : 'recibos'}
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 small text-nowrap" style="font-size: 0.75rem;">
+                                <span class="text-muted">Efvo: <strong class="text-success">${fmtSub(subTotEfvo)}</strong></span>
+                                <span class="text-muted">|</span>
+                                <span class="text-muted">Tarj: <strong class="text-primary">${fmtSub(subTotTarj)}</strong></span>
+                                <span class="text-muted">|</span>
+                                <span class="text-muted">Otras: <strong class="text-info">${fmtSub(subTotOtras)}</strong></span>
+                                <span class="text-muted">|</span>
+                                <span class="text-dark fw-bold">Subtotal: <strong style="color: var(--md-blue-deep, #0A2A66);">${fmtSub(subTotGral)}</strong></span>
+                            </div>
+                        </div>`;
+
+                    return $('<tr class="group-header-row"/>').append($(`<td colspan="${columns.length}" class="bg-light p-2 ps-3 border-start border-4 border-info"></td>`).html(htmlHeader));
                 }
-            });
+            };
+        }
+
+        try {
+            $(selector).DataTable(dtOptions);
         } catch (err) {
             console.error("[DataTables Init Error] en " + selector, err);
         }
@@ -2272,20 +2397,173 @@ PAGE_HTML
             return `${dNom} ${dia} de ${mNom} de ${anio}, ${String(h12).padStart(2, '0')}:${mm}:${ss} ${ampm}`;
         })();
 
-        let htmlIngresos = (ingresosParaReporte && ingresosParaReporte.length) ? ingresosParaReporte.map(i => {
-            let med = (i.medico || '').trim();
-            let con = (i.concepto || '').trim();
-            let medCon = '';
-            if (!med || med === 'N/D' || med === 'Sin Asignar') {
-                medCon = con || 'Concepto General';
-            } else {
-                medCon = med + (con ? (' - ' + con) : '');
+        // Agrupar ingresos por Recepcionista
+        let gruposRecep = {};
+        let listaRecepcionistas = [];
+        let totEfvoGral = 0;
+        let totTarjGral = 0;
+        let totOtrasGral = 0;
+        let totMontoGral = 0;
+
+        (ingresosParaReporte || []).forEach(i => {
+            let rNom = i.recepcionista || 'Recepción General';
+            if (!gruposRecep[rNom]) {
+                gruposRecep[rNom] = [];
+                listaRecepcionistas.push(rNom);
             }
-            let isCancel = (i.estatus === 'Cancelado');
-            let montoFmt = fmtMoneda(i.monto);
-            let montoHtml = isCancel ? `<span style="text-decoration: line-through; color: #ef4444;">${montoFmt} (Cancelado)</span>` : montoFmt;
-            return `<tr><td>${i.folio || ''}</td><td>${i.fecha || ''}</td><td>${i.paciente || ''}</td><td>${escapeHtml(medCon)}</td><td>${i.forma_pago || 'Efectivo'}</td><td class="text-right">${montoHtml}</td></tr>`;
-        }).join('') : '<tr><td colspan="6" style="text-align:center; padding: 12px; color: #888;">Sin ingresos para los filtros seleccionados</td></tr>';
+            gruposRecep[rNom].push(i);
+        });
+
+        let htmlBloquesIngresos = '';
+        if (listaRecepcionistas.length === 0) {
+            htmlBloquesIngresos = `
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">Folio</th>
+                        <th style="width: 12%;">Fecha</th>
+                        <th style="width: 22%;">Paciente</th>
+                        <th style="width: 20%;">Médico / Concepto</th>
+                        <th style="width: 10%;" class="text-right">Efectivo</th>
+                        <th style="width: 10%;" class="text-right">Tarjetas</th>
+                        <th style="width: 10%;" class="text-right">Otras Formas</th>
+                        <th style="width: 10%;" class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="8" style="text-align:center; padding: 12px; color: #888;">Sin ingresos para los filtros seleccionados</td></tr>
+                </tbody>
+            </table>`;
+        } else {
+            listaRecepcionistas.forEach(rNom => {
+                let itemsR = gruposRecep[rNom];
+                let minHora = '';
+                let maxHora = '';
+                let subEfvo = 0;
+                let subTarj = 0;
+                let subOtras = 0;
+                let subTotal = 0;
+
+                let filasHtml = itemsR.map(i => {
+                    let hora = i.hora || '';
+                    if (!hora && i.fecha) {
+                        let parts = i.fecha.split(' ');
+                        if (parts[1]) hora = parts[1];
+                    }
+                    if (hora) {
+                        if (!minHora || hora < minHora) minHora = hora;
+                        if (!maxHora || hora > maxHora) maxHora = hora;
+                    }
+
+                    let med = (i.medico || '').trim();
+                    let con = (i.concepto || '').trim();
+                    let medCon = (!med || med === 'N/D' || med === 'Sin Asignar') ? (con || 'Concepto General') : (med + (con ? (' - ' + con) : ''));
+
+                    let isCancel = (i.estatus === 'Cancelado');
+                    let m = parseFloat(i.monto) || 0;
+                    let fp = (i.forma_pago || '').toLowerCase();
+                    let isEfvo = fp.includes('efectivo');
+                    let isTarj = fp.includes('tarjeta');
+
+                    let valEfvo = isEfvo ? m : 0;
+                    let valTarj = isTarj ? m : 0;
+                    let valOtras = (!isEfvo && !isTarj) ? m : 0;
+
+                    if (!isCancel) {
+                        subEfvo += valEfvo;
+                        subTarj += valTarj;
+                        subOtras += valOtras;
+                        subTotal += m;
+
+                        totEfvoGral += valEfvo;
+                        totTarjGral += valTarj;
+                        totOtrasGral += valOtras;
+                        totMontoGral += m;
+                    }
+
+                    let renderCelda = function(val, activa, extraLabel) {
+                        if (!activa) return '<span style="color: #cbd5e1;">—</span>';
+                        let s = fmtMoneda(val);
+                        if (isCancel) return `<span style="text-decoration: line-through; color: #ef4444;">${s}</span>`;
+                        let extra = extraLabel ? `<br><small style="color: #64748b; font-size: 9px;">${escapeHtml(extraLabel)}</small>` : '';
+                        return `<strong>${s}</strong>${extra}`;
+                    };
+
+                    let totalCelda = isCancel ? `<span style="text-decoration: line-through; color: #ef4444;">${fmtMoneda(m)} (Cancelado)</span>` : `<strong>${fmtMoneda(m)}</strong>`;
+
+                    return `<tr>
+                        <td>${i.folio || ''}</td>
+                        <td>${i.fecha || ''}</td>
+                        <td>${escapeHtml(i.paciente || '')}</td>
+                        <td>${escapeHtml(medCon)}</td>
+                        <td class="text-right">${renderCelda(valEfvo, isEfvo)}</td>
+                        <td class="text-right">${renderCelda(valTarj, isTarj)}</td>
+                        <td class="text-right">${renderCelda(valOtras, !isEfvo && !isTarj, i.forma_pago)}</td>
+                        <td class="text-right">${totalCelda}</td>
+                    </tr>`;
+                }).join('');
+
+                let jornadaTexto = '';
+                if (minHora && maxHora && minHora !== maxHora) {
+                    jornadaTexto = `Jornada: ${minHora} a ${maxHora}`;
+                } else if (minHora) {
+                    jornadaTexto = `Hora: ${minHora}`;
+                } else {
+                    jornadaTexto = 'Jornada no registrada';
+                }
+
+                htmlBloquesIngresos += `
+                <div style="margin-top: 16px; margin-bottom: 6px; padding: 6px 12px; background: #f8fafc; border-left: 4px solid #00C4C4; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="color: #0A2A66; font-size: 12.5px;">👤 Recepcionista: ${escapeHtml(rNom)}</strong>
+                        <span style="display: inline-block; margin-left: 10px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">
+                            ⏰ ${jornadaTexto}
+                        </span>
+                    </div>
+                    <span style="font-size: 10.5px; color: #64748b; font-weight: 600;">${itemsR.length} ${itemsR.length === 1 ? 'recibo' : 'recibos'}</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">Folio</th>
+                            <th style="width: 12%;">Fecha</th>
+                            <th style="width: 22%;">Paciente</th>
+                            <th style="width: 20%;">Médico / Concepto</th>
+                            <th style="width: 10%;" class="text-right">Efectivo</th>
+                            <th style="width: 10%;" class="text-right">Tarjetas</th>
+                            <th style="width: 10%;" class="text-right">Otras Formas</th>
+                            <th style="width: 10%;" class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filasHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #00C4C4;">
+                            <td colspan="4" style="text-align: right; padding: 6px 10px; font-size: 10.5px; color: #0A2A66;">SUBTOTAL ${escapeHtml(rNom.toUpperCase())}:</td>
+                            <td class="text-right" style="padding: 6px 8px; color: #10b981;">${fmtMoneda(subEfvo)}</td>
+                            <td class="text-right" style="padding: 6px 8px; color: #0284c7;">${fmtMoneda(subTarj)}</td>
+                            <td class="text-right" style="padding: 6px 8px; color: #0d9488;">${fmtMoneda(subOtras)}</td>
+                            <td class="text-right" style="padding: 6px 8px; color: #0A2A66; font-size: 11px;">${fmtMoneda(subTotal)}</td>
+                        </tr>
+                    </tfoot>
+                </table>`;
+            });
+
+            htmlBloquesIngresos += `
+            <div style="background: #ffffff; border: 1.5px solid #0A2A66; border-radius: 6px; padding: 10px 14px; margin-top: 15px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 6px;">
+                    <strong style="color: #0A2A66; font-size: 12px; text-transform: uppercase;">Consolidado General de Ingresos en Caja (${ingresosParaReporte.length} recibos)</strong>
+                    <strong style="color: #10b981; font-size: 13px;">Gran Total: ${fmtMoneda(totMontoGral)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-around; text-align: center; font-size: 11px;">
+                    <div><span style="color: #64748b;">Total Efectivo:</span> <strong style="color: #10b981; font-size: 12px;">${fmtMoneda(totEfvoGral)}</strong></div>
+                    <div><span style="color: #64748b;">Total Tarjetas:</span> <strong style="color: #0284c7; font-size: 12px;">${fmtMoneda(totTarjGral)}</strong></div>
+                    <div><span style="color: #64748b;">Total Otras Formas:</span> <strong style="color: #0d9488; font-size: 12px;">${fmtMoneda(totOtrasGral)}</strong></div>
+                    <div><span style="color: #0A2A66; font-weight: bold;">Total en Caja:</span> <strong style="color: #0A2A66; font-size: 12px;">${fmtMoneda(totMontoGral)}</strong></div>
+                </div>
+            </div>`;
+        }
 
         let htmlCxC = (cxcParaReporte && cxcParaReporte.length) ? cxcParaReporte.map(c => {
             let med = (c.medico || '').trim();
@@ -2404,20 +2682,7 @@ PAGE_HTML
             </div>
 
             <div class="section-title">Detalle de Ingresos en Caja (${ingresosParaReporte.length} registros)</div>
-            <table>
-                <thead>
-                    <tr><th>Folio</th><th>Fecha</th><th>Paciente</th><th>Médico / Concepto</th><th>Forma Pago</th><th class="text-right">Monto</th></tr>
-                </thead>
-                <tbody>
-                    ${htmlIngresos}
-                </tbody>
-                <tfoot>
-                    <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #00C4C4;">
-                        <td colspan="5" style="text-align: right; padding: 7px 10px; font-size: 11px; color: #0A2A66; text-transform: uppercase;">TOTAL INGRESOS CAJA (${ingresosParaReporte.length} registros):</td>
-                        <td class="text-right" style="padding: 7px 10px; font-size: 11.5px; color: #10b981; font-weight: bold;">${fmtMoneda(totalIngresosImpresion)}</td>
-                    </tr>
-                </tfoot>
-            </table>
+            ${htmlBloquesIngresos}
 
             ${cxcParaReporte.length ? `
             <div class="section-title">Detalle de Ingresos Municipio / Convenio (${cxcParaReporte.length} registros)</div>
@@ -2455,7 +2720,10 @@ PAGE_HTML
 
             <div class="footer-box">
                 <h3>Declaración Física de Caja</h3>
-                <p>Ingresos en Caja = <strong>${fmtMoneda(totalIngresosImpresion)}</strong></p>
+                <p>Efectivo en Caja = <strong>${fmtMoneda(totEfvoGral)}</strong></p>
+                <p>Tarjetas / Terminal = <strong>${fmtMoneda(totTarjGral)}</strong></p>
+                ${totOtrasGral > 0 ? `<p>Otras Formas (Transf./Otros) = <strong>${fmtMoneda(totOtrasGral)}</strong></p>` : ''}
+                <p style="margin-top: 6px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">Total Ingresos en Caja = <strong>${fmtMoneda(totalIngresosImpresion)}</strong></p>
                 <p style="margin: 2px 0; font-weight: bold; font-size: 14px; color: #64748b;">-</p>
                 <p>Egresos Operativos = <strong>${fmtMoneda(totalEgresosImpresion)}</strong></p>
                 <p style="margin-top: 8px; font-size: 14px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">Ingreso Neto en Caja = <strong style="color: #004d40;">${fmtMoneda(ingresoNeto)}</strong></p>

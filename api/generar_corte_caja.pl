@@ -161,18 +161,25 @@ my $h12_c = $h_c % 12; $h12_c = 12 if $h12_c == 0;
 my $fecha_hora_larga = sprintf("%s %d de %s de %d, %02d:%02d:%02d %s",
     $dias_es[$wday_c], $mday_c, $meses_es[$mon_c], $year_c + 1900, $h12_c, $m_c, $s_c, $ampm_c);
 
-# Diccionario de médicos para resolver ID a Nombre
+# Diccionario de médicos y usuarios para resolver ID a Nombre
 my %medicos = ();
 my %items_catalogo = ();
+my %usuarios_nombres = ();
 
-# 1. Cargar usuarios del sistema (médicos y administradores de la organización)
+# 1. Cargar usuarios del sistema (médicos, recepcionistas y administradores)
 my $u_file = File::Spec->catfile($dat_dir, 'usuarios.dat');
 if (-e $u_file) {
     my $u_data = leer_tabla($u_file, '!');
     foreach my $u (@$u_data) {
         if ($u->[0]) {
-            $medicos{$u->[0]} = $u->[1] || $u->[0];
-            $medicos{$u->[2]} = $u->[1] if $u->[2];
+            my $id_u  = $u->[0];
+            my $nom_u = $u->[1] || $u->[0];
+            my $cor_u = $u->[2] || '';
+            $medicos{$id_u}  = $nom_u;
+            $medicos{$cor_u} = $nom_u if $cor_u;
+            $usuarios_nombres{$id_u}  = $nom_u;
+            $usuarios_nombres{$cor_u} = $nom_u if $cor_u;
+            $usuarios_nombres{$nom_u} = $nom_u;
         }
     }
 }
@@ -424,19 +431,29 @@ if (-e $archivo_ingresos) {
             }
 
             my $concepto_rec = resolver_concepto_recibo($f->[12] || '', $items_raw);
+            my $hora_reg = $f->[7] || '';
+            my $nom_recep = '';
+            if ($elaborado_por) {
+                $nom_recep = $usuarios_nombres{$elaborado_por} || $medicos{$elaborado_por} || $elaborado_por;
+            } else {
+                $nom_recep = 'Recepción General';
+            }
 
             push @ingresos_filtrados, {
-                folio      => $folio_corto || $folio_raw,
-                folio_raw  => $folio_raw,
-                fecha      => $fecha . ' ' . ($f->[7] || ''),
-                origen     => $origen,
-                paciente   => $nombre_pac,
-                medico     => $nombre_med,
-                concepto   => $concepto_rec,
-                forma_pago => $f->[10] || 'Efectivo',
-                monto      => $abono,
-                estatus    => $is_cancelado ? 'Cancelado' : 'Activo',
-                motivo     => $is_cancelado ? ($f->[16] || $f->[15] || 'Sin motivo registrado') : ''
+                folio              => $folio_corto || $folio_raw,
+                folio_raw          => $folio_raw,
+                fecha              => $fecha . ' ' . $hora_reg,
+                hora               => $hora_reg,
+                origen             => $origen,
+                paciente           => $nombre_pac,
+                medico             => $nombre_med,
+                concepto           => $concepto_rec,
+                forma_pago         => $f->[10] || 'Efectivo',
+                monto              => $abono,
+                estatus            => $is_cancelado ? 'Cancelado' : 'Activo',
+                motivo             => $is_cancelado ? ($f->[16] || $f->[15] || 'Sin motivo registrado') : '',
+                recepcionista      => $nom_recep,
+                recepcionista_user => $elaborado_por
             };
         }
     }
@@ -799,6 +816,8 @@ print encode_json({
     total_egresos      => $total_egresos,
     total_cxc          => $total_cxc,
     responsable_login  => $responsable_login,
+    es_admin           => ($session_data->{role} =~ /Administrador/i) ? 1 : 0,
+    role               => $session_data->{role} || '',
     logo_url           => $negocio_logo_url,
     negocio_nombre     => $negocio_nombre,
     direccion_sucursal => $direccion_sucursal,

@@ -439,3 +439,31 @@ Para garantizar la máxima integridad contable y apego al control de acceso basa
 3. **Blindaje de Delimitadores en Archivos Planos (`dat/folios_recibos_publicos.dat`)**:
    - Al registrar un recibo de municipio rápido (`api/guardar_recibo_rapido.pl`), se prohíbe el uso de plecas (`|`) como separador visual (ej. `"Paciente: $nombre - $concepto"`).
    - **Desempaque Tolerante Multi-Versión**: Los endpoints de consumo (`api/generar_corte_caja.pl`, `api/imprimir_recibo_publico.pl`, `api/get_recibos_caja_api.pl`) implementan autodetección dinámica de corrimiento de columnas: si el campo 14 contiene la apertura JSON `[`, se extrae el concepto combinando las columnas 12 y 13, y se toman los ítems, estatus y médico de las columnas 14, 15 y 16 respectivamente, garantizando una resolución del 100% tanto en registros históricos como nuevos.
+
+---
+
+## 17. Desglose Multi-Canal de Cobro (Efectivo, Tarjetas, Otras Formas), Agrupamiento por Recepcionista y Jornada en Corte de Caja
+
+1. **Desglose Estructurado en 9 Columnas de Ingresos Privados (`#dtCorteIngresos`)**:
+   - Para auditoría precisa de ventanilla, se sustituye la columna unitaria "Forma Pago" por un desglose segreado de valores monetarios reales manteniendo la columna de importe total:
+     * **Col 0 (`folio`)**: Folio oficial OS con enlace directo al recibo.
+     * **Col 1 (`fecha`)**: Fecha y hora de captura.
+     * **Col 2 (`paciente`)**: Nombre completo del paciente o cliente.
+     * **Col 3 (`medico`)**: Médico responsable y desglose descriptivo de conceptos.
+     * **Col 4 (`efectivo`)**: Importe cobrado exclusivamente en Efectivo (color verde menta `$1,234.56` o `-` si fue otro medio).
+     * **Col 5 (`tarjetas`)**: Importe cobrado con Tarjeta de Débito o Crédito (color azul info `$1,234.56` o `-`).
+     * **Col 6 (`otras_formas`)**: Importe cobrado mediante otros métodos (Transferencia electrónica, Depósito, Cheque, etc.) con tooltip explicativo.
+     * **Col 7 (`monto`)**: Importe total del recibo en negrita (`$1,234.56`), tachado si el comprobante está cancelado.
+     * **Col 8 (`acciones`)**: Botones de reimpresión y cancelación de recibo.
+
+2. **Agrupamiento Reactivo por Recepcionista (`rowGroup`) para Rol Administrador**:
+   - Cuando el usuario autenticado posee el rol `Administrador Organización` (`esAdmin = true`), `#dtCorteIngresos` activa automáticamente la extensión DataTables `rowGroup` sobre el nombre del usuario capturista (`recepcionista`).
+   - **Cálculo Dinámico de Jornada Laboral**: En cada grupo se evalúan las capturas del periodo para extraer la hora mínima (`minTime`, primera captura del día) y la hora máxima (`maxTime`, última captura del día).
+   - **Encabezado Ejecutivo de Grupo**: Se inyecta una fila distintiva (`bg-light border-start border-4 border-primary`) mostrando el nombre completo del recepcionista, una insignia con su jornada laboral (`⏰ Jornada: HH:MM a HH:MM`), el conteo de recibos y el resumen de subtotales por forma de pago (`Efvo: $... | Tarj: $... | Otras: $... | Subtotal: $...`).
+
+3. **Sincronización Idéntica en Vista Previa y Reporte de Impresión (`imprimirResumenEjecutivo`)**:
+   - El reporte generado para exportación e impresión (`🖨️ Imprimir Reporte`) agrupa los recibos por cada recepcionista y su respectiva jornada de captura (`⏰ Jornada: HH:MM a HH:MM`).
+   - La tabla impresa adopta el esquema de 8 columnas (`Folio | Fecha | Paciente | Médico / Concepto | Efectivo | Tarjetas | Otras Formas | Total`) con una fila de subtotales al pie de cada recepcionista.
+   - **Consolidado General y Arqueo Físico de Caja**:
+     * Al pie de la sección de ingresos se presenta un cuadro consolidado con los Grandes Totales acumulados para Efectivo, Tarjetas, Otras Formas y Total General.
+     * En la sección de *Declaración Física de Caja y Cuadre Simplificado*, se desglosa el Arqueo detallando: `Efectivo en Caja`, `Cobros con Tarjetas`, `Otras Formas (Transferencias)`, `Total Ingresos Brutos`, `Total Egresos en Efectivo` e `Ingreso Neto en Efectivo Real`.
