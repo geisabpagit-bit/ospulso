@@ -392,7 +392,7 @@ print <<"HTML";
             <div class="card-medentia-aura p-4 p-md-5 h-100 border-0 shadow-sm d-flex flex-column" style="border-radius: 1.5rem;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-black m-0" style="color: var(--md-blue-deep);"><i class="bi bi-receipt-cutoff me-2" style="color: var(--md-teal-clinical);"></i>Resumen</h5>
-                    <button type="button" class="btn btn-sm text-white px-3 py-2 fw-bold rounded-3 shadow-sm btn-mobile-standard d-inline-flex align-items-center gap-1" style="background: var(--md-blue-deep, #0A2A66);" onclick="abrirModalConceptosRecibo()">
+                    <button type="button" id="btnAbrirModalConceptos" class="btn btn-sm text-white px-3 py-2 fw-bold rounded-3 shadow-sm btn-mobile-standard d-inline-flex align-items-center gap-1" style="background: var(--md-blue-deep, #0A2A66);" onclick="if(window.abrirModalConceptosRecibo) window.abrirModalConceptosRecibo(); else if(typeof abrirModalConceptosRecibo === 'function') abrirModalConceptosRecibo();">
                         <i class="bi bi-cart-plus fs-6"></i> <span>Agregar</span>
                     </button>
                 </div>
@@ -1454,6 +1454,7 @@ print <<'JS';
         const m = bootstrap.Modal.getOrCreateInstance(el);
         m.show();
     }
+    window.abrirModalConceptosRecibo = abrirModalConceptosRecibo;
 
     function agregarAlCarritoModalRecibo(id) {
         const item = masterCatalogoRecibo.find(x => x.id === id);
@@ -1830,6 +1831,14 @@ print <<'JS';
 
     $(document).ready(function() {
         $('#selConceptoRecibo').on('change', onConceptoDepartamentoChange);
+        $(document).on('click', '#btnAbrirModalConceptos', function(e) {
+            e.preventDefault();
+            if (typeof window.abrirModalConceptosRecibo === 'function') {
+                window.abrirModalConceptosRecibo();
+            } else if (typeof abrirModalConceptosRecibo === 'function') {
+                abrirModalConceptosRecibo();
+            }
+        });
     });
 
     function mostrarReciboPrevio() {
@@ -2094,10 +2103,34 @@ print <<'JS';
             Swal.fire('Error', 'Hubo un problema de conexión. Revisa la consola para más detalles.', 'error');
         }
     }
+
+    // Exponer funciones globales al objeto window para compatibilidad con onclick inline y SPA Router
+    window.abrirModalConceptosRecibo = abrirModalConceptosRecibo;
+    window.seleccionarPacientePrivado = seleccionarPacientePrivado;
+    window.buscarEmpleadoEstado = buscarEmpleadoEstado;
+    window.onConceptoDepartamentoChange = onConceptoDepartamentoChange;
+    window.onEspecialidadChange = onEspecialidadChange;
+    window.onMedicoItemChange = onMedicoItemChange;
+    window.onTarifaConsultaChange = onTarifaConsultaChange;
+    window.onTarifaOtraInput = onTarifaOtraInput;
+    window.mostrarReciboPrevio = mostrarReciboPrevio;
+    window.seleccionarEmpleadoEstado = seleccionarEmpleadoEstado;
+    window.agregarAlCarritoModalRecibo = agregarAlCarritoModalRecibo;
+    window.toggleModalItemIva = toggleModalItemIva;
+    window.updateModalItemTarifaRecibo = updateModalItemTarifaRecibo;
+    window.updateModalQtyRecibo = updateModalQtyRecibo;
+    window.removeModalItemRecibo = removeModalItemRecibo;
+    window.toggleCartItemIva = toggleCartItemIva;
+    window.updateCartItemTarifa = updateCartItemTarifa;
+    window.removeConcepto = removeConcepto;
+    window.updateCantidad = updateCantidad;
+    window.agregarItemManualRecibo = agregarItemManualRecibo;
+    window._onDepChangeRecibo = _onDepChangeRecibo;
+    window._filtrarCatalogoRecibo = _filtrarCatalogoRecibo;
+    window.guardarConceptosModalRecibo = guardarConceptosModalRecibo;
+    window.emitirReciboFinal = emitirReciboFinal;
 </script>
 JS
-
-utils::sub_sidebar::render_sidebar_footer();
 
 print <<"HTML";
 <!-- MODAL CONCEPTOS DEL RECIBO -->
@@ -2202,6 +2235,8 @@ print <<"HTML";
     </div>
 </div>
 HTML
+
+utils::sub_sidebar::render_sidebar_footer();
 
 render_bottom_nav('finanzas');
 print "</body></html>\n";
