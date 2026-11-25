@@ -1234,6 +1234,15 @@ print <<'JS';
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Enviando enlace...',
+                    text: 'Por favor espera un momento.',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 const fd = new FormData();
                 fd.append('correo', correo);
                 fetch('../api/enviar_reset_admin_api.pl', {
