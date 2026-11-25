@@ -113,3 +113,34 @@ Para garantizar consistencia absoluta en reportes, tablas DataTables de Finanzas
      - Sanitización obligatoria en Perl con la propiedad Unicode `\p{L}\s`, colapso de espacios y función `uc()`, rechazando cualquier intento de inyección con error descriptivo JSON.
      - Persistencia limpia y uniforme en `dat/catalogos_CLUE/<CLUES>/pacientes_privados_<CLUES>.dat`, `dat/folios_recibos_privados.dat` y `dat/estado_cuenta.dat`.
 
+---
+
+## 7. Control Granular de IVA por Concepto en Carrito y Persistencia en Catálogo Maestro
+
+1. **Eliminación del Toggle Global y Adopción del Modelo POS Granular**:
+   - Se erradica el interruptor global inferior `#chkIva` ("Tax 16% sobre conceptos gravados") que forzaba un comportamiento rígido de "todo o nada".
+   - Cada concepto en el carrito de compras ([views/generar_recibo.pl](file:///c:/xampp/htdocs/ospulso/views/generar_recibo.pl)) dispone de su propio control interactivo tipo píldora:
+     * **Gravado activo**: Badge interactivo `+IVA 16%` (`#fef3c7`, borde `#fcd34d`, texto `#92400e`).
+     * **Exento**: Badge interactivo `Exento 0%` (`#f1f5f9`, borde `#cbd5e1`, texto `#64748b`).
+   - Al pulsar el badge, conmuta inmediatamente el estado fiscal del ítem (`cartItems[idx].aplica_iva`) y recalcula en tiempo real las cifras del carrito.
+
+2. **Blindaje Fiscal en Consultas Médicas (Exención Inviolable)**:
+   - Conforme al Art. 15 Fracc. XIV de la Ley del Impuesto al Valor Agregado (LIVA), los servicios profesionales de medicina humana están legalmente exentos de IVA.
+   - Todo concepto identificado como consulta (`is_consulta_principal`, departamento o categoría `1`, SKU `CONS*` o concepto `CONSULTA*`) muestra una insignia permanente bloqueada: `<span class="badge bg-light text-secondary border">Exento 0% (Médico)</span>`, impidiendo alteraciones indebidas por parte de ventanilla.
+
+3. **Renderizado Financiero en Tiempo Real**:
+   - El pie del carrito prescinde de controles de selección y se estructura como un desglose POS transparente:
+     * **SUBTOTAL**: Sumatoria neta de conceptos antes de impuestos (`#cartSubtotalText`).
+     * **IVA 16%**: Importe exacto del impuesto calculado exclusivamente sobre los conceptos marcados como gravados (`#taxAmountText`).
+     * **TOTAL A PAGAR**: Suma consolidada a cobrar en caja (`#cartTotalText`).
+
+4. **Persistencia Automática y Permanente en Catálogo Maestro (`catalogo_items_<CLUES>.dat`)**:
+   - Para resolver la fricción operativa donde los recepcionistas no tienen acceso a la Base de Datos Universal / Catálogo Universal:
+     * Al confirmar y emitir el recibo en [api/guardar_recibo_rapido.pl](file:///c:/xampp/htdocs/ospulso/api/guardar_recibo_rapido.pl), el sistema detecta los ítems que provienen del catálogo (`id_item` numérico).
+     * Si no son consultas médicas, actualiza directamente la **Columna 5 (`APLICA_IVA`)** de `catalogo_items_<CLUES>.dat` con el valor definido por el cajero (`1` o `0`) utilizando bloqueo exclusivo `flock(LOCK_EX)`.
+     * Las futuras emisiones de ese servicio/estudio/procedimiento nacerán con el nuevo estatus fiscal por defecto, eliminando retrabajos o solicitudes de permisos elevados.
+
+5. **Sincronización en Tablas Transaccionales y de Auditoría**:
+   - **`folios_recibos_privados.dat`**: Persiste en `ITEMS_JSON` cada ítem con `aplica_iva` y `iva_monto`, reflejando en `TOTAL_CARGOS` y `TOTAL_ABONOS` el importe total con IVA incluido.
+   - **`estado_cuenta.dat`**: Los movimientos de `Cargo` asientan `MONTO_BASE`, `IVA` y `TOTAL`, y el `Abono` amortiza el monto total cobrado en caja.
+

@@ -407,10 +407,15 @@ print <<"HTML";
                 
                 <hr class="border-light mt-auto mb-3">
                 
+                <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
+                    <span class="fw-bold text-muted" style="letter-spacing: 0.5px; font-size: 0.78rem;">SUBTOTAL</span>
+                    <span class="fw-bold text-secondary fs-6" id="cartSubtotalText">\$0.00</span>
+                </div>
+                
                 <div class="d-flex justify-content-between align-items-center text-muted small mb-3">
-                    <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="chkIva" onchange="onToggleIvaManual()">
-                        <label class="form-check-label fw-bold" style="cursor: pointer;" for="chkIva">Tax (IVA 16% <span class="text-muted fw-normal" style="font-size:0.7rem;">sobre conceptos gravados</span>)</label>
+                    <div class="d-flex align-items-center gap-1.5">
+                        <span class="badge rounded-pill" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.65rem; font-weight:700;">IVA 16%</span>
+                        <span class="fw-bold text-muted" style="font-size: 0.75rem;">Impuesto gravado</span>
                     </div>
                     <span class="fw-bold text-dark fs-6" id="taxAmountText">\$0.00</span>
                 </div>
@@ -462,23 +467,47 @@ print <<'JS';
     let consecutivoId = 1;
     let pacienteSeleccionado = null;
     let cargoSeleccionadoManual = null;
-    let ivaManualOverride = false;
 
-    function onToggleIvaManual() {
-        ivaManualOverride = true;
+    function esConceptoConsultaMedica(it) {
+        if (!it) return false;
+        if (it.is_consulta_principal) return true;
+        let idStr = String(it.id || '');
+        if (idStr.startsWith('CONS-') || idStr.startsWith('CONS_')) return true;
+        let catStr = String(it.cat || it.id_cat || '');
+        if (catStr === '1') return true;
+        let depStr = String(it.dep || it.id_dep || '');
+        if (depStr === '1') return true;
+        let nom = String(it.nombre || it.concepto || '');
+        if (/^CONSULTA\b/i.test(nom)) return true;
+        return false;
+    }
+
+    function toggleCartItemIva(idx) {
+        if (!cartItems[idx]) return;
+        let it = cartItems[idx];
+        if (esConceptoConsultaMedica(it)) return;
+        it.aplica_iva = (parseInt(it.aplica_iva, 10) === 1) ? 0 : 1;
+        let masterObj = masterCatalogoRecibo.find(m => m.id === it.id);
+        if (masterObj) {
+            masterObj.aplica_iva = it.aplica_iva;
+        }
         renderCart();
     }
 
-    function _sincronizarSwitchIvaSegunCarrito() {
-        const chk = document.getElementById('chkIva');
-        if (!chk) return;
-        const hayGravados = (pacienteTipoActual !== 'estado') && cartItems.some(it => parseInt(it.aplica_iva, 10) === 1);
-        if (!hayGravados) {
-            chk.checked = false;
-            ivaManualOverride = false;
-        } else if (!ivaManualOverride) {
-            chk.checked = true;
+    function toggleModalItemIva(idx) {
+        if (!modalCartItems[idx]) return;
+        let it = modalCartItems[idx];
+        if (esConceptoConsultaMedica(it)) return;
+        it.aplica_iva = (parseInt(it.aplica_iva, 10) === 1) ? 0 : 1;
+        let masterObj = masterCatalogoRecibo.find(m => m.id === it.id);
+        if (masterObj) {
+            masterObj.aplica_iva = it.aplica_iva;
         }
+        _renderizarCarritoModalRecibo();
+    }
+
+    function _sincronizarSwitchIvaSegunCarrito() {
+        // En el nuevo modelo POS por ítem, los subtotales e impuestos se calculan reactivamente en renderCart()
     }
 
     function _poblarDepartamentosSegunPaciente() {
@@ -1536,6 +1565,29 @@ print <<'JS';
             let tarifas = getTarifasAplicables(masterTemp);
 
             let subtextoTarifa = '';
+            let toggleIvaModalHtml = '';
+            if (pacienteTipoActual !== 'estado') {
+                if (esConceptoConsultaMedica(it)) {
+                    toggleIvaModalHtml = `<span class="badge bg-light text-secondary border ms-1" style="font-size:0.6rem;" title="Servicio médico profesional exento de IVA (Art. 15 LIVA)"><i class="bi bi-shield-check text-success me-0.5"></i>Exento 0%</span>`;
+                } else if (parseInt(it.aplica_iva, 10) === 1) {
+                    toggleIvaModalHtml = `
+                        <button type="button" class="btn btn-sm py-0 px-1.5 rounded-pill border d-inline-flex align-items-center gap-1 ms-1 shadow-none" 
+                                style="background:#fef3c7; color:#92400e; border-color:#fcd34d; font-size:0.62rem; height:20px; font-weight:700;" 
+                                onclick="toggleModalItemIva(${idx})" title="Clic para exentar de IVA este concepto">
+                            <i class="bi bi-toggle2-on fs-6 text-warning-emphasis" style="line-height:1;"></i>
+                            <span>+IVA 16%</span>
+                        </button>`;
+                } else {
+                    toggleIvaModalHtml = `
+                        <button type="button" class="btn btn-sm py-0 px-1.5 rounded-pill border d-inline-flex align-items-center gap-1 ms-1 bg-light text-muted shadow-none" 
+                                style="border-color:#cbd5e1; font-size:0.62rem; height:20px; font-weight:600;" 
+                                onclick="toggleModalItemIva(${idx})" title="Clic para aplicar IVA 16% a este concepto">
+                            <i class="bi bi-toggle2-off fs-6 text-secondary" style="line-height:1;"></i>
+                            <span>Exento 0%</span>
+                        </button>`;
+                }
+            }
+
             if (tarifas.length > 1) {
                 let opts = '';
                 tarifas.forEach(p => {
@@ -1543,10 +1595,10 @@ print <<'JS';
                     let label = getTarifaNombre(p.tipo_tarifa);
                     opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
                 });
-                subtextoTarifa = `<select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-1" style="font-size:0.7rem; max-width:185px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateModalItemTarifaRecibo(${idx}, this)">${opts}</select>`;
+                subtextoTarifa = `<div class="d-flex align-items-center flex-wrap gap-1 mt-1"><select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5" style="font-size:0.7rem; max-width:185px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateModalItemTarifaRecibo(${idx}, this)">${opts}</select>${toggleIvaModalHtml}</div>`;
             } else {
                 let labelT = getTarifaNombre(it.tipo_tarifa);
-                subtextoTarifa = `<div class="text-muted small" style="font-size:0.75rem;">${formatCurrency(it.precio)} c/u <span class="badge bg-light text-secondary border ms-1" style="font-size:0.65rem;">${escapeHtml(labelT)}</span></div>`;
+                subtextoTarifa = `<div class="d-flex align-items-center flex-wrap gap-1 mt-0.5"><span class="text-muted small" style="font-size:0.75rem;">${formatCurrency(it.precio)} c/u <span class="badge bg-light text-secondary border" style="font-size:0.65rem;">${escapeHtml(labelT)}</span></span>${toggleIvaModalHtml}</div>`;
             }
 
             html += `
@@ -1648,6 +1700,7 @@ print <<'JS';
                     <div class="text-muted" style="font-size: 0.72rem;">Selecciona una consulta o pulsa <b>+ Agregar</b> para incluir conceptos.</div>
                 </div>`;
             cMain.html(emptyHtml);
+            $('#cartSubtotalText').text('$0.00');
             $('#taxAmountText').text('$0.00');
             $('#cartTotalText').text('$0.00');
             return;
@@ -1680,11 +1733,29 @@ print <<'JS';
             let masterTemp = masterObj ? Object.assign({}, masterObj, { precios: preciosArr }) : { precios: preciosArr };
             let tarifas = getTarifasAplicables(masterTemp);
 
-            let badgeIvaItem = (!isCubierto)
-                ? (gravaIva
-                    ? `<span class="badge ms-1" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.6rem;">+IVA 16%</span>`
-                    : `<span class="badge bg-light text-secondary border ms-1" style="font-size:0.6rem;">Exento 0%</span>`)
-                : '';
+            let toggleIvaItemHtml = '';
+            if (!isCubierto) {
+                let esConsulta = esConceptoConsultaMedica(item);
+                if (esConsulta) {
+                    toggleIvaItemHtml = `<span class="badge bg-light text-secondary border ms-1" style="font-size:0.62rem;" title="Servicio médico profesional exento de IVA (Art. 15 LIVA)"><i class="bi bi-shield-check text-success me-0.5"></i>Exento 0% (Médico)</span>`;
+                } else if (gravaIva) {
+                    toggleIvaItemHtml = `
+                        <button type="button" class="btn btn-sm py-0 px-1.5 rounded-pill border d-inline-flex align-items-center gap-1 ms-1 shadow-none" 
+                                style="background:#fef3c7; color:#92400e; border-color:#fcd34d; font-size:0.65rem; height:20px; font-weight:700;" 
+                                onclick="toggleCartItemIva(${idx})" title="Clic para exentar de IVA este concepto">
+                            <i class="bi bi-toggle2-on fs-6 text-warning-emphasis" style="line-height:1;"></i>
+                            <span>+IVA 16%</span>
+                        </button>`;
+                } else {
+                    toggleIvaItemHtml = `
+                        <button type="button" class="btn btn-sm py-0 px-1.5 rounded-pill border d-inline-flex align-items-center gap-1 ms-1 bg-light text-muted shadow-none" 
+                                style="border-color:#cbd5e1; font-size:0.65rem; height:20px; font-weight:600;" 
+                                onclick="toggleCartItemIva(${idx})" title="Clic para aplicar IVA 16% a este concepto">
+                            <i class="bi bi-toggle2-off fs-6 text-secondary" style="line-height:1;"></i>
+                            <span>Exento 0%</span>
+                        </button>`;
+                }
+            }
 
             let subtexto = '';
             if (tarifas.length > 1 && !item.is_consulta_principal) {
@@ -1694,13 +1765,13 @@ print <<'JS';
                     let label = getTarifaNombre(p.tipo_tarifa);
                     opts += `<option value="${p.tipo_tarifa}" data-precio="${p.precio_publico}" ${sel}>${escapeHtml(label)} (${formatCurrency(p.precio_publico)})</option>`;
                 });
-                subtexto = `<div class="d-flex align-items-center flex-wrap gap-1"><select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-0.5" style="font-size:0.7rem; max-width:210px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>${badgeIvaItem}</div>`;
+                subtexto = `<div class="d-flex align-items-center flex-wrap gap-1"><select class="form-select form-select-sm rounded-pill fw-bold border-info-subtle bg-light text-primary shadow-sm ps-2.5 pe-4 py-0.5 mt-0.5" style="font-size:0.7rem; max-width:210px; text-overflow:ellipsis; white-space:nowrap; cursor:pointer;" onchange="updateCartItemTarifa(${idx}, this)">${opts}</select>${toggleIvaItemHtml}</div>`;
             } else if (isCubierto) {
                 let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
                 subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">Convenio Municipio${escapeHtml(labelT)} (${formatCurrency(item.precio)})</small>`;
             } else {
                 let labelT = item.tipo_tarifa ? ` [${getTarifaNombre(item.tipo_tarifa)}]` : '';
-                subtexto = `<small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u${escapeHtml(labelT)}${badgeIvaItem}</small>`;
+                subtexto = `<div class="d-flex align-items-center flex-wrap gap-1"><small class="text-muted fw-bold" style="font-size: 0.7rem;">${formatCurrency(item.precio)} c/u${escapeHtml(labelT)}</small>${toggleIvaItemHtml}</div>`;
             }
 
             let badgePrecio = isCubierto ?
@@ -1728,15 +1799,11 @@ print <<'JS';
         
         cMain.html(html);
         
-        let iva = 0;
-        if ($('#chkIva').length && $('#chkIva').is(':checked')) {
-            iva = baseGravableCobrar * 0.16;
-        }
-        
-        let totalIvaText = iva > 0 ? formatCurrency(iva) : '$0.00';
-        $('#taxAmountText').text(totalIvaText);
-        
+        let iva = (pacienteTipoActual !== 'estado') ? (baseGravableCobrar * 0.16) : 0;
         let totalFmt = formatCurrency(totalCobrar + iva);
+        
+        $('#cartSubtotalText').text(formatCurrency(totalCobrar));
+        $('#taxAmountText').text(formatCurrency(iva));
         $('#cartTotalText').text(totalFmt);
     }
     
@@ -1821,16 +1888,13 @@ print <<'JS';
                 subIt = ((it.precio || 0) * (it.cantidad || 1));
             }
             totalCobro += subIt;
-            if (parseInt(it.aplica_iva, 10) === 1) {
+            if (!isEstado && parseInt(it.aplica_iva, 10) === 1) {
                 baseGravable += subIt;
             }
         });
 
-        let iva = 0;
-        if ($('#chkIva').length && $('#chkIva').is(':checked') && baseGravable > 0) {
-            iva = baseGravable * 0.16;
-            totalCobro += iva;
-        }
+        let iva = (!isEstado && baseGravable > 0) ? (baseGravable * 0.16) : 0;
+        totalCobro += iva;
         const metodo = $('#selMetodoPago').val();
         
         let medTexto = '';
@@ -1941,7 +2005,7 @@ print <<'JS';
 
         let totalCobroVentanilla = 0;
         let baseGravableVentanilla = 0;
-        let chkIvaActivo = ($('#chkIva').length && $('#chkIva').is(':checked')) ? 1 : 0;
+        let totalIvaVentanilla = 0;
 
         cartItems.forEach(it => {
             let subIt = 0;
@@ -1952,20 +2016,18 @@ print <<'JS';
             } else {
                 subIt = ((it.precio || 0) * (it.cantidad || 1));
             }
-            const grava = (parseInt(it.aplica_iva, 10) === 1);
-            const ivaIt = (chkIvaActivo && grava && subIt > 0) ? Number((subIt * 0.16).toFixed(2)) : 0;
+            const grava = (tipo !== 'estado' && parseInt(it.aplica_iva, 10) === 1);
+            const ivaIt = (grava && subIt > 0) ? Number((subIt * 0.16).toFixed(2)) : 0;
             it.iva_monto = ivaIt;
             totalCobroVentanilla += subIt;
             if (grava) {
                 baseGravableVentanilla += subIt;
+                totalIvaVentanilla += ivaIt;
             }
         });
 
-        let con_iva = 0;
-        if (chkIvaActivo && baseGravableVentanilla > 0) {
-            totalCobroVentanilla = Number((totalCobroVentanilla + (baseGravableVentanilla * 0.16)).toFixed(2));
-            con_iva = 1;
-        }
+        let con_iva = (baseGravableVentanilla > 0) ? 1 : 0;
+        totalCobroVentanilla = Number((totalCobroVentanilla + totalIvaVentanilla).toFixed(2));
         
         Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Emitiendo recibo, un momento...', showConfirmButton: false, timer: 2000 });
         

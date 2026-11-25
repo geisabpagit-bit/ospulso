@@ -365,12 +365,69 @@ foreach my $it (@$caja_items) {
     }
     my $cant = $it->{cantidad} || 1;
     my $base_sub = ($it->{precio} || 0) * $cant;
-    my $es_gravado = (!$is_estado && $caja_con_iva && ($it->{aplica_iva} || ($it->{iva_monto} && $it->{iva_monto} > 0))) ? 1 : 0;
+    my $es_gravado = (!$is_estado && ($it->{aplica_iva} || ($it->{iva_monto} && $it->{iva_monto} > 0))) ? 1 : 0;
     my $iva_it = $es_gravado ? (sprintf("%.2f", $base_sub * 0.16) + 0) : 0;
     $it->{iva_monto} = $iva_it;
     $total_cargos_calculado += ($base_sub + $iva_it);
 }
 $total_cargos_calculado = sprintf("%.2f", $total_cargos_calculado) + 0;
+
+# Actualizar permanentemente APLICA_IVA en catalogo_items_<CLUES>.dat para los conceptos modificados (excepto consultas)
+if ($org_clues && !$is_estado) {
+    my %items_iva_actualizar;
+    foreach my $it (@$caja_items) {
+        my $iid = $it->{id_item} || $it->{id} || '';
+        if ($iid =~ /^\d+$/ && defined $it->{aplica_iva}) {
+            $items_iva_actualizar{$iid} = ($it->{aplica_iva} ? 1 : 0);
+        }
+    }
+    
+    if (keys %items_iva_actualizar) {
+        my $cat_items_path = File::Spec->catfile($FindBin::Bin, '..', 'dat', 'catalogos_CLUE', $org_clues, "catalogo_items_${org_clues}.dat");
+        if (-e $cat_items_path && open(my $fh_ci, '<:encoding(UTF-8)', $cat_items_path)) {
+            my @nuevas_lineas;
+            my $hubo_cambio = 0;
+            my $header_ci = <$fh_ci>;
+            push @nuevas_lineas, $header_ci if defined $header_ci;
+            
+            while (my $line_ci = <$fh_ci>) {
+                chomp $line_ci;
+                next if $line_ci =~ /^\s*$/;
+                my @cols = split(/\|/, $line_ci, -1);
+                my $cur_id = $cols[0] // '';
+                
+                if (exists $items_iva_actualizar{$cur_id}) {
+                    # No alterar consultas médicas (Cat 1 o SKU CONS o Concepto CONSULTA)
+                    my $id_cat = $cols[2] // '';
+                    my $sku    = $cols[1] // '';
+                    my $conc   = uc($cols[3] // '');
+                    my $es_consulta = ($id_cat eq '1' || $sku =~ /^CONS/i || $conc =~ /^CONSULTA\b/i) ? 1 : 0;
+                    
+                    if (!$es_consulta) {
+                        my $nuevo_iva = $items_iva_actualizar{$cur_id};
+                        my $antiguo_iva = ($cols[4] && $cols[4] eq '1') ? 1 : 0;
+                        if ($nuevo_iva != $antiguo_iva) {
+                            $cols[4] = $nuevo_iva;
+                            $line_ci = join('|', @cols);
+                            $hubo_cambio = 1;
+                        }
+                    }
+                }
+                push @nuevas_lineas, $line_ci . "\n";
+            }
+            close($fh_ci);
+            
+            if ($hubo_cambio) {
+                if (open(my $fh_out, '>:encoding(UTF-8)', $cat_items_path)) {
+                    flock($fh_out, 2); # LOCK_EX
+                    print $fh_out @nuevas_lineas;
+                    flock($fh_out, 8); # LOCK_UN
+                    close($fh_out);
+                }
+            }
+        }
+    }
+}
 
 my $total_cargos_final = ($total_cargos_calculado > 0) ? $total_cargos_calculado : ($caja_monto_abono || 0);
 my $total_abonos_final = $is_estado ? ($caja_monto_abono || 0) : ($caja_monto_abono || $total_cargos_final);
